@@ -1,4 +1,4 @@
-import { RequestArgs, RequestCtx } from "@projecttacoma/node-fhir-server-core";
+import { RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 
 // See https://github.com/projecttacoma/node-fhir-server-core/blob/master/docs/ConfiguringProfiles.md
 export interface Service<T extends fhir4.FhirResource> {
@@ -31,26 +31,17 @@ export interface Service<T extends fhir4.FhirResource> {
   /*
    * POST /:base_version/[profile_name]
    */
-  create?: (
-    args: RequestArgs,
-    ctx: RequestCtx
-  ) => Promise<{ id: string; resource_version?: string }>;
+  create?: (args: RequestArgs, ctx: RequestCtx) => Promise<{ id: string; resource_version?: string }>;
 
   /*
    * PUT /:base_version/[profile_name]/:id
    */
-  update?: (
-    args: RequestArgs,
-    ctx: RequestCtx
-  ) => Promise<{ id: string; resource_version?: string }>;
+  update?: (args: RequestArgs, ctx: RequestCtx) => Promise<{ id: string; resource_version?: string }>;
 
   /*
    * PATCH /:base_version/[profile_name]/:id
    */
-  patch?: (
-    args: RequestArgs,
-    ctx: RequestCtx
-  ) => Promise<{ id: string; resource_version?: string }>;
+  patch?: (args: RequestArgs, ctx: RequestCtx) => Promise<{ id: string; resource_version?: string }>;
 
   /*
    * DELETE /:base_version/[profile_name]/:id
