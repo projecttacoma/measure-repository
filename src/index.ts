@@ -1,8 +1,25 @@
-import { initialize } from '@projecttacoma/node-fhir-server-core';
+import { initialize, loggers } from '@projecttacoma/node-fhir-server-core';
+import * as dotenv from 'dotenv';
 import { serverConfig } from './config/serverConfig';
+import { Connection } from './db/Connection';
+
+dotenv.config();
 
 const server = initialize(serverConfig);
+const logger = loggers.get('default');
 
-server.listen(3000, () => {
-  console.log('Server listening');
-});
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+const host = process.env.HOST || 'localhost';
+const dbUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
+
+Connection.connect(dbUrl)
+  .then(() => {
+    logger.info(`Connected to ${dbUrl}`);
+    server.listen(port, host, () => {
+      logger.info(`Server listening on ${host}:${port}`);
+    });
+  })
+  .catch(e => {
+    logger.error(e.message);
+    process.exit(1);
+  });
