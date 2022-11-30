@@ -1,5 +1,4 @@
 {
-  "include": ["src"],
   "compilerOptions": {
     "resolveJsonModule": true,
     "target": "ES2017",
