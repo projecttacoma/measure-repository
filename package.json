@@ -1,4 +1,9 @@
 {
+  "name": "measure-repository-service",
+  "version": "0.0.1",
+  "description": "Prototype implementation of a FHIR Measure Repository Service",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
