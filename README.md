@@ -1,6 +1,6 @@
-# node-fhir-server-ts-template
+# Measure Repository Service
 
-Template repository for building FHIR servers in TypeScript with the [Abacus fork of node-fhir-server-core](https://github.com/projecttacoma/node-fhir-server-core)
+A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html)
 
 ## License
 
