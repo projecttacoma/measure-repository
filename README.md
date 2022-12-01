@@ -5,7 +5,7 @@ A prototype implementation of a [FHIR Measure Repository Service](https://build.
 ## Prerequisites
 
 - [Node.js >=16.0.0](https://nodejs.org/en/)
-- [MongoDB >= 5.0](https://www.mongodb.com)
+- [MongoDB >= 6.0](https://www.mongodb.com)
 
 ## Usage
 
