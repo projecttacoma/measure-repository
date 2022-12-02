@@ -2,6 +2,26 @@
 
 A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html)
 
+## Prerequisites
+
+- [Node.js >=16.0.0](https://nodejs.org/en/)
+- [MongoDB >= 6.0](https://www.mongodb.com)
+
+## Usage
+
+```
+npm start
+```
+
+### First time Database Setup
+
+This server comes with a script to create collections for FHIR Measure, Library, and MeasureReport resources which will be used by the measure repository service.
+To create these collections:
+
+```
+npm run db:setup
+```
+
 ## License
 
 Copyright 2022 The MITRE Corporation

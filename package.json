@@ -5,14 +5,17 @@
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc -p tsconfig.build.json -w",
-    "lint": "eslint \"src/**/*.{js,ts}\"",
-    "lint:fix": "eslint \"src/**/*.{js,ts}\" --fix",
-    "prettier": "prettier --check \"src/**/*.{js,ts}\"",
+    "build": "tsc -p ./tsconfig.build.json",
+    "build:watch": "tsc -p ./tsconfig.build.json -w",
+    "db:delete": "ts-node ./scripts/dbSetup.ts delete",
+    "db:reset": "ts-node ./scripts/dbSetup.ts reset",
+    "db:setup": "ts-node ./scripts/dbSetup.ts create",
+    "lint": "eslint \"./src/**/*.{js,ts}\"",
+    "lint:fix": "eslint \"./src/**/*.{js,ts}\" --fix",
+    "prettier": "prettier --check \"./src/**/*.{js,ts}\"",
     "prettier:fix": "prettier --write \"src/**/*.{js,ts}\"",
-    "start": "ts-node src/index.ts",
-    "start:watch": "nodemon src/index.ts",
+    "start": "ts-node ./src/index.ts",
+    "start:watch": "nodemon ./src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -32,6 +35,8 @@
     "typescript": "^4.9.3"
   },
   "dependencies": {
-    "@projecttacoma/node-fhir-server-core": "^2.2.8"
+    "@projecttacoma/node-fhir-server-core": "^2.2.8",
+    "dotenv": "^16.0.3",
+    "mongodb": "^4.12.1"
   }
 }
