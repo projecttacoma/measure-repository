@@ -117,6 +117,8 @@ declare module '@projecttacoma/node-fhir-server-core' {
   }
 
   export class Server {
+    app: any;
+
     constructor(config: ServerConfig, app: any);
     configureMiddleware(): Server;
     configureHelmet(helmetConfig: any): Server;

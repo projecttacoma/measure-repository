@@ -1,5 +1,8 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+const tsPreset = require('ts-jest/jest-preset');
+const mongoDBPreset = require('@shelf/jest-mongodb/jest-preset');
+
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+  ...tsPreset,
+  ...mongoDBPreset,
+  setupFiles: ['./test/setup.ts']
 };
