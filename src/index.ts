@@ -1,9 +1,6 @@
 import { initialize, loggers } from '@projecttacoma/node-fhir-server-core';
-import * as dotenv from 'dotenv';
 import { serverConfig } from './config/serverConfig';
 import { Connection } from './db/Connection';
-
-dotenv.config();
 
 const server = initialize(serverConfig);
 const logger = loggers.get('default');

@@ -4,10 +4,10 @@ import { Service } from '../types/service';
 import { ResourceNotFoundError } from '../util/errorUtils';
 
 /*
- * Example service that one would implement for the `Measure` resource
+ * Example service that one would implement for the `Library` resource
  * See the Service interface for all possible functions
  */
-export class MeasureService implements Service<fhir4.Measure> {
+export class LibraryService implements Service<fhir4.Library> {
   // TODO: Remove ts-ignore comment when actually implementing this
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -16,15 +16,14 @@ export class MeasureService implements Service<fhir4.Measure> {
   }
 
   /**
-   *
-   * result of sending a GET request to {BASE_URL}/4_0_1/Measure/{id}
-   * searches for the measure with the passed in id
+   * result of sending a GET request to {BASE_URL}/4_0_1/Library/{id}
+   * searches for the library with the passed in id
    */
   async searchById(args: RequestArgs) {
-    const result = await findResourceById(args.id, 'Measure');
+    const result = await findResourceById(args.id, 'Library');
     if (!result) {
-      throw new ResourceNotFoundError(`No resource found in collection: Measure, with: id ${args.id}`);
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with: id ${args.id}`);
     }
-    return result as fhir4.Measure;
+    return result;
   }
 }

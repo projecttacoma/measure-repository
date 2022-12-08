@@ -1,5 +1,5 @@
 import { Db, MongoClient, MongoClientOptions } from 'mongodb';
-
+import '../config/envConfig';
 export class Connection {
   static connection: MongoClient | null = null;
   static db: Db;
