@@ -1,4 +1,5 @@
 import { loggers, RequestArgs } from '@projecttacoma/node-fhir-server-core';
+import { findResourceById } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { ResourceNotFoundError } from '../util/errorUtils';
 
