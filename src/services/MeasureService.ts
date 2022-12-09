@@ -1,5 +1,5 @@
 import { loggers, RequestArgs } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById } from '../db/DBOperations';
+import { findResourceById } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { ResourceNotFoundError } from '../util/errorUtils';
 
@@ -18,7 +18,6 @@ export class MeasureService implements Service<fhir4.Measure> {
   }
 
   /**
-   *
    * result of sending a GET request to {BASE_URL}/4_0_1/Measure/{id}
    * searches for the measure with the passed in id
    */
@@ -28,6 +27,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with: id ${args.id}`);
     }
-    return result as fhir4.Measure;
+    return result;
   }
 }
