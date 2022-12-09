@@ -16,7 +16,7 @@ export async function cleanUpDb() {
 export const testSetup = async (testFixtureList: fhir4.FhirResource[]) => {
   await Connection.connect(dbUrl);
 
-  const result = testfixtureList.map(async x => {
+  const result = testFixtureList.map(async x => {
     return await createTestResource(x, x.resourceType);
   });
   await Promise.all(result);
