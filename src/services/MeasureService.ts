@@ -22,8 +22,8 @@ export class MeasureService implements Service<fhir4.Measure> {
    * searches for the measure with the passed in id
    */
   async searchById(args: RequestArgs) {
-    const result = await findResourceById(args.id, 'Measure');
     logger.info(`GET /Measure/${args.id}`);
+    const result = await findResourceById(args.id, 'Measure');
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with: id ${args.id}`);
     }

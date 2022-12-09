@@ -20,7 +20,6 @@ describe('MeasureService', () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/measure123')
         .set('Accept', 'application/json+fhir')
-        .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.id).toEqual(Measure.id);

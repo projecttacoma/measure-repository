@@ -22,8 +22,8 @@ export class LibraryService implements Service<fhir4.Library> {
    * searches for the library with the passed in id
    */
   async searchById(args: RequestArgs) {
-    const result = await findResourceById(args.id, 'Library');
     logger.info(`GET /Library/${args.id}`);
+    const result = await findResourceById(args.id, 'Library');
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with: id ${args.id}`);
     }
