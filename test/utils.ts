@@ -1,6 +1,6 @@
 import { Connection } from '../src/db/Connection';
 
-const dbUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
+const dbUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository-test';
 
 const createTestResource = async (data: any, resourceType: string) => {
   const collection = Connection.db.collection(resourceType);
