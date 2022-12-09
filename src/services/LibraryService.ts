@@ -1,7 +1,9 @@
-import { RequestArgs } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById } from '../db/DBOperations';
 import { Service } from '../types/service';
 import { ResourceNotFoundError } from '../util/errorUtils';
+
+const logger = loggers.get('default');
 
 /*
  * Example service that one would implement for the `Library` resource
@@ -21,6 +23,7 @@ export class LibraryService implements Service<fhir4.Library> {
    */
   async searchById(args: RequestArgs) {
     const result = await findResourceById(args.id, 'Library');
+    logger.info(`GET /Library/${args.id}`);
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with: id ${args.id}`);
     }
