@@ -14,6 +14,7 @@ describe('measure.service', () => {
 
     await testSetup([Measure]);
   });
+
   describe('searchById', () => {
     test('test searchById with correctHeaders and the id should be in database returns 200', async () => {
       await supertest(server.app)
@@ -25,6 +26,7 @@ describe('measure.service', () => {
           expect(response.body.id).toEqual(Measure.id);
         });
     });
+
     test('test searchById when the id cannot be found in the database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/invalidID')
@@ -38,5 +40,6 @@ describe('measure.service', () => {
         });
     });
   });
+
   afterAll(cleanUpDb);
 });

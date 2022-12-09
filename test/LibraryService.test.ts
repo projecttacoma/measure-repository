@@ -18,6 +18,7 @@ describe('LibraryService', () => {
     server = initialize(config);
     await testSetup([Library]);
   });
+
   describe('searchById', () => {
     test('test searchById with correctHeaders and the id should be in database returns 200', async () => {
       await supertest(server.app)
@@ -29,6 +30,7 @@ describe('LibraryService', () => {
           expect(response.body.id).toEqual(Library.id);
         });
     });
+
     test('test searchById when the id cannot be found in the database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/invalidID')
@@ -42,5 +44,6 @@ describe('LibraryService', () => {
         });
     });
   });
+
   afterAll(cleanUpDb);
 });
