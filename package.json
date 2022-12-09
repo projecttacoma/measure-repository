@@ -23,6 +23,7 @@
     "@types/fhir": "^0.0.35",
     "@types/jest": "^29.2.3",
     "@types/node": "^18.11.5",
+    "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "eslint": "^8.28.0",

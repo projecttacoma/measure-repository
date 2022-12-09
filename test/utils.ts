@@ -8,7 +8,6 @@ const createTestResource = async (data: any, resourceType: string) => {
   return { id: data.id };
 };
 
-//clean up db after test
 export async function cleanUpDb() {
   await Connection.db.dropDatabase();
   await Connection.connection?.close();

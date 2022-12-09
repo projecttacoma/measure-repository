@@ -1,6 +1,5 @@
 import { constants, ServerConfig } from '@projecttacoma/node-fhir-server-core';
-import { MeasureService } from '../services';
-import { LibraryService } from '../services/LibraryService';
+import { MeasureService, LibraryService } from '../services';
 
 export const serverConfig: ServerConfig = {
   profiles: {

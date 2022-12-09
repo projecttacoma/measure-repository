@@ -1,7 +1,7 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../src/config/serverConfig';
 import { cleanUpDb, testSetup } from './utils';
-const supertest = require('supertest');
+import supertest from 'supertest';
 
 let server: Server;
 
@@ -14,7 +14,7 @@ describe('measure.service', () => {
 
     await testSetup([Measure]);
   });
-  describe('CRUD operations', () => {
+  describe('searchById', () => {
     test('test searchById with correctHeaders and the id should be in database returns 200', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/measure123')
