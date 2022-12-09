@@ -6,8 +6,8 @@ import { ResourceNotFoundError } from '../util/errorUtils';
 const logger = loggers.get('default');
 
 /*
- * Example service that one would implement for the `Library` resource
- * See the Service interface for all possible functions
+ * Implementation of a service for the `Library` resource
+ * The Service interface contains all possible functions
  */
 export class LibraryService implements Service<fhir4.Library> {
   // TODO: Remove ts-ignore comment when actually implementing this
