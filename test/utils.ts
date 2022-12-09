@@ -13,7 +13,7 @@ export async function cleanUpDb() {
   await Connection.connection?.close();
 }
 
-export const testSetup = async (testfixtureList: any[]) => {
+export const testSetup = async (testFixtureList: fhir4.FhirResource[]) => {
   await Connection.connect(dbUrl);
 
   const result = testfixtureList.map(async x => {
