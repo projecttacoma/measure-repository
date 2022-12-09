@@ -20,23 +20,23 @@ describe('LibraryService', () => {
   });
 
   describe('searchById', () => {
-    test('test searchById with correctHeaders and the id should be in database returns 200', async () => {
+    it('test searchById with correctHeaders and the id should be in database returns 200', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/library123')
         .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(200)
-        .then((response: any) => {
+        .then(response => {
           expect(response.body.id).toEqual(Library.id);
         });
     });
 
-    test('test searchById when the id cannot be found in the database', async () => {
+    it('test searchById when the id cannot be found in the database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/invalidID')
         .set('Accept', 'application/json+fhir')
         .expect(404)
-        .then((response: any) => {
+        .then(response => {
           expect(response.body.issue[0].code).toEqual('ResourceNotFound');
           expect(response.body.issue[0].details.text).toEqual(
             `No resource found in collection: Library, with: id invalidID`
