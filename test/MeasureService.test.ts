@@ -7,7 +7,7 @@ let server: Server;
 
 const Measure: fhir4.Measure = { resourceType: 'Measure', id: 'measure123', status: 'active' };
 
-describe('measure.service', () => {
+describe('MeasureService', () => {
   beforeAll(async () => {
     const config = serverConfig;
     server = initialize(config);
