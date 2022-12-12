@@ -5,22 +5,30 @@ import supertest from 'supertest';
 
 let server: Server;
 
-const Measure: fhir4.Measure = { resourceType: 'Measure', id: 'measure123', status: 'active' };
+const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active' };
+const MEASURE_WITH_URL: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithUrl',
+  status: 'active',
+  url: 'http://example.com'
+};
 
 describe('MeasureService', () => {
-  beforeAll(() => {
-    server = initialize(serverConfig);
-    return setupTestDatabase([Measure]);
+  beforeAll(async () => {
+    const config = serverConfig;
+    server = initialize(config);
+
+    await setupTestDatabase([MEASURE, MEASURE_WITH_URL]);
   });
 
   describe('searchById', () => {
     it('test searchById with correctHeaders and the id should be in database returns 200', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/measure123')
+        .get('/4_0_1/Measure/test')
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
-          expect(response.body.id).toEqual(Measure.id);
+          expect(response.body.id).toEqual(MEASURE.id);
         });
     });
 
@@ -37,7 +45,38 @@ describe('MeasureService', () => {
         });
     });
   });
+  describe('search', () => {
+    it('returns 200 and correct searchset bundle when query matches single resource', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure')
+        .query({ url: 'http://example.com', status: 'active' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(1);
+          expect(response.body.entry[0].resource).toEqual(MEASURE_WITH_URL);
+        });
+    });
 
+    it('returns 200 and correct searchset bundle when query matches multiple resources', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure')
+        .query({ status: 'active' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'test')?.resource).toEqual(
+            MEASURE
+          );
+          expect(
+            response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'testWithUrl')?.resource
+          ).toEqual(MEASURE_WITH_URL);
+        });
+    });
+  });
   afterAll(() => {
     return cleanUpTestDatabase();
   });

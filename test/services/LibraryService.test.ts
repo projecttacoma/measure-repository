@@ -5,31 +5,40 @@ import supertest from 'supertest';
 
 let server: Server;
 
-const Library: fhir4.Library = {
+const LIBRARY_WITH_URL: fhir4.Library = {
   resourceType: 'Library',
   type: { coding: [{ code: 'logic-library' }] },
-  id: 'library123',
+  id: 'testWithUrl',
+  status: 'active',
+  url: 'http://example.com'
+};
+
+const LIBRARY: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  id: 'test',
   status: 'active'
 };
 
 describe('LibraryService', () => {
-  beforeAll(() => {
-    server = initialize(serverConfig);
-    return setupTestDatabase([Library]);
+  beforeAll(async () => {
+    const config = serverConfig;
+    server = initialize(config);
+    await setupTestDatabase([LIBRARY, LIBRARY_WITH_URL]);
   });
 
   describe('searchById', () => {
-    it('test searchById with correctHeaders and the id should be in database returns 200', async () => {
+    it('returns 200 when passed correct headers and the id is in database ', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Library/library123')
+        .get('/4_0_1/Library/test')
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
-          expect(response.body.id).toEqual(Library.id);
+          expect(response.body.id).toEqual(LIBRARY.id);
         });
     });
 
-    it('test searchById when the id cannot be found in the database', async () => {
+    it('returns 404 when passed correct headers and id is not in database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/invalidID')
         .set('Accept', 'application/json+fhir')
@@ -42,7 +51,38 @@ describe('LibraryService', () => {
         });
     });
   });
+  describe('search', () => {
+    it('returns 200 and correct searchset bundle when query matches single resource', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library')
+        .query({ url: 'http://example.com', status: 'active' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(1);
+          expect(response.body.entry[0].resource).toEqual(LIBRARY_WITH_URL);
+        });
+    });
 
+    it('returns 200 and correct searchset bundle when query matches multiple resources', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library')
+        .query({ status: 'active' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'test')?.resource).toEqual(
+            LIBRARY
+          );
+          expect(
+            response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'testWithUrl')?.resource
+          ).toEqual(LIBRARY_WITH_URL);
+        });
+    });
+  });
   afterAll(() => {
     return cleanUpTestDatabase();
   });

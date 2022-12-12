@@ -20,5 +20,5 @@ export async function findOneResourceWithQuery<T extends fhir4.FhirResource>(
 
 export async function findResourcesWithQuery<T extends fhir4.FhirResource>(query: any, resourceType: FhirResourceType) {
   const collection = Connection.db.collection(resourceType);
-  return (await collection.find<T>(query, { projection: { _id: 0 } })).toArray();
+  return collection.find<T>(query, { projection: { _id: 0 } }).toArray();
 }

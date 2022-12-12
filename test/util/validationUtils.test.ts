@@ -7,6 +7,7 @@ describe('validateSearchParams', () => {
       validateSearchParams(validQuery);
     }).not.toThrow();
   });
+
   it('throws a BadRequest error with invalid params', () => {
     const invalidQuery = { invalid: 'test', alsoInvalid: 'test2' };
     try {
@@ -17,6 +18,7 @@ describe('validateSearchParams', () => {
       expect(e.issue[0].details.text).toEqual('Parameters invalid, alsoInvalid are not valid for search');
     }
   });
+
   it('throws a BadRequest error with some valid and some invalid params', () => {
     const invalidQuery = { invalid: 'test', url: 'http://example.com' };
     try {
