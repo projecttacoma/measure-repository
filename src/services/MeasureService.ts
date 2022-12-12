@@ -1,7 +1,9 @@
-import { loggers, RequestArgs } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById } from '../db/dbOperations';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
+import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
+import { createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
+import { validateSearchParams } from '../util/validationUtils';
 
 const logger = loggers.get('default');
 
@@ -10,11 +12,11 @@ const logger = loggers.get('default');
  * The Service interface contains all possible functions
  */
 export class MeasureService implements Service<fhir4.Measure> {
-  // TODO: Remove ts-ignore comment when actually implementing this
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  async search() {
-    throw new Error('Not implemented');
+  async search(args: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Measure>> {
+    const { query } = req;
+    validateSearchParams(query);
+    const entries = (await findResourcesWithQuery(query, 'Measure')) as fhir4.Measure[];
+    return createSearchsetBundle(entries);
   }
 
   /**

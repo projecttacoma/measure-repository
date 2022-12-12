@@ -150,5 +150,6 @@ declare module '@projecttacoma/node-fhir-server-core' {
   export function initialize(config: ServerConfig, app?: any): Server;
 
   export type RequestArgs = Record<string, any>;
+  export type RequestQuery = Record<string, string>;
   export type RequestCtx = { req: any };
 }
