@@ -9,8 +9,7 @@ const Measure: fhir4.Measure = { resourceType: 'Measure', id: 'measure123', stat
 
 describe('MeasureService', () => {
   beforeAll(async () => {
-    const config = serverConfig;
-    server = initialize(config);
+    server = initialize(serverConfig);
 
     await testSetup([Measure]);
   });
