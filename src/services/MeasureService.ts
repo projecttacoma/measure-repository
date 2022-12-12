@@ -3,6 +3,7 @@ import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
+import { parseQuery } from '../util/queryUtils';
 import { validateSearchParams } from '../util/validationUtils';
 
 const logger = loggers.get('default');
@@ -19,7 +20,8 @@ export class MeasureService implements Service<fhir4.Measure> {
   async search(args: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Measure>> {
     const { query } = req;
     validateSearchParams(query);
-    const entries = (await findResourcesWithQuery(query, 'Measure')) as fhir4.Measure[];
+    const parsedQuery = parseQuery(query);
+    const entries = (await findResourcesWithQuery(parsedQuery, 'Measure')) as fhir4.Measure[];
     return createSearchsetBundle(entries);
   }
 
