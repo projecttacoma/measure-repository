@@ -14,8 +14,7 @@ const Library: fhir4.Library = {
 
 describe('LibraryService', () => {
   beforeAll(async () => {
-    const config = serverConfig;
-    server = initialize(config);
+    server = initialize(serverConfig);
     await testSetup([Library]);
   });
 
