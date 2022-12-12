@@ -12,6 +12,10 @@ const logger = loggers.get('default');
  * The Service interface contains all possible functions
  */
 export class MeasureService implements Service<fhir4.Measure> {
+  /**
+   * result of sending a GET request to {BASE_URL}/4_0_1/Measure?{QUERY}
+   * searches for all measures that match the included query and returns a FHIR searchset Bundle
+   */
   async search(args: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Measure>> {
     const { query } = req;
     validateSearchParams(query);

@@ -12,7 +12,11 @@ const logger = loggers.get('default');
  * The Service interface contains all possible functions
  */
 export class LibraryService implements Service<fhir4.Library> {
-  async search(args: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Library>> {
+  /**
+   * result of sending a GET request to {BASE_URL}/4_0_1/Library?{QUERY}
+   * searches for all libraries that match the included query and returns a FHIR searchset Bundle
+   */
+  async search(_: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Library>> {
     const { query } = req;
     validateSearchParams(query);
     const entries = (await findResourcesWithQuery(query, 'Library')) as fhir4.Library[];
