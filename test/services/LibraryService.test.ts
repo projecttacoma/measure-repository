@@ -13,9 +13,9 @@ const Library: fhir4.Library = {
 };
 
 describe('LibraryService', () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     server = initialize(serverConfig);
-    await testSetup([Library]);
+    return testSetup([Library]);
   });
 
   describe('searchById', () => {
@@ -43,5 +43,7 @@ describe('LibraryService', () => {
     });
   });
 
-  afterAll(cleanUpDb);
+  afterAll(() => {
+    return cleanUpDb();
+  });
 });

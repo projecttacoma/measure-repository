@@ -8,10 +8,9 @@ let server: Server;
 const Measure: fhir4.Measure = { resourceType: 'Measure', id: 'measure123', status: 'active' };
 
 describe('MeasureService', () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     server = initialize(serverConfig);
-
-    await testSetup([Measure]);
+    return testSetup([Measure]);
   });
 
   describe('searchById', () => {
@@ -39,5 +38,7 @@ describe('MeasureService', () => {
     });
   });
 
-  afterAll(cleanUpDb);
+  afterAll(() => {
+    return cleanUpDb();
+  });
 });
