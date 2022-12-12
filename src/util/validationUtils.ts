@@ -13,3 +13,20 @@ export function validateSearchParams(query: RequestQuery) {
     throw new BadRequestError(`Parameters ${invalidParams.join(', ')} are not valid for search`);
   }
 }
+/*
+ * Gathers parameters from both the query and the FHIR parameter request body resource
+ */
+export function gatherParams(query: Record<string, any>, parameters?: fhir4.Parameters) {
+  const params = { ...query };
+
+  if (parameters?.parameter) {
+    parameters.parameter.reduce((acc, e) => {
+      if (!e.resource) {
+        // Currently value types needed by $package (add others as needed)
+        acc[e.name] = e.valueUrl || e.valueString || e.valueInteger || e.valueCanonical || e.valueBoolean;
+      }
+      return acc;
+    }, params);
+  }
+  return params;
+}
