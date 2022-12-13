@@ -1,5 +1,9 @@
 import { RequestQuery } from '@projecttacoma/node-fhir-server-core';
 
+/**
+ * Takes in an express query and parses the identifier field, if present, into
+ * a usable mongo query
+ */
 export function parseQuery(query: RequestQuery): RequestQuery {
   if (query.identifier) {
     const iden = query.identifier;
