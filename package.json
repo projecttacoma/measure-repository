@@ -20,6 +20,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
+    "@shelf/jest-mongodb": "^4.1.4",
     "@types/fhir": "^0.0.35",
     "@types/jest": "^29.2.3",
     "@types/node": "^18.11.5",
