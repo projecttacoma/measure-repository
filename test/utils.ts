@@ -11,7 +11,7 @@ export async function cleanUpDb() {
   await Connection.connection?.close();
 }
 
-export async function testSetup(testFixtureList: fhir4.FhirResource[]) {
+export async function testDatabaseSetup(testFixtureList: fhir4.FhirResource[]) {
   await Connection.connect((global as any).__MONGO_URI__);
 
   for (const resource of testFixtureList) {
