@@ -6,12 +6,12 @@ async function createTestResource(data: fhir4.FhirResource, resourceType: FhirRe
   await collection.insertOne({ ...data });
 }
 
-export async function cleanUpDb() {
+export async function cleanUpTestDatabase() {
   await Connection.db.dropDatabase();
   await Connection.connection?.close();
 }
 
-export async function testDatabaseSetup(testFixtureList: fhir4.FhirResource[]) {
+export async function setupTestDatabase(testFixtureList: fhir4.FhirResource[]) {
   await Connection.connect((global as any).__MONGO_URI__);
 
   for (const resource of testFixtureList) {

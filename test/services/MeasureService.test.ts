@@ -1,6 +1,6 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../../src/config/serverConfig';
-import { cleanUpDb, testSetup } from '../utils';
+import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
 
 let server: Server;
@@ -10,7 +10,7 @@ const Measure: fhir4.Measure = { resourceType: 'Measure', id: 'measure123', stat
 describe('MeasureService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return testSetup([Measure]);
+    return setupTestDatabase([Measure]);
   });
 
   describe('searchById', () => {
@@ -39,6 +39,6 @@ describe('MeasureService', () => {
   });
 
   afterAll(() => {
-    return cleanUpDb();
+    return cleanUpTestDatabase();
   });
 });

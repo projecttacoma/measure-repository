@@ -1,6 +1,6 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../../src/config/serverConfig';
-import { cleanUpDb, testSetup } from '../utils';
+import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
 
 let server: Server;
@@ -15,7 +15,7 @@ const Library: fhir4.Library = {
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return testSetup([Library]);
+    return setupTestDatabase([Library]);
   });
 
   describe('searchById', () => {
@@ -44,6 +44,6 @@ describe('LibraryService', () => {
   });
 
   afterAll(() => {
-    return cleanUpDb();
+    return cleanUpTestDatabase();
   });
 });
