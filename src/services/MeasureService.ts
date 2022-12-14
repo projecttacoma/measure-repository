@@ -18,9 +18,9 @@ export class MeasureService implements Service<fhir4.Measure> {
    * searches for all measures that match the included query and returns a FHIR searchset Bundle
    */
   async search(_: RequestArgs, { req }: RequestCtx) {
-    //TODO! Check in with Matt re this log
-    logger.info(`GET /Measure?${req._parsedUrl.query}`);
+    logger.info(`GET /Measure`);
     const { query } = req;
+    logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
     validateSearchParams(query);
     const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');

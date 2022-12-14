@@ -6,8 +6,7 @@ import { Filter } from 'mongodb';
  * a usable mongo query
  */
 export function getMongoQueryFromRequest(query: RequestQuery): Filter<any> {
-  //TODO can the value of a query be an array? Do we need to handle this outside of just adding to types
-
+  //TODO: Handle potential for query value to be array
   const mongoFilter: Filter<any> = { ...query };
   delete mongoFilter.identifier;
   if (query.identifier) {
