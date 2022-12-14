@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc -p ./tsconfig.build.json",
     "build:watch": "tsc -p ./tsconfig.build.json -w",
+    "check": "npm run test && npm run lint && npm run prettier",
     "db:delete": "ts-node ./scripts/dbSetup.ts delete",
     "db:reset": "ts-node ./scripts/dbSetup.ts reset",
     "db:setup": "ts-node ./scripts/dbSetup.ts create",
