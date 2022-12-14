@@ -18,7 +18,9 @@ export class LibraryService implements Service<fhir4.Library> {
    * searches for all libraries that match the included query and returns a FHIR searchset Bundle
    */
   async search(_: RequestArgs, { req }: RequestCtx) {
+    logger.info(`GET /Library`);
     const { query } = req;
+    logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
     validateSearchParams(query);
     const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
