@@ -14,11 +14,9 @@ const MEASURE_WITH_URL: fhir4.Measure = {
 };
 
 describe('MeasureService', () => {
-  beforeAll(async () => {
-    const config = serverConfig;
-    server = initialize(config);
-
-    await setupTestDatabase([MEASURE, MEASURE_WITH_URL]);
+  beforeAll(() => {
+    server = initialize(serverConfig);
+    return setupTestDatabase([MEASURE, MEASURE_WITH_URL]);
   });
 
   describe('searchById', () => {

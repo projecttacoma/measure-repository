@@ -21,7 +21,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     const { query } = req;
     validateSearchParams(query);
     const parsedQuery = parseQuery(query);
-    const entries = (await findResourcesWithQuery(parsedQuery, 'Measure')) as fhir4.Measure[];
+    const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
     return createSearchsetBundle(entries);
   }
 

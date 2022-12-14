@@ -6,7 +6,7 @@ import { RequestQuery } from '@projecttacoma/node-fhir-server-core';
  */
 export function parseQuery(query: RequestQuery): RequestQuery {
   if (query.identifier) {
-    const iden = query.identifier;
+    const iden = query.identifier as string;
     delete query.identifier;
     const splitIden = iden.split('|');
     if (splitIden.length === 1) {

@@ -21,10 +21,9 @@ const LIBRARY: fhir4.Library = {
 };
 
 describe('LibraryService', () => {
-  beforeAll(async () => {
-    const config = serverConfig;
-    server = initialize(config);
-    await setupTestDatabase([LIBRARY, LIBRARY_WITH_URL]);
+  beforeAll(() => {
+    server = initialize(serverConfig);
+    return setupTestDatabase([LIBRARY, LIBRARY_WITH_URL]);
   });
 
   describe('searchById', () => {

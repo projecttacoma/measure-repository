@@ -17,11 +17,11 @@ export class LibraryService implements Service<fhir4.Library> {
    * result of sending a GET request to {BASE_URL}/4_0_1/Library?{QUERY}
    * searches for all libraries that match the included query and returns a FHIR searchset Bundle
    */
-  async search(_: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Library>> {
+  async search(_: RequestArgs, { req }: RequestCtx) {
     const { query } = req;
     validateSearchParams(query);
     const parsedQuery = parseQuery(query);
-    const entries = (await findResourcesWithQuery(parsedQuery, 'Library')) as fhir4.Library[];
+    const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
     return createSearchsetBundle(entries);
   }
 
