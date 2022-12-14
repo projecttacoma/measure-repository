@@ -3,7 +3,7 @@ import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
-import { parseQuery } from '../util/queryUtils';
+import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { validateSearchParams } from '../util/validationUtils';
 
 const logger = loggers.get('default');
@@ -17,10 +17,12 @@ export class MeasureService implements Service<fhir4.Measure> {
    * result of sending a GET request to {BASE_URL}/4_0_1/Measure?{QUERY}
    * searches for all measures that match the included query and returns a FHIR searchset Bundle
    */
-  async search(args: RequestArgs, { req }: RequestCtx): Promise<fhir4.Bundle<fhir4.Measure>> {
+  async search(_: RequestArgs, { req }: RequestCtx) {
+    //TODO! Check in with Matt re this log
+    logger.info(`GET /Measure?${req._parsedUrl.query}`);
     const { query } = req;
     validateSearchParams(query);
-    const parsedQuery = parseQuery(query);
+    const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
     return createSearchsetBundle(entries);
   }

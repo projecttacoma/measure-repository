@@ -3,7 +3,7 @@ import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
-import { parseQuery } from '../util/queryUtils';
+import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { validateSearchParams } from '../util/validationUtils';
 
 const logger = loggers.get('default');
@@ -20,7 +20,7 @@ export class LibraryService implements Service<fhir4.Library> {
   async search(_: RequestArgs, { req }: RequestCtx) {
     const { query } = req;
     validateSearchParams(query);
-    const parsedQuery = parseQuery(query);
+    const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
     return createSearchsetBundle(entries);
   }

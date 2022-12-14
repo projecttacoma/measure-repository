@@ -27,7 +27,7 @@ describe('LibraryService', () => {
   });
 
   describe('searchById', () => {
-    it('returns 200 when passed correct headers and the id is in database ', async () => {
+    it('returns 200 when passed correct headers and the id is in database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/test')
         .set('Accept', 'application/json+fhir')
@@ -73,12 +73,16 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.total).toEqual(2);
-          expect(response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'test')?.resource).toEqual(
-            LIBRARY
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining<fhir4.BundleEntry>({
+                resource: LIBRARY
+              }),
+              expect.objectContaining<fhir4.BundleEntry>({
+                resource: LIBRARY_WITH_URL
+              })
+            ])
           );
-          expect(
-            response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'testWithUrl')?.resource
-          ).toEqual(LIBRARY_WITH_URL);
         });
     });
   });

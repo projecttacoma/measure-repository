@@ -20,7 +20,7 @@ describe('MeasureService', () => {
   });
 
   describe('searchById', () => {
-    it('test searchById with correctHeaders and the id should be in database returns 200', async () => {
+    it('returns 200 when passed correct headers and the id is in database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/test')
         .set('Accept', 'application/json+fhir')
@@ -30,7 +30,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('test searchById when the id cannot be found in the database', async () => {
+    it('returns 404 when passed correct headers and id is not in database', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/invalidID')
         .set('Accept', 'application/json+fhir')
@@ -66,12 +66,16 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.total).toEqual(2);
-          expect(response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'test')?.resource).toEqual(
-            MEASURE
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining<fhir4.BundleEntry>({
+                resource: MEASURE
+              }),
+              expect.objectContaining<fhir4.BundleEntry>({
+                resource: MEASURE_WITH_URL
+              })
+            ])
           );
-          expect(
-            response.body.entry.find((e: fhir4.BundleEntry) => e.resource?.id === 'testWithUrl')?.resource
-          ).toEqual(MEASURE_WITH_URL);
         });
     });
   });
