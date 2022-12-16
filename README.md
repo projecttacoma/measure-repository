@@ -7,11 +7,19 @@ A prototype implementation of a [FHIR Measure Repository Service](https://build.
 - [Node.js >=16.0.0](https://nodejs.org/en/)
 - [MongoDB >= 6.0](https://www.mongodb.com)
 
+### MongoDB
+
+This test server makes use of [MongoDB](https://www.mongodb.com), a cross-platform document-oriented database program.
+
+Follow the [MongoDB Community Edition installation guide](https://docs.mongodb.com/manual/installation/) for your platform, and follow the commands for running MongoDB on your machine.
+
 ## Usage
 
-```
-npm start
-```
+Once MongoDB is running on your machine, run the `npm start` command to start up the FHIR server at `localhost:3000`.
+
+For ease of testing, it is recommended to download [Insomnia API Client and Design Tool](https://insomnia.rest) for sending HTTP requests to the server and [Robo 3T](https://robomongo.org) as a GUI for viewing the Mongo database.
+
+When sending requests, ensure that the `"Content-type": "application/json+fhir"` header is set.
 
 ### First time Database Setup
 
@@ -21,6 +29,17 @@ To create these collections:
 ```
 npm run db:setup
 ```
+
+### CRUD Operations
+
+This server currently supports the following CRUD operations:
+
+- read by ID to endpoint: `4_0_1/<resourceType>/<resourceId>`
+  _More functionality coming soon!_
+
+### Search
+
+The Measure Repository Server supports `Library` and `Measure` resource search by the parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#shareable-measure-repository).
 
 ## License
 
