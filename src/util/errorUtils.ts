@@ -28,3 +28,21 @@ export class ResourceNotFoundError extends CustomServerError {
     super(message, 404, 'ResourceNotFound');
   }
 }
+
+/**
+ * Error class that throws ServerError with status code 400 and code BadRequest
+ */
+export class BadRequestError extends CustomServerError {
+  constructor(message: string) {
+    super(message, 400, 'BadRequest');
+  }
+}
+
+/**
+ * Error class that throws ServerError with status code 501 and code NotImplemented
+ */
+export class NotImplementedError extends CustomServerError {
+  constructor(message: string) {
+    super(message, 501, 'NotImplemented');
+  }
+}

@@ -1,7 +1,10 @@
-import { loggers, RequestArgs } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById } from '../db/dbOperations';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
+import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
+import { createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
+import { getMongoQueryFromRequest } from '../util/queryUtils';
+import { validateSearchParams } from '../util/validationUtils';
 
 const logger = loggers.get('default');
 
@@ -10,11 +13,18 @@ const logger = loggers.get('default');
  * The Service interface contains all possible functions
  */
 export class MeasureService implements Service<fhir4.Measure> {
-  // TODO: Remove ts-ignore comment when actually implementing this
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  async search() {
-    throw new Error('Not implemented');
+  /**
+   * result of sending a GET request to {BASE_URL}/4_0_1/Measure?{QUERY}
+   * searches for all measures that match the included query and returns a FHIR searchset Bundle
+   */
+  async search(_: RequestArgs, { req }: RequestCtx) {
+    logger.info(`GET /Measure`);
+    const { query } = req;
+    logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
+    validateSearchParams(query);
+    const parsedQuery = getMongoQueryFromRequest(query);
+    const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
+    return createSearchsetBundle(entries);
   }
 
   /**

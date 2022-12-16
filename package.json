@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc -p ./tsconfig.build.json",
     "build:watch": "tsc -p ./tsconfig.build.json -w",
+    "check": "npm run test && npm run lint && npm run prettier",
     "db:delete": "ts-node ./scripts/dbSetup.ts delete",
     "db:reset": "ts-node ./scripts/dbSetup.ts reset",
     "db:setup": "ts-node ./scripts/dbSetup.ts create",
@@ -25,6 +26,7 @@
     "@types/jest": "^29.2.3",
     "@types/node": "^18.11.5",
     "@types/supertest": "^2.0.12",
+    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "eslint": "^8.28.0",
@@ -40,6 +42,7 @@
   "dependencies": {
     "@projecttacoma/node-fhir-server-core": "^2.2.8",
     "dotenv": "^16.0.3",
-    "mongodb": "^4.12.1"
+    "mongodb": "^4.12.1",
+    "uuid": "^9.0.0"
   }
 }
