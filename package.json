@@ -11,6 +11,7 @@
     "db:delete": "ts-node ./scripts/dbSetup.ts delete",
     "db:reset": "ts-node ./scripts/dbSetup.ts reset",
     "db:setup": "ts-node ./scripts/dbSetup.ts create",
+    "db:loadBundle": "ts-node ./scripts/dbSetup.ts loadBundle",
     "lint": "eslint \"./src/**/*.{js,ts}\"",
     "lint:fix": "eslint \"./src/**/*.{js,ts}\" --fix",
     "prettier": "prettier --check \"./src/**/*.{js,ts}\"",
