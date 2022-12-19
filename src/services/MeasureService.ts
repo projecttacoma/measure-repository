@@ -1,8 +1,8 @@
-import { loggers, RequestArgs, RequestCtx, resolveSchema } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
-import { createSearchsetBundle } from '../util/bundleUtils';
+import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { gatherParams, validateSearchParams } from '../util/validationUtils';
@@ -65,12 +65,11 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (url) query.url = url;
     if (version) query.version = version;
     const measure = await findResourcesWithQuery<fhir4.Measure>(query, 'Measure');
-    if (!measure) {
+    if (!measure || !(measure.length > 0)) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with: id ${args.id}`);
     }
 
-    // TODO: gather dependencies and create bundle
-    // const result = resolveSchema('4_0_1', 'Bundle') as fhir4.Bundle;
-    return measure;
+    // TODO: should we allow multiple measure matches?
+    return await createMeasurePackageBundle(measure[0]);
   }
 }
