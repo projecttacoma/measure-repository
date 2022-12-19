@@ -1,7 +1,6 @@
 import { Connection } from '../src/db/Connection';
 import * as fs from 'fs';
-import { Bundle, FhirResource } from 'fhir/r4';
-import { MongoError, OptionalId } from 'mongodb';
+import { MongoError } from 'mongodb';
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
 const COLLECTION_NAMES = ['Measure', 'Library', 'MeasureReport'];
@@ -41,7 +40,7 @@ async function loadBundle(filePath: string) {
   const data = fs.readFileSync(filePath, 'utf8');
   if (data) {
     console.log(`Uploading ${filePath.split('/').slice(-1)}...`);
-    const bundle: Bundle = JSON.parse(data);
+    const bundle: fhir4.Bundle = JSON.parse(data);
     // retrieve each resource and insert into database
     if (bundle.entry) {
       let resourcesUploaded = 0;
@@ -83,7 +82,7 @@ async function loadBundle(filePath: string) {
 /*
  * Inserts one data object into database with specified FHIR resource type
  */
-async function createResource(data: FhirResource, resourceType: string) {
+async function createResource(data: fhir4.FhirResource, resourceType: string) {
   const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
   console.log(`Inserting ${resourceType}/${data.id} into database`);
   await collection.insertOne(data);

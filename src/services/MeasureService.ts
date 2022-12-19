@@ -65,7 +65,11 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (version) query.version = version;
     const measure = await findResourcesWithQuery<fhir4.Measure>(query, 'Measure');
     if (!measure || !(measure.length > 0)) {
-      throw new ResourceNotFoundError(`No resource found in collection: Measure, with: id ${args.id}`);
+      throw new ResourceNotFoundError(
+        `No resource found in collection: Measure, with: ${Object.keys(query)
+          .map(key => `${key}: ${query[key]}`)
+          .join(' and ')}`
+      );
     }
 
     // TODO: should we allow multiple measure matches?

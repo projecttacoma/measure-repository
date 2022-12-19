@@ -17,16 +17,21 @@ export function validateSearchParams(query: RequestQuery) {
  * Gathers parameters from both the query and the FHIR parameter request body resource
  */
 export function gatherParams(query: Record<string, any>, parameters?: fhir4.Parameters) {
-  const params = { ...query };
+  const gatheredParams = { ...query };
 
   if (parameters?.parameter) {
-    parameters.parameter.reduce((acc, e) => {
-      if (!e.resource) {
+    parameters.parameter.reduce((params, bodyParam) => {
+      if (!bodyParam.resource) {
         // Currently value types needed by $package (add others as needed)
-        acc[e.name] = e.valueUrl || e.valueString || e.valueInteger || e.valueCanonical || e.valueBoolean;
+        params[bodyParam.name] =
+          bodyParam.valueUrl ||
+          bodyParam.valueString ||
+          bodyParam.valueInteger ||
+          bodyParam.valueCanonical ||
+          bodyParam.valueBoolean;
       }
-      return acc;
-    }, params);
+      return params;
+    }, gatheredParams);
   }
-  return params;
+  return gatheredParams;
 }

@@ -1,5 +1,4 @@
 import { loggers } from '@projecttacoma/node-fhir-server-core';
-import { FhirResource, Library } from 'fhir/r4';
 import { Filter } from 'mongodb';
 import { v4 } from 'uuid';
 import { findResourcesWithQuery } from '../db/dbOperations';
@@ -26,7 +25,7 @@ export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]
  * Takes in a measure resource, finds all dependent library resources and bundles them
  * together with the measure in a collection bundle
  */
-export async function createMeasurePackageBundle(measure: fhir4.Measure): Promise<fhir4.Bundle<FhirResource>> {
+export async function createMeasurePackageBundle(measure: fhir4.Measure): Promise<fhir4.Bundle<fhir4.FhirResource>> {
   logger.info(`Assembling collection bundle from Measure ${measure.id}`);
   if (measure.library && measure.library.length > 0) {
     const [mainLibraryRef] = measure.library;
@@ -38,14 +37,17 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
     }
     const mainLib = libs[0];
 
-    const allLibsDups = await getAllDependentLibraries(mainLib as Library);
+    const allLibsDups = await getAllDependentLibraries(mainLib as fhir4.Library);
     // de-dup by id using map
     const idMap = new Map(allLibsDups.map(lib => [lib.id, lib]));
     const allLibs = Array.from(idMap.values());
-    const result: fhir4.Bundle = { resourceType: 'Bundle', type: 'collection' };
-    result.entry = allLibs.map(r => ({
-      resource: r
-    }));
+    const result: fhir4.Bundle = { resourceType: 'Bundle', type: 'collection', id: v4() };
+    result.entry = [{ resource: measure }];
+    result.entry.push(
+      ...allLibs.map(r => ({
+        resource: r
+      }))
+    );
     return result;
   } else {
     throw new ResourceNotFoundError(`No libraries found for measure ${measure.id}`);
@@ -69,8 +71,8 @@ function getQueryFromReference(reference: string): Filter<any> {
 /**
  * Iterate through relatedArtifact of library and return list of all dependent libraries used
  */
-async function getAllDependentLibraries(lib: Library): Promise<Library[]> {
-  logger.info(`Retrieving all dependent libraries for library: ${lib.id}`);
+async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir4.Library[]> {
+  logger.debug(`Retrieving all dependent libraries for library: ${lib.id}`);
   const results = [lib];
 
   // If the library has no dependencies, we are done
@@ -89,13 +91,6 @@ async function getAllDependentLibraries(lib: Library): Promise<Library[]> {
     .map(ra => ra.resource as string); //TODO: may be able to improve this typing
   // Obtain all libraries referenced in the related artifact, and recurse on their dependencies
   const libraryGets = depLibUrls.map(async url => {
-    // TODO: remove if not needed -> Quick fix for invalid connectathon url references
-    // if (url in INCORRECT_CONNECTATHON_URLS_MAP) {
-    //   logger.warn(
-    //     `Using potentially outdated reference url: ${url}. Replacing with ${INCORRECT_CONNECTATHON_URLS_MAP[url]}`
-    //   );
-    //   url = INCORRECT_CONNECTATHON_URLS_MAP[url];
-    // }
     const libQuery = getQueryFromReference(url);
     const libs = await findResourcesWithQuery(libQuery, 'Library');
     if (!libs || libs.length < 1) {
@@ -105,7 +100,7 @@ async function getAllDependentLibraries(lib: Library): Promise<Library[]> {
         }${libQuery.version ? ` and version: ${libQuery.version}` : ''}`
       );
     }
-    return getAllDependentLibraries(libs[0] as Library);
+    return getAllDependentLibraries(libs[0] as fhir4.Library);
   });
 
   const allDeps = await Promise.all(libraryGets);
