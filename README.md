@@ -34,7 +34,7 @@ npm run db:setup
 
 This server currently supports the following CRUD operations:
 
-- read by ID to endpoint: `4_0_1/<resourceType>/<resourceId>`
+- Read by ID to endpoint: `4_0_1/<resourceType>/<resourceId>`
   _More functionality coming soon!_
 
 ### Search
