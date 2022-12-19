@@ -58,7 +58,6 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
  * @returns {Filter} mongo query to pass in to mongo controller to search for the referenced resource
  */
 function getQueryFromReference(reference: string): Filter<any> {
-  // References could be canonical or resourceType/id
   if (reference.includes('|')) {
     const [urlPart, versionPart] = reference.split('|');
     return { url: urlPart, version: versionPart };
@@ -71,7 +70,7 @@ function getQueryFromReference(reference: string): Filter<any> {
  * Iterate through relatedArtifact of library and return list of all dependent libraries used
  */
 async function getAllDependentLibraries(lib: Library): Promise<Library[]> {
-  logger.debug(`Retrieving all dependent libraries for library: ${lib.id}`);
+  logger.info(`Retrieving all dependent libraries for library: ${lib.id}`);
   const results = [lib];
 
   // If the library has no dependencies, we are done

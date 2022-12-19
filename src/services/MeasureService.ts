@@ -48,7 +48,6 @@ export class MeasureService implements Service<fhir4.Measure> {
    */
   async package(args: RequestArgs, ctx: RequestCtx) {
     logger.info(`${ctx.req.method} to ${ctx.req.path}`);
-    console.log('ARGS!! matey', args.resource);
 
     const params = gatherParams(ctx.req.query, args.resource);
     const id = args.id || params.id;
