@@ -12,11 +12,53 @@ const MEASURE_WITH_URL: fhir4.Measure = {
   status: 'active',
   url: 'http://example.com'
 };
+const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithRootLib',
+  status: 'active',
+  url: 'http://example.com/testMeasureWithRootLib',
+  library: ['http://example.com/testLibrary']
+};
+const MEASURE_WITH_ROOT_LIB_AND_DEPS: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithRootLibAndDeps',
+  status: 'active',
+  url: 'http://example.com/testMeasureWithDeps',
+  library: ['http://example.com/testLibraryWithDeps']
+};
+const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testLibraryWithNoDeps',
+  status: 'draft',
+  url: 'http://example.com/testLibrary',
+  type: { coding: [{ code: 'logic-library' }] }
+};
+
+const LIBRARY_WITH_DEPS: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testLibraryWithDeps',
+  status: 'draft',
+  url: 'http://example.com/testLibraryWithDeps',
+  type: { coding: [{ code: 'logic-library' }] },
+  relatedArtifact: [
+    {
+      type: 'depends-on',
+      resource: 'http://example.com/testLibrary'
+    }
+  ]
+};
 
 describe('MeasureService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return setupTestDatabase([MEASURE, MEASURE_WITH_URL]);
+    return setupTestDatabase([
+      MEASURE,
+      MEASURE_WITH_URL,
+      MEASURE_WITH_ROOT_LIB,
+      MEASURE_WITH_ROOT_LIB_AND_DEPS,
+      LIBRARY_WITH_NO_DEPS,
+      LIBRARY_WITH_DEPS
+    ]);
   });
 
   describe('searchById', () => {
@@ -74,6 +116,67 @@ describe('MeasureService', () => {
               expect.objectContaining<fhir4.BundleEntry>({
                 resource: MEASURE_WITH_URL
               })
+            ])
+          );
+        });
+    });
+  });
+  describe.only('$package', () => {
+    it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through args', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/testWithRootLib/$package')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry.length).toEqual(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
+          );
+        });
+    });
+    it('returns a Bundle including the root lib, Measure, and  when root lib has dependencies and id passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry.length).toEqual(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
+          );
+        });
+    });
+    it('returns a Bundle including the root lib, Measure, and  when root lib has dependencies and url passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [{ name: 'url', valueUrl: 'http://example.com/testMeasureWithRootLib' }]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry.length).toEqual(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
+          );
+        });
+    });
+    it('returns a Bundle including the root lib, dependent libs, and Measure when root lib has dependencies', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/testWithRootLibAndDeps/$package')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry.length).toEqual(3);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: LIBRARY_WITH_DEPS },
+              { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
             ])
           );
         });

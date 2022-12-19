@@ -73,6 +73,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     }
 
     // TODO: should we allow multiple measure matches?
-    return await createMeasurePackageBundle(measure[0]);
+    return createMeasurePackageBundle(measure[0]);
   }
 }
