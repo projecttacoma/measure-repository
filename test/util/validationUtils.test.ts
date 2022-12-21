@@ -1,16 +1,30 @@
-import { validateSearchParams } from '../../src/util/validationUtils';
+import { gatherParams, validateSearchParams } from '../../src/util/validationUtils';
+
+const VALID_QUERY = { url: 'http://example.com' };
+
+const INVALID_QUERY = { invalid: 'test' };
+
+const PARTIALLY_INVALID_QUERY = { ...VALID_QUERY, ...INVALID_QUERY };
+
+const POPULATED_PARAMETERS: fhir4.Parameters = {
+  resourceType: 'Parameters',
+  parameter: [
+    {
+      name: 'id',
+      valueString: 'test'
+    }
+  ]
+};
 
 describe('validateSearchParams', () => {
   it('does not throw an error with valid params', () => {
-    const validQuery = { url: 'http://example.com', status: 'active' };
     expect(() => {
-      validateSearchParams(validQuery);
+      validateSearchParams(VALID_QUERY);
     }).not.toThrow();
   });
 
   it('throws a BadRequest error with invalid params', () => {
-    const invalidQuery = { invalid: 'test', alsoInvalid: 'test2' };
-    expect(() => validateSearchParams(invalidQuery)).toThrow(
+    expect(() => validateSearchParams(INVALID_QUERY)).toThrow(
       expect.objectContaining({
         statusCode: 400,
         issue: [
@@ -25,9 +39,7 @@ describe('validateSearchParams', () => {
   });
 
   it('throws a BadRequest error with some valid and some invalid params', () => {
-    const invalidQuery = { invalid: 'test', url: 'http://example.com' };
-
-    expect(() => validateSearchParams(invalidQuery)).toThrow(
+    expect(() => validateSearchParams(PARTIALLY_INVALID_QUERY)).toThrow(
       expect.objectContaining({
         statusCode: 400,
         issue: [
@@ -39,5 +51,19 @@ describe('validateSearchParams', () => {
         ]
       })
     );
+  });
+});
+
+describe('gatherParams', () => {
+  it('returns params included in the request query', () => {
+    expect(gatherParams(VALID_QUERY)).toEqual({ url: 'http://example.com' });
+  });
+
+  it('returns params included in the request body', () => {
+    expect(gatherParams({}, POPULATED_PARAMETERS)).toEqual({ id: 'test' });
+  });
+
+  it('returns params included in both url and request body combined', () => {
+    expect(gatherParams(VALID_QUERY, POPULATED_PARAMETERS)).toEqual({ url: 'http://example.com', id: 'test' });
   });
 });

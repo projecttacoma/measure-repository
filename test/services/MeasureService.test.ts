@@ -121,19 +121,21 @@ describe('MeasureService', () => {
         });
     });
   });
-  describe.only('$package', () => {
+
+  describe('$package', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through args', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/testWithRootLib/$package')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.entry.length).toEqual(2);
+          expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
           );
         });
     });
+
     it('returns a Bundle including the root lib, Measure, and  when root lib has dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
@@ -142,42 +144,43 @@ describe('MeasureService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.entry.length).toEqual(2);
+          expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
           );
         });
     });
-    it('returns a Bundle including the root lib, Measure, and  when root lib has dependencies and url passed through body', async () => {
+
+    it('throws a 400 error when no url or id included in request', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({ resourceType: 'Parameters', parameter: [] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('BadRequest');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Must provide identifying information via either id or url parameters'
+          );
+        });
+    });
+
+    it('throws a 404 error when no measure matching id and url cannot be found', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
         .send({
           resourceType: 'Parameters',
-          parameter: [{ name: 'url', valueUrl: 'http://example.com/testMeasureWithRootLib' }]
+          parameter: [
+            { name: 'id', valueString: 'invalid' },
+            { name: 'url', valueUrl: 'invalid' }
+          ]
         })
         .set('content-type', 'application/fhir+json')
-        .expect(200)
+        .expect(404)
         .then(response => {
-          expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.entry.length).toEqual(2);
-          expect(response.body.entry).toEqual(
-            expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
-          );
-        });
-    });
-    it('returns a Bundle including the root lib, dependent libs, and Measure when root lib has dependencies', async () => {
-      await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLibAndDeps/$package')
-        .expect(200)
-        .then(response => {
-          expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.entry.length).toEqual(3);
-          expect(response.body.entry).toEqual(
-            expect.arrayContaining([
-              { resource: LIBRARY_WITH_NO_DEPS },
-              { resource: LIBRARY_WITH_DEPS },
-              { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
-            ])
+          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].details.text).toEqual(
+            'No resource found in collection: Measure, with: id: invalid and url: invalid'
           );
         });
     });

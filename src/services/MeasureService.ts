@@ -46,10 +46,10 @@ export class MeasureService implements Service<fhir4.Measure> {
    * creates a bundle of the measure (specified by parameters) and all dependent libraries
    * supports parameters id and/or url + version (optional)
    */
-  async package(args: RequestArgs, ctx: RequestCtx) {
-    logger.info(`${ctx.req.method} to ${ctx.req.path}`);
+  async package(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
 
-    const params = gatherParams(ctx.req.query, args.resource);
+    const params = gatherParams(req.query, args.resource);
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;

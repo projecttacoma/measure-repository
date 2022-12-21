@@ -2,7 +2,7 @@ import { loggers } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { v4 } from 'uuid';
 import { findResourcesWithQuery } from '../db/dbOperations';
-import { ResourceNotFoundError } from '../util/errorUtils';
+import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 
 const logger = loggers.get('default');
 
@@ -31,7 +31,7 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
     const [mainLibraryRef] = measure.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
     const libs = await findResourcesWithQuery(mainLibQuery, 'Library');
-
+    console.log(libs);
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(`Could not find Library ${mainLibraryRef} referenced by Measure ${measure.id}`);
     }
@@ -50,7 +50,7 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
     );
     return result;
   } else {
-    throw new ResourceNotFoundError(`No libraries found for measure ${measure.id}`);
+    throw new BadRequestError(`Uploaded measure: ${measure.id} does not reference a Library`);
   }
 }
 
@@ -59,7 +59,7 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
  * @param {string} reference assumed to be canonical
  * @returns {Filter} mongo query to pass in to mongo controller to search for the referenced resource
  */
-function getQueryFromReference(reference: string): Filter<any> {
+export function getQueryFromReference(reference: string): Filter<any> {
   if (reference.includes('|')) {
     const [urlPart, versionPart] = reference.split('|');
     return { url: urlPart, version: versionPart };
@@ -71,7 +71,7 @@ function getQueryFromReference(reference: string): Filter<any> {
 /**
  * Iterate through relatedArtifact of library and return list of all dependent libraries used
  */
-async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir4.Library[]> {
+export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir4.Library[]> {
   logger.debug(`Retrieving all dependent libraries for library: ${lib.id}`);
   const results = [lib];
 
@@ -79,7 +79,6 @@ async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir4.Libra
   if (!lib.relatedArtifact || (Array.isArray(lib.relatedArtifact) && lib.relatedArtifact.length === 0)) {
     return results;
   }
-
   // This filter checks for the 'Library' keyword on all related artifacts
   const depLibUrls = lib.relatedArtifact
     .filter(
@@ -94,6 +93,7 @@ async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir4.Libra
     const libQuery = getQueryFromReference(url);
     const libs = await findResourcesWithQuery(libQuery, 'Library');
     if (!libs || libs.length < 1) {
+      console.log('reached');
       throw new ResourceNotFoundError(
         `Failed to find dependent library with ${
           libQuery.id ? `id: ${libQuery.id}` : `canonical url: ${libQuery.url}`
