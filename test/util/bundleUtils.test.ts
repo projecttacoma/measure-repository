@@ -110,7 +110,6 @@ describe('bundleUtils', () => {
       try {
         await createMeasurePackageBundle(MEASURE_WITH_MISSING_LIBRARY);
       } catch (e: any) {
-        console.log(e);
         expect(e.statusCode).toEqual(404);
         expect(e.issue[0].details.text).toEqual(
           `Could not find Library http://example.com/MissingLibrary referenced by Measure MeasureMissingLib`
@@ -123,7 +122,6 @@ describe('bundleUtils', () => {
       try {
         await createMeasurePackageBundle(MEASURE_WITH_NO_LIBRARY);
       } catch (e: any) {
-        console.log(e);
         expect(e.statusCode).toEqual(400);
         expect(e.issue[0].details.text).toEqual('Uploaded measure: MeasureNoLib does not reference a Library');
       }

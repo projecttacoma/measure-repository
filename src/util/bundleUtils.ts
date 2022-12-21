@@ -31,7 +31,6 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
     const [mainLibraryRef] = measure.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
     const libs = await findResourcesWithQuery(mainLibQuery, 'Library');
-    console.log(libs);
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(`Could not find Library ${mainLibraryRef} referenced by Measure ${measure.id}`);
     }
@@ -93,7 +92,6 @@ export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir
     const libQuery = getQueryFromReference(url);
     const libs = await findResourcesWithQuery(libQuery, 'Library');
     if (!libs || libs.length < 1) {
-      console.log('reached');
       throw new ResourceNotFoundError(
         `Failed to find dependent library with ${
           libQuery.id ? `id: ${libQuery.id}` : `canonical url: ${libQuery.url}`
