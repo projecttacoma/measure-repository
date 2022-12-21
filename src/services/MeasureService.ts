@@ -71,8 +71,14 @@ export class MeasureService implements Service<fhir4.Measure> {
           .join(' and ')}`
       );
     }
+    if (measure.length > 1) {
+      throw new BadRequestError(
+        `Multiple resources found in collection: Measure, with: ${Object.keys(query)
+          .map(key => `${key}: ${query[key]}`)
+          .join(' and ')}. /Measure/$package operation must specify a single Measure`
+      );
+    }
 
-    // TODO: should we allow multiple measure matches?
     return createMeasurePackageBundle(measure[0]);
   }
 }
