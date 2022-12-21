@@ -5,12 +5,13 @@ import supertest from 'supertest';
 
 let server: Server;
 
-const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active' };
+const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', version: 'searchable' };
 const MEASURE_WITH_URL: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl',
   status: 'active',
-  url: 'http://example.com'
+  url: 'http://example.com',
+  version: 'searchable'
 };
 const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
@@ -102,7 +103,7 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle when query matches multiple resources', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ status: 'active' })
+        .query({ status: 'active', version: 'searchable' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
