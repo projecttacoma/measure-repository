@@ -30,7 +30,7 @@ describe('validateSearchParams', () => {
         issue: [
           expect.objectContaining({
             details: {
-              text: 'Parameters invalid, alsoInvalid are not valid for search'
+              text: 'Parameters invalid are not valid for search'
             }
           })
         ]
