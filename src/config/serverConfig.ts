@@ -11,25 +11,25 @@ export const serverConfig: ServerConfig = {
           name: 'package',
           route: '/$package',
           method: 'GET',
-          reference: 'https://build.fhir.org/ig/HL7/cqf-measures/OperationDefinition-Measure-package.html'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
         },
         {
           name: 'package',
           route: '/$package',
           method: 'POST',
-          reference: 'https://build.fhir.org/ig/HL7/cqf-measures/OperationDefinition-Measure-package.html'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
         },
         {
           name: 'package',
           route: '/:id/$package',
           method: 'GET',
-          reference: 'https://build.fhir.org/ig/HL7/cqf-measures/OperationDefinition-Measure-package.html'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
         },
         {
           name: 'package',
           route: '/:id/$package',
           method: 'POST',
-          reference: 'https://build.fhir.org/ig/HL7/cqf-measures/OperationDefinition-Measure-package.html'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
         }
       ]
     },

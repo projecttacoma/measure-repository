@@ -44,6 +44,7 @@ async function loadBundle(filePath: string) {
     // retrieve each resource and insert into database
     if (bundle.entry) {
       let resourcesUploaded = 0;
+      let notUploaded = 0;
       const uploads = bundle.entry.map(async res => {
         // Only upload Library or Measure resources
         if (
@@ -64,15 +65,16 @@ async function loadBundle(filePath: string) {
             }
           }
         } else {
-          console.log(
-            res?.resource?.resourceType
-              ? `Not loading resource of type ${res?.resource?.resourceType}`
-              : 'Resource or resource type undefined'
-          );
+          if (res?.resource?.resourceType) {
+            notUploaded += 1;
+          } else {
+            console.log('Resource or resource type undefined');
+          }
         }
       });
       await Promise.all(uploads);
       console.log(`${resourcesUploaded} resources uploaded.`);
+      console.log(`${notUploaded} non-Measure/non-Library resources skipped.`);
     } else {
       console.error('Unable to identify bundle entries.');
     }

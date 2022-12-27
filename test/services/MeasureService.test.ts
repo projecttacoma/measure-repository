@@ -81,7 +81,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('ResourceNotFound');
           expect(response.body.issue[0].details.text).toEqual(
-            `No resource found in collection: Measure, with: id invalidID`
+            `No resource found in collection: Measure, with id: invalidID`
           );
         });
     });
@@ -181,7 +181,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('ResourceNotFound');
           expect(response.body.issue[0].details.text).toEqual(
-            'No resource found in collection: Measure, with: id: invalid and url: invalid'
+            'No resource found in collection: Measure, with id: invalid and url: invalid'
           );
         });
     });

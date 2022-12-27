@@ -45,7 +45,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('ResourceNotFound');
           expect(response.body.issue[0].details.text).toEqual(
-            `No resource found in collection: Library, with: id invalidID`
+            `No resource found in collection: Library, with id: invalidID`
           );
         });
     });

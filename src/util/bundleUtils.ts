@@ -86,7 +86,7 @@ export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir
         ra.resource?.includes('Library') &&
         ra.resource !== 'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'
     ) // exclude modelinfo dependency
-    .map(ra => ra.resource as string); //TODO: may be able to improve this typing
+    .map(ra => ra.resource as string);
   // Obtain all libraries referenced in the related artifact, and recurse on their dependencies
   const libraryGets = depLibUrls.map(async url => {
     const libQuery = getQueryFromReference(url);

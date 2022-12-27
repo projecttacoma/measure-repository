@@ -36,15 +36,16 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`GET /Measure/${args.id}`);
     const result = await findResourceById<fhir4.Measure>(args.id, 'Measure');
     if (!result) {
-      throw new ResourceNotFoundError(`No resource found in collection: Measure, with: id ${args.id}`);
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
     return result;
   }
 
   /**
-   * result of sending a POST or GET request to {BASE_URL}/4_0_1/Measure/$package or {BASE_URL}/4_0_1/Measure/:id/$package
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Measure/$package or {BASE_URL}/4_0_1/Measure/:id/$package
    * creates a bundle of the measure (specified by parameters) and all dependent libraries
-   * supports parameters id and/or url + version (optional)
+   * requires parameters id and/or url, but also supports version as supplemental (optional)
    */
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
@@ -66,14 +67,14 @@ export class MeasureService implements Service<fhir4.Measure> {
     const measure = await findResourcesWithQuery<fhir4.Measure>(query, 'Measure');
     if (!measure || !(measure.length > 0)) {
       throw new ResourceNotFoundError(
-        `No resource found in collection: Measure, with: ${Object.keys(query)
+        `No resource found in collection: Measure, with ${Object.keys(query)
           .map(key => `${key}: ${query[key]}`)
           .join(' and ')}`
       );
     }
     if (measure.length > 1) {
       throw new BadRequestError(
-        `Multiple resources found in collection: Measure, with: ${Object.keys(query)
+        `Multiple resources found in collection: Measure, with ${Object.keys(query)
           .map(key => `${key}: ${query[key]}`)
           .join(' and ')}. /Measure/$package operation must specify a single Measure`
       );
