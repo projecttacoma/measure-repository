@@ -1,4 +1,6 @@
 import {
+  createDepLibraryBundle,
+  createLibraryPackageBundle,
   createMeasurePackageBundle,
   getAllDependentLibraries,
   getQueryFromReference
@@ -104,6 +106,24 @@ describe('bundleUtils', () => {
     });
   });
 
+  describe('createDepLibraryBundle', () => {
+    it('returns just the main lib when the main lib has no dependencies', async () => {
+      const libBundle = await createDepLibraryBundle(LIB_WITH_NO_DEPS);
+      expect(libBundle.resourceType).toEqual('Bundle');
+      expect(libBundle.entry).toHaveLength(1);
+      expect(libBundle.entry).toEqual(expect.arrayContaining([{ resource: LIB_WITH_NO_DEPS }]));
+    });
+
+    it('returns the main lib and its dependent libraries', async () => {
+      const libBundle = await createDepLibraryBundle(LIB_WITH_DEPS);
+      expect(libBundle.resourceType).toEqual('Bundle');
+      expect(libBundle.entry).toHaveLength(2);
+      expect(libBundle.entry).toEqual(
+        expect.arrayContaining([{ resource: LIB_WITH_DEPS }, { resource: LIB_WITH_NO_DEPS }])
+      );
+    });
+  });
+
   describe('createMeasurePackageBundle', () => {
     it('throws a 404 error when dependent Library does not exist', async () => {
       expect.assertions(2);
@@ -137,6 +157,17 @@ describe('bundleUtils', () => {
           { resource: LIB_WITH_DEPS },
           { resource: LIB_WITH_NO_DEPS }
         ])
+      );
+    });
+  });
+
+  describe('createLibraryPackageBundle', () => {
+    it('returns a bundle including a Library and all dependent Libraries on valid input', async () => {
+      const bundle = await createLibraryPackageBundle(LIB_WITH_DEPS);
+      expect(bundle.resourceType).toEqual('Bundle');
+      expect(bundle.entry).toHaveLength(2);
+      expect(bundle.entry).toEqual(
+        expect.arrayContaining([{ resource: LIB_WITH_DEPS }, { resource: LIB_WITH_NO_DEPS }])
       );
     });
   });

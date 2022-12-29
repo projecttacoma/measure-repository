@@ -36,21 +36,40 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
     }
     const mainLib = libs[0];
 
-    const allLibsDups = await getAllDependentLibraries(mainLib as fhir4.Library);
-    // de-dup by id using map
-    const idMap = new Map(allLibsDups.map(lib => [lib.id, lib]));
-    const allLibs = Array.from(idMap.values());
-    const result: fhir4.Bundle = { resourceType: 'Bundle', type: 'collection', id: v4() };
-    result.entry = [{ resource: measure }];
-    result.entry.push(
-      ...allLibs.map(r => ({
-        resource: r
-      }))
-    );
+    const result = await createDepLibraryBundle(mainLib);
+    result.entry?.push({ resource: measure });
+
     return result;
   } else {
     throw new BadRequestError(`Uploaded measure: ${measure.id} does not reference a Library`);
   }
+}
+
+/**
+ * Takes in a library resource, finds all dependent library resources and bundles them
+ * together with the library in a collection bundle
+ */
+export async function createLibraryPackageBundle(library: fhir4.Library): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  logger.info(`Assembling collection bundle from Library ${library.id}`);
+  const result = await createDepLibraryBundle(library);
+
+  return result;
+}
+
+/**
+ * Takes in the main library from either Measure/$package or Library/$package
+ * and returns a bundle of all the dependent libraries
+ */
+export async function createDepLibraryBundle(mainLib: fhir4.FhirResource): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  const allLibsDups = await getAllDependentLibraries(mainLib as fhir4.Library);
+  // de-dup by id using map
+  const idMap = new Map(allLibsDups.map(lib => [lib.id, lib]));
+  const allLibs = Array.from(idMap.values());
+  const result: fhir4.Bundle = { resourceType: 'Bundle', type: 'collection', id: v4() };
+  result.entry = allLibs.map(r => ({
+    resource: r
+  }));
+  return result;
 }
 
 /**

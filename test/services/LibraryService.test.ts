@@ -5,6 +5,13 @@ import supertest from 'supertest';
 
 let server: Server;
 
+const LIBRARY: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  id: 'test',
+  status: 'active'
+};
+
 const LIBRARY_WITH_URL: fhir4.Library = {
   resourceType: 'Library',
   type: { coding: [{ code: 'logic-library' }] },
@@ -13,17 +20,32 @@ const LIBRARY_WITH_URL: fhir4.Library = {
   url: 'http://example.com'
 };
 
-const LIBRARY: fhir4.Library = {
+const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
   resourceType: 'Library',
+  id: 'testLibraryWithNoDeps',
+  status: 'draft',
+  url: 'http://example.com/testLibrary',
+  type: { coding: [{ code: 'logic-library' }] }
+};
+
+const LIBRARY_WITH_DEPS: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testLibraryWithDeps',
+  status: 'draft',
+  url: 'http://example.com/testLibraryWithDeps',
   type: { coding: [{ code: 'logic-library' }] },
-  id: 'test',
-  status: 'active'
+  relatedArtifact: [
+    {
+      type: 'depends-on',
+      resource: 'http://example.com/testLibrary'
+    }
+  ]
 };
 
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return setupTestDatabase([LIBRARY, LIBRARY_WITH_URL]);
+    return setupTestDatabase([LIBRARY, LIBRARY_WITH_URL, LIBRARY_WITH_NO_DEPS, LIBRARY_WITH_DEPS]);
   });
 
   describe('searchById', () => {
@@ -50,6 +72,7 @@ describe('LibraryService', () => {
         });
     });
   });
+
   describe('search', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
@@ -82,6 +105,95 @@ describe('LibraryService', () => {
                 resource: LIBRARY_WITH_URL
               })
             ])
+          );
+        });
+    });
+  });
+
+  describe('$package', () => {
+    it('returns a Bundle including the Library when the Library has no dependencies and id passed through args', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/testLibraryWithNoDeps/$package')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(1);
+          expect(response.body.entry).toEqual(expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }]));
+        });
+    });
+
+    it('returns a Bundle including the Library, and when the Library has no dependencies and id passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithNoDeps' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(1);
+          expect(response.body.entry).toEqual(expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }]));
+        });
+    });
+
+    it('returns a Bundle including the Library, and when the Library has dependencies and id passed through args', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/testLibraryWithDeps/$package')
+        .expect(200)
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([{ resource: LIBRARY_WITH_DEPS }, { resource: LIBRARY_WITH_NO_DEPS }])
+          );
+        });
+    });
+
+    it('returns a Bundle including the Library, and when the Library has dependencies and id passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([{ resource: LIBRARY_WITH_DEPS }, { resource: LIBRARY_WITH_NO_DEPS }])
+          );
+        });
+    });
+
+    it('throws a 400 error when no url or id included in request', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({ resourceType: 'Parameters', parameter: [] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('BadRequest');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Must provide identifying information via either id or url parameters'
+          );
+        });
+    });
+
+    it('throws a 404 error when no library matching id and url can be found', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'invalid' },
+            { name: 'url', valueUrl: 'invalid' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(404)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].details.text).toEqual(
+            'No resource found in collection: Library, with id: invalid and url: invalid'
           );
         });
     });

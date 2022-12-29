@@ -6,6 +6,7 @@ import supertest from 'supertest';
 let server: Server;
 
 const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', version: 'searchable' };
+
 const MEASURE_WITH_URL: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl',
@@ -13,6 +14,7 @@ const MEASURE_WITH_URL: fhir4.Measure = {
   url: 'http://example.com',
   version: 'searchable'
 };
+
 const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithRootLib',
@@ -20,6 +22,7 @@ const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
   url: 'http://example.com/testMeasureWithRootLib',
   library: ['http://example.com/testLibrary']
 };
+
 const MEASURE_WITH_ROOT_LIB_AND_DEPS: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithRootLibAndDeps',
@@ -27,6 +30,7 @@ const MEASURE_WITH_ROOT_LIB_AND_DEPS: fhir4.Measure = {
   url: 'http://example.com/testMeasureWithDeps',
   library: ['http://example.com/testLibraryWithDeps']
 };
+
 const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
   resourceType: 'Library',
   id: 'testLibraryWithNoDeps',
@@ -86,6 +90,7 @@ describe('MeasureService', () => {
         });
     });
   });
+
   describe('search', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
@@ -137,7 +142,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('returns a Bundle including the root lib, Measure, and  when root lib has dependencies and id passed through body', async () => {
+    it('returns a Bundle including the root lib, Measure, and when root lib has no dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
@@ -148,6 +153,42 @@ describe('MeasureService', () => {
           expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
+          );
+        });
+    });
+
+    it('returns a Bundle including the root lib and Measure when root lib has dependencies and id passed through args', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/testWithRootLibAndDeps/$package')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(3);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_DEPS },
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
+            ])
+          );
+        });
+    });
+
+    it('returns a Bundle including the root lib, Measure, and when root lib has dependencies and id passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLibAndDeps' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(3);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_DEPS },
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
+            ])
           );
         });
     });
@@ -166,7 +207,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('throws a 404 error when no measure matching id and url cannot be found', async () => {
+    it('throws a 404 error when no measure matching id and url can be found', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
         .send({
