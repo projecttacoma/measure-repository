@@ -37,7 +37,7 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
     const mainLib = libs[0];
 
     const result = await createDepLibraryBundle(mainLib);
-    result.entry?.push({ resource: measure });
+    result.entry?.unshift({ resource: measure });
 
     return result;
   } else {

@@ -5,13 +5,6 @@ import supertest from 'supertest';
 
 let server: Server;
 
-const LIBRARY: fhir4.Library = {
-  resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
-  id: 'test',
-  status: 'active'
-};
-
 const LIBRARY_WITH_URL: fhir4.Library = {
   resourceType: 'Library',
   type: { coding: [{ code: 'logic-library' }] },
@@ -23,7 +16,7 @@ const LIBRARY_WITH_URL: fhir4.Library = {
 const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
   resourceType: 'Library',
   id: 'testLibraryWithNoDeps',
-  status: 'draft',
+  status: 'active',
   url: 'http://example.com/testLibrary',
   type: { coding: [{ code: 'logic-library' }] }
 };
@@ -45,17 +38,17 @@ const LIBRARY_WITH_DEPS: fhir4.Library = {
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return setupTestDatabase([LIBRARY, LIBRARY_WITH_URL, LIBRARY_WITH_NO_DEPS, LIBRARY_WITH_DEPS]);
+    return setupTestDatabase([LIBRARY_WITH_URL, LIBRARY_WITH_NO_DEPS, LIBRARY_WITH_DEPS]);
   });
 
   describe('searchById', () => {
     it('returns 200 when passed correct headers and the id is in database', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Library/test')
+        .get('/4_0_1/Library/testLibraryWithNoDeps')
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
-          expect(response.body.id).toEqual(LIBRARY.id);
+          expect(response.body.id).toEqual(LIBRARY_WITH_NO_DEPS.id);
         });
     });
 
@@ -99,7 +92,7 @@ describe('LibraryService', () => {
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
-                resource: LIBRARY
+                resource: LIBRARY_WITH_NO_DEPS
               }),
               expect.objectContaining<fhir4.BundleEntry>({
                 resource: LIBRARY_WITH_URL
