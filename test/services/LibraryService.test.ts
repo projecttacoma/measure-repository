@@ -21,11 +21,11 @@ const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
   type: { coding: [{ code: 'logic-library' }] }
 };
 
-const LIBRARY_WITH_DEPS: fhir4.Library = {
+const LIBRARY_WITH_DEPS_2: fhir4.Library = {
   resourceType: 'Library',
-  id: 'testLibraryWithDeps',
+  id: 'testLibraryWithDeps2',
   status: 'draft',
-  url: 'http://example.com/testLibraryWithDeps',
+  url: 'http://example.com/testLibraryWithDeps2',
   type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
     {
@@ -35,10 +35,24 @@ const LIBRARY_WITH_DEPS: fhir4.Library = {
   ]
 };
 
+const LIBRARY_WITH_DEPS: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testLibraryWithDeps',
+  status: 'draft',
+  url: 'http://example.com/testLibraryWithDeps',
+  type: { coding: [{ code: 'logic-library' }] },
+  relatedArtifact: [
+    {
+      type: 'depends-on',
+      resource: 'http://example.com/testLibraryWithDeps2'
+    }
+  ]
+};
+
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return setupTestDatabase([LIBRARY_WITH_URL, LIBRARY_WITH_NO_DEPS, LIBRARY_WITH_DEPS]);
+    return setupTestDatabase([LIBRARY_WITH_URL, LIBRARY_WITH_NO_DEPS, LIBRARY_WITH_DEPS, LIBRARY_WITH_DEPS_2]);
   });
 
   describe('searchById', () => {
@@ -135,9 +149,13 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toHaveLength(3);
           expect(response.body.entry).toEqual(
-            expect.arrayContaining([{ resource: LIBRARY_WITH_DEPS }, { resource: LIBRARY_WITH_NO_DEPS }])
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_DEPS },
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: LIBRARY_WITH_DEPS_2 }
+            ])
           );
         });
     });
@@ -150,9 +168,13 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toHaveLength(3);
           expect(response.body.entry).toEqual(
-            expect.arrayContaining([{ resource: LIBRARY_WITH_DEPS }, { resource: LIBRARY_WITH_NO_DEPS }])
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_DEPS },
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: LIBRARY_WITH_DEPS_2 }
+            ])
           );
         });
     });
@@ -167,6 +189,26 @@ describe('LibraryService', () => {
           expect(response.body.issue[0].code).toEqual('BadRequest');
           expect(response.body.issue[0].details.text).toEqual(
             'Must provide identifying information via either id or url parameters'
+          );
+        });
+    });
+
+    it('throws a 404 error when both the library id and url are specified but one of them is invalid', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'testLibraryWithDeps' },
+            { name: 'url', valueUrl: 'invalid' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(404)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].details.text).toEqual(
+            'No resource found in collection: Library, with id: testLibraryWithDeps and url: invalid'
           );
         });
     });
