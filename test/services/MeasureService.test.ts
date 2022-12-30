@@ -142,7 +142,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('returns a Bundle including the root lib, Measure, and when root lib has no dependencies and id passed through body', async () => {
+    it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
@@ -157,7 +157,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('returns a Bundle including the root lib and Measure when root lib has dependencies and id passed through args', async () => {
+    it('returns a Bundle including the root lib, Measure and dependent libraries when root lib has dependencies and id passed through args', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/testWithRootLibAndDeps/$package')
         .expect(200)
@@ -174,7 +174,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('returns a Bundle including the root lib, Measure, and when root lib has dependencies and id passed through body', async () => {
+    it('returns a Bundle including the root lib, Measure, and dependent libraries when root lib has dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLibAndDeps' }] })
