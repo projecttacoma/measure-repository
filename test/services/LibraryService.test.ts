@@ -115,7 +115,7 @@ describe('LibraryService', () => {
         });
     });
 
-    it('returns a Bundle including the Library, and when the Library has no dependencies and id passed through body', async () => {
+    it('returns a Bundle including the Library when the Library has no dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library/$package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithNoDeps' }] })
@@ -128,7 +128,7 @@ describe('LibraryService', () => {
         });
     });
 
-    it('returns a Bundle including the Library, and when the Library has dependencies and id passed through args', async () => {
+    it('returns a Bundle including the Library and its dependent libraries when the Library has dependencies and id passed through args', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/testLibraryWithDeps/$package')
         .expect(200)
@@ -142,7 +142,7 @@ describe('LibraryService', () => {
         });
     });
 
-    it('returns a Bundle including the Library, and when the Library has dependencies and id passed through body', async () => {
+    it('returns a Bundle including the Library and its dependent libraries when the Library has dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library/$package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
