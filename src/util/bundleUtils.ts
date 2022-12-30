@@ -30,7 +30,7 @@ export async function createMeasurePackageBundle(measure: fhir4.Measure): Promis
   if (measure.library && measure.library.length > 0) {
     const [mainLibraryRef] = measure.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
-    const libs = await findResourcesWithQuery(mainLibQuery, 'Library');
+    const libs = await findResourcesWithQuery<fhir4.Library>(mainLibQuery, 'Library');
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(`Could not find Library ${mainLibraryRef} referenced by Measure ${measure.id}`);
     }
@@ -60,8 +60,8 @@ export async function createLibraryPackageBundle(library: fhir4.Library): Promis
  * Takes in the main library from either Measure/$package or Library/$package
  * and returns a bundle of all the dependent libraries
  */
-export async function createDepLibraryBundle(mainLib: fhir4.FhirResource): Promise<fhir4.Bundle<fhir4.FhirResource>> {
-  const allLibsDups = await getAllDependentLibraries(mainLib as fhir4.Library);
+export async function createDepLibraryBundle(mainLib: fhir4.Library): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  const allLibsDups = await getAllDependentLibraries(mainLib);
   // de-dup by id using map
   const idMap = new Map(allLibsDups.map(lib => [lib.id, lib]));
   const allLibs = Array.from(idMap.values());
