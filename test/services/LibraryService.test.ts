@@ -72,6 +72,20 @@ const LIBRARY_WITH_NESTED_DEPS: fhir4.Library = {
   ]
 };
 
+const LIBRARY_WITH_SAME_SYSTEM: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  identifier: [{ system: 'http://example.com/libraryWithSameSystem', value: 'libraryWithValue' }],
+  status: 'active'
+};
+
+const LIBRARY_WITH_SAME_SYSTEM2: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  identifier: [{ system: 'http://example.com/libraryWithSameSystem', value: 'libraryWithDifferentValue' }],
+  status: 'active'
+};
+
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
@@ -82,7 +96,9 @@ describe('LibraryService', () => {
       LIBRARY_WITH_DEPS,
       LIBRARY_WITH_IDENTIFIER_VALUE,
       LIBRARY_WITH_IDENTIFIER_SYSTEM,
-      LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE
+      LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE,
+      LIBRARY_WITH_SAME_SYSTEM,
+      LIBRARY_WITH_SAME_SYSTEM2
     ]);
   });
 
@@ -133,7 +149,7 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(5);
+          expect(response.body.total).toEqual(7);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -261,6 +277,28 @@ describe('LibraryService', () => {
           expect(response.body.entry).toHaveLength(1);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([{ resource: LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE }])
+          );
+        });
+    });
+
+    it('throws a 400 error when only an identifier system is included in the body but there are two libraries with that identifier.system', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            {
+              name: 'identifier',
+              valueString: 'http://example.com/libraryWithSameSystem|'
+            }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('BadRequest');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Multiple resources found in collection: Library, with identifier: http://example.com/libraryWithSameSystem|. /Library/$package operation must specify a single Library'
           );
         });
     });
