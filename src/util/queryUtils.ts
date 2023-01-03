@@ -18,7 +18,7 @@ export function getMongoQueryFromRequest(query: RequestQuery): Filter<any> {
       // For string arguments in query they may match just the start of a string and are case insensitive
       mf[key] = { $regex: `^${query[key]}`, $options: 'i' };
     } else if (key === 'identifier') {
-      // Identifier can check against the identifier.code, identifier.value, or both on a resource
+      // Identifier can check against the identifier.system, identifier.value, or both on a resource
       const iden = query.identifier as string;
       const splitIden = iden.split('|');
       if (splitIden.length === 1) {

@@ -15,6 +15,32 @@ const MEASURE_WITH_URL: fhir4.Measure = {
   version: 'searchable'
 };
 
+const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: fhir4.Measure = {
+  resourceType: 'Measure',
+  identifier: [{ value: 'measureWithIdentifierValueRootLib' }],
+  library: ['http://example.com/testLibrary'],
+  status: 'active'
+};
+
+const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: fhir4.Measure = {
+  resourceType: 'Measure',
+  identifier: [{ system: 'http://example.com/measureWithIdentifierSystemRootLib' }],
+  library: ['http://example.com/testLibrary'],
+  status: 'active'
+};
+
+const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: fhir4.Measure = {
+  resourceType: 'Measure',
+  identifier: [
+    {
+      value: 'measureWithIdentifierSystemAndValueRootLib',
+      system: 'http://example.com/measureWithIdentifierSystemAndValueRootLib'
+    }
+  ],
+  library: ['http://example.com/testLibrary'],
+  status: 'active'
+};
+
 const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithRootLib',
@@ -62,7 +88,10 @@ describe('MeasureService', () => {
       MEASURE_WITH_ROOT_LIB,
       MEASURE_WITH_ROOT_LIB_AND_DEPS,
       LIBRARY_WITH_NO_DEPS,
-      LIBRARY_WITH_DEPS
+      LIBRARY_WITH_DEPS,
+      MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB,
+      MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB,
+      MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB
     ]);
   });
 
@@ -145,7 +174,7 @@ describe('MeasureService', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
-        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueUrl: 'testWithRootLib' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
         .then(response => {
@@ -188,6 +217,75 @@ describe('MeasureService', () => {
               { resource: LIBRARY_WITH_DEPS },
               { resource: LIBRARY_WITH_NO_DEPS },
               { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
+            ])
+          );
+        });
+    });
+
+    it('returns a Bundle including the root lib and Measure when root lib has no dependencies and identifier with just identifier.value passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [{ name: 'identifier', valueString: 'measureWithIdentifierValueRootLib' }]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB }
+            ])
+          );
+        });
+    });
+
+    it('returns a Bundle including the root lib and Measure when root lib has no dependencies and identifier with just identifier.system passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [{ name: 'identifier', valueString: 'http://example.com/measureWithIdentifierSystemRootLib|' }]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB }
+            ])
+          );
+        });
+    });
+
+    it('returns a Bundle including the root lib and Measure when root lib has no dependencies and identifier with both identifier.system and identifier.value passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            {
+              name: 'identifier',
+              valueString:
+                'http://example.com/measureWithIdentifierSystemAndValueRootLib|measureWithIdentifierSystemAndValueRootLib'
+            }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(2);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB }
             ])
           );
         });
