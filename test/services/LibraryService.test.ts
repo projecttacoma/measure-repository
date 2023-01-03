@@ -13,6 +13,29 @@ const LIBRARY_WITH_URL: fhir4.Library = {
   url: 'http://example.com'
 };
 
+const LIBRARY_WITH_IDENTIFIER_VALUE: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  identifier: [{ value: 'libraryWithIdentifierValue' }],
+  status: 'active'
+};
+
+const LIBRARY_WITH_IDENTIFIER_SYSTEM: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  identifier: [{ system: 'http://example.com/libraryWithIdentifierSystem' }],
+  status: 'active'
+};
+
+const LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  identifier: [
+    { system: 'http://example.com/libraryWithIdentifierSystemAndValue', value: 'libraryWithIdentifierSystemAndValue' }
+  ],
+  status: 'active'
+};
+
 const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
   resourceType: 'Library',
   id: 'testLibraryWithNoDeps',
@@ -21,7 +44,7 @@ const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
   type: { coding: [{ code: 'logic-library' }] }
 };
 
-const LIBRARY_WITH_DEPS_2: fhir4.Library = {
+const LIBRARY_WITH_DEPS: fhir4.Library = {
   resourceType: 'Library',
   id: 'testLibraryWithDeps2',
   status: 'draft',
@@ -35,7 +58,7 @@ const LIBRARY_WITH_DEPS_2: fhir4.Library = {
   ]
 };
 
-const LIBRARY_WITH_DEPS: fhir4.Library = {
+const LIBRARY_WITH_NESTED_DEPS: fhir4.Library = {
   resourceType: 'Library',
   id: 'testLibraryWithDeps',
   status: 'draft',
@@ -52,7 +75,15 @@ const LIBRARY_WITH_DEPS: fhir4.Library = {
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
-    return setupTestDatabase([LIBRARY_WITH_URL, LIBRARY_WITH_NO_DEPS, LIBRARY_WITH_DEPS, LIBRARY_WITH_DEPS_2]);
+    return setupTestDatabase([
+      LIBRARY_WITH_URL,
+      LIBRARY_WITH_NO_DEPS,
+      LIBRARY_WITH_NESTED_DEPS,
+      LIBRARY_WITH_DEPS,
+      LIBRARY_WITH_IDENTIFIER_VALUE,
+      LIBRARY_WITH_IDENTIFIER_SYSTEM,
+      LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE
+    ]);
   });
 
   describe('searchById', () => {
@@ -102,7 +133,7 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(2);
+          expect(response.body.total).toEqual(5);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -152,9 +183,9 @@ describe('LibraryService', () => {
           expect(response.body.entry).toHaveLength(3);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
-              { resource: LIBRARY_WITH_DEPS },
+              { resource: LIBRARY_WITH_NESTED_DEPS },
               { resource: LIBRARY_WITH_NO_DEPS },
-              { resource: LIBRARY_WITH_DEPS_2 }
+              { resource: LIBRARY_WITH_DEPS }
             ])
           );
         });
@@ -171,10 +202,65 @@ describe('LibraryService', () => {
           expect(response.body.entry).toHaveLength(3);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
-              { resource: LIBRARY_WITH_DEPS },
+              { resource: LIBRARY_WITH_NESTED_DEPS },
               { resource: LIBRARY_WITH_NO_DEPS },
-              { resource: LIBRARY_WITH_DEPS_2 }
+              { resource: LIBRARY_WITH_DEPS }
             ])
+          );
+        });
+    });
+
+    it('returns a Bundle including just the Library when the Library has no dependencies and identifier with just idenifier.value passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [{ name: 'identifier', valueString: 'libraryWithIdentifierValue' }]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(1);
+          expect(response.body.entry).toEqual(expect.arrayContaining([{ resource: LIBRARY_WITH_IDENTIFIER_VALUE }]));
+        });
+    });
+
+    it('returns a Bundle including just the Library when the Library has no dependencies and identifier with just identifier.system passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [{ name: 'identifier', valueString: 'http://example.com/libraryWithIdentifierSystem|' }]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(1);
+          expect(response.body.entry).toEqual(expect.arrayContaining([{ resource: LIBRARY_WITH_IDENTIFIER_SYSTEM }]));
+        });
+    });
+
+    it('returns a Bundle including just the Library when the Library has no dependencies and identifier with both identifier.system and identifier.value passed through body', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$package')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            {
+              name: 'identifier',
+              valueString: 'http://example.com/libraryWithIdentifierSystemAndValue|libraryWithIdentifierSystemAndValue'
+            }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.entry).toHaveLength(1);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([{ resource: LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE }])
           );
         });
     });

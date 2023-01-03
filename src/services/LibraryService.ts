@@ -54,8 +54,9 @@ export class LibraryService implements Service<fhir4.Library> {
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;
+    const identifier = params.identifier;
 
-    if (!id && !url) {
+    if (!id && !url && !identifier) {
       throw new BadRequestError('Must provide identifying information via either id or url parameters');
     }
 
@@ -64,7 +65,10 @@ export class LibraryService implements Service<fhir4.Library> {
     if (id) query.id = id;
     if (url) query.url = url;
     if (version) query.version = version;
-    const library = await findResourcesWithQuery<fhir4.Library>(query, 'Library');
+    if (identifier) query.identifier = identifier;
+
+    const parsedQuery = getMongoQueryFromRequest(query);
+    const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
     if (!library || !(library.length > 0)) {
       throw new ResourceNotFoundError(
         `No resource found in collection: Library, with ${Object.keys(query)
