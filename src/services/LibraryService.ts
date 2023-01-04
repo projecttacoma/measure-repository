@@ -45,7 +45,7 @@ export class LibraryService implements Service<fhir4.Library> {
    * result of sending a POST or GET request to:
    * {BASE_URL}/4_0_1/Library/$package or {BASE_URL}/4_0_1/Library/:id/$package
    * creates a bundle of the library (specified by parameters) and all dependent libraries
-   * requires parameters id and/or url, but also supports version as supplemental (optional)
+   * requires parameters id, url, and/or identifier, but also supports version as supplemental (optional)
    */
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
@@ -57,10 +57,9 @@ export class LibraryService implements Service<fhir4.Library> {
     const identifier = params.identifier;
 
     if (!id && !url && !identifier) {
-      throw new BadRequestError('Must provide identifying information via either id or url parameters');
+      throw new BadRequestError('Must provide identifying information via either id, url, or identifier parameters');
     }
 
-    // query construction
     const query: Filter<any> = {};
     if (id) query.id = id;
     if (url) query.url = url;

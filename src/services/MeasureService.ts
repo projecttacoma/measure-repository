@@ -57,10 +57,9 @@ export class MeasureService implements Service<fhir4.Measure> {
     const identifier = params.identifier;
 
     if (!id && !url && !identifier) {
-      throw new BadRequestError('Must provide identifying information via either id or url parameters');
+      throw new BadRequestError('Must provide identifying information via either id, url, or identifier parameters');
     }
 
-    // query construction
     const query: Filter<any> = {};
     if (id) query.id = id;
     if (url) query.url = url;
