@@ -54,17 +54,20 @@ export class MeasureService implements Service<fhir4.Measure> {
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;
+    const identifier = params.identifier;
 
-    if (!id && !url) {
-      throw new BadRequestError('Must provide identifying information via either id or url parameters');
+    if (!id && !url && !identifier) {
+      throw new BadRequestError('Must provide identifying information via either id, url, or identifier parameters');
     }
 
-    // query construction
     const query: Filter<any> = {};
     if (id) query.id = id;
     if (url) query.url = url;
     if (version) query.version = version;
-    const measure = await findResourcesWithQuery<fhir4.Measure>(query, 'Measure');
+    if (identifier) query.identifier = identifier;
+
+    const parsedQuery = getMongoQueryFromRequest(query);
+    const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
     if (!measure || !(measure.length > 0)) {
       throw new ResourceNotFoundError(
         `No resource found in collection: Measure, with ${Object.keys(query)
