@@ -312,7 +312,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('BadRequest');
           expect(response.body.issue[0].details.text).toEqual(
-            'Must provide identifying information via either id or url parameters'
+            'Must provide identifying information via either id, url, or identifier parameters'
           );
         });
     });
