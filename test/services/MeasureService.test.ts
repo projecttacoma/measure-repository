@@ -112,7 +112,7 @@ describe('MeasureService', () => {
         .set('Accept', 'application/json+fhir')
         .expect(404)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
             `No resource found in collection: Measure, with id: invalidID`
           );
@@ -304,7 +304,7 @@ describe('MeasureService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(404)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
             'No resource found in collection: Measure, with id: testWithUrl and url: invalid'
           );
@@ -318,7 +318,7 @@ describe('MeasureService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('BadRequest');
+          expect(response.body.issue[0].code).toEqual('required');
           expect(response.body.issue[0].details.text).toEqual(
             'Must provide identifying information via either id, url, or identifier parameters'
           );
@@ -338,7 +338,7 @@ describe('MeasureService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(404)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
             'No resource found in collection: Measure, with id: invalid and url: invalid'
           );

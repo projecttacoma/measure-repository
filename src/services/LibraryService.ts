@@ -57,7 +57,10 @@ export class LibraryService implements Service<fhir4.Library> {
     const identifier = params.identifier;
 
     if (!id && !url && !identifier) {
-      throw new BadRequestError('Must provide identifying information via either id, url, or identifier parameters');
+      throw new BadRequestError(
+        'Must provide identifying information via either id, url, or identifier parameters',
+        'required'
+      );
     }
 
     const query: Filter<any> = {};

@@ -119,7 +119,7 @@ describe('LibraryService', () => {
         .set('Accept', 'application/json+fhir')
         .expect(404)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
             `No resource found in collection: Library, with id: invalidID`
           );
@@ -296,7 +296,7 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('BadRequest');
+          expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
             'Multiple resources found in collection: Library, with identifier: http://example.com/libraryWithSameSystem|. /Library/$package operation must specify a single Library'
           );
@@ -310,7 +310,7 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('BadRequest');
+          expect(response.body.issue[0].code).toEqual('required');
           expect(response.body.issue[0].details.text).toEqual(
             'Must provide identifying information via either id, url, or identifier parameters'
           );
@@ -330,7 +330,7 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(404)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
             'No resource found in collection: Library, with id: testLibraryWithDeps and url: invalid'
           );
@@ -350,7 +350,7 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(404)
         .then(response => {
-          expect(response.body.issue[0].code).toEqual('ResourceNotFound');
+          expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
             'No resource found in collection: Library, with id: invalid and url: invalid'
           );
