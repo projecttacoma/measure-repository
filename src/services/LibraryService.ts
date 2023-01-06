@@ -1,4 +1,4 @@
-import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
@@ -57,7 +57,10 @@ export class LibraryService implements Service<fhir4.Library> {
     const identifier = params.identifier;
 
     if (!id && !url && !identifier) {
-      throw new BadRequestError('Must provide identifying information via either id, url, or identifier parameters');
+      throw new BadRequestError(
+        'Must provide identifying information via either id, url, or identifier parameters',
+        constants.ISSUE.CODE.REQUIRED
+      );
     }
 
     const query: Filter<any> = {};
