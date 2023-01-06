@@ -1,4 +1,4 @@
-import { ServerError } from '@projecttacoma/node-fhir-server-core';
+import { ServerError, constants } from '@projecttacoma/node-fhir-server-core';
 
 /**
  * Child class of ServerError with custom options object
@@ -25,7 +25,7 @@ class CustomServerError extends ServerError {
  */
 export class ResourceNotFoundError extends CustomServerError {
   constructor(message: string) {
-    super(message, 404, 'not-found');
+    super(message, 404, constants.ISSUE.CODE.NOT_FOUND);
   }
 }
 
@@ -33,7 +33,7 @@ export class ResourceNotFoundError extends CustomServerError {
  * Error class that throws ServerError with status code 400 and code (defaults to 'invalid')
  */
 export class BadRequestError extends CustomServerError {
-  constructor(message: string, customCode = 'invalid') {
+  constructor(message: string, customCode: string = constants.ISSUE.CODE.INVALID) {
     super(message, 400, customCode);
   }
 }
@@ -43,6 +43,6 @@ export class BadRequestError extends CustomServerError {
  */
 export class NotImplementedError extends CustomServerError {
   constructor(message: string) {
-    super(message, 501, 'not-supported');
+    super(message, 501, constants.ISSUE.CODE.NOT_SUPPORTED);
   }
 }
