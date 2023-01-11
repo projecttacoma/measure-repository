@@ -349,7 +349,7 @@ describe('MeasureService', () => {
 
   describe('$data-requirements', () => {
     // spy on calculation function
-    jest.spyOn(Calculator, 'calculateDataRequirements').mockResolvedValue({
+    const calc = jest.spyOn(Calculator, 'calculateDataRequirements').mockResolvedValue({
       results: {
         resourceType: 'Library',
         type: {
@@ -368,18 +368,37 @@ describe('MeasureService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
           expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            expect.objectContaining({
+              measurementPeriodStart: '2022-01-01',
+              measurementPeriodEnd: '2022-12-31'
+            })
+          );
         });
     });
 
     it('returns 200 and a Library for a request with id in the url', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/testWithRootLibAndDeps/$data-requirements')
-        .set('content-type', 'application/fhir+json')
+        .get('/4_0_1/Measure/testWithRootLibAndDeps/$data-requirements')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
           expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            expect.objectContaining({
+              measurementPeriodStart: '2022-01-01',
+              measurementPeriodEnd: '2022-12-31'
+            })
+          );
         });
     });
 
@@ -390,26 +409,46 @@ describe('MeasureService', () => {
           resourceType: 'Parameters',
           parameter: [
             { name: 'id', valueString: 'testWithRootLibAndDeps' },
-            { name: 'periodStart', valueDate: '2022-01-01' },
-            { name: 'periodEnd', valueDate: '2022-12-31' }
+            { name: 'periodStart', valueDate: '2021-01-01' },
+            { name: 'periodEnd', valueDate: '2021-12-31' }
           ]
         })
         .set('content-type', 'application/fhir+json')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
           expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            expect.objectContaining({
+              measurementPeriodStart: '2021-01-01',
+              measurementPeriodEnd: '2021-12-31'
+            })
+          );
         });
     });
 
     it('returns 200 with query params', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/$data-requirements?id=testWithRootLibAndDeps&periodStart=2022-01-01&periodEnd=2022-12-31')
-        .set('content-type', 'application/fhir+json')
+        .get('/4_0_1/Measure/$data-requirements')
+        .query({ id: 'testWithRootLibAndDeps', periodStart: '2021-01-01', periodEnd: '2021-12-31' })
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
           expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            expect.objectContaining({
+              measurementPeriodStart: '2021-01-01',
+              measurementPeriodEnd: '2021-12-31'
+            })
+          );
         });
     });
   });
