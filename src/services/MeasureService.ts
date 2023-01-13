@@ -99,7 +99,8 @@ export class MeasureService implements Service<fhir4.Measure> {
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
     logger.info('Using package to create measure bundle');
-    const measureBundle = await this.package(args, { req: req });
+    const path = req.path.replace(/data-requirements/i, 'package');
+    const measureBundle = await this.package(args, { req: { ...req, path: path } });
 
     // TODO: Clarify should period start/end be required or have intelligent defaults in fqm-execution to measure effectivePeriod? (fqm-execution defaults to 2019)
     // short term: default to 2022 if these aren't passed through
