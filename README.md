@@ -90,7 +90,7 @@ The Measure Repository Service server supports the `Measure` `$data-requirements
 - version
 - identifier
 
-Supported optional optional parameters are:
+Supported optional parameters are:
 
 - periodStart
 - periodEnd
