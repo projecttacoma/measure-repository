@@ -6,7 +6,7 @@ import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundl
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { gatherParams, validateSearchParams } from '../util/validationUtils';
-import { Calculator } from 'fqm-execution';
+import { Calculator, ValueSetResolver } from 'fqm-execution';
 
 const logger = loggers.get('default');
 
@@ -87,7 +87,7 @@ export class MeasureService implements Service<fhir4.Measure> {
       );
     }
 
-    return createMeasurePackageBundle(measure[0]);
+    return createMeasurePackageBundle(measure[0], req.query['include-terminology'] ?? false);
   }
 
   /**
