@@ -1,6 +1,9 @@
 import { Connection } from '../src/db/Connection';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
+
+dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
 const COLLECTION_NAMES = ['Measure', 'Library', 'MeasureReport'];
