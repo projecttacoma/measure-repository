@@ -102,17 +102,17 @@ export class MeasureService implements Service<fhir4.Measure> {
     const path = req.path.replace(/data-requirements/i, 'package');
     const measureBundle = await this.package(args, { req: { ...req, path: path } });
 
-    // TODO: Clarify should period start/end be required or have intelligent defaults in fqm-execution to measure effectivePeriod? (fqm-execution defaults to 2019)
-    // short term: default to 2022 if these aren't passed through
     const params = gatherParams(req.query, args.resource);
-    const start = params.periodStart || '2022-01-01';
-    const end = params.periodEnd || '2022-12-31';
 
-    logger.info(`Calculating with start ${start} and end ${end}`);
+    // See https://jira.hl7.org/browse/FHIR-40230
+    // periodStart and periodEnd should be optional. Right now, fqm-execution will default it to 2019.
+    // This will be handled in a separate task
+    // TODO: Update the fqm-execution dependency and delete this comment block once periodStart/End can safely be excluded
     const { results } = await Calculator.calculateDataRequirements(measureBundle, {
-      measurementPeriodStart: start,
-      measurementPeriodEnd: end
+      ...(params.periodStart && { measurementPeriodStart: params.periodStart }),
+      ...(params.periodEnd && { measurementPeriodEnd: params.periodEnd })
     });
+
     logger.info('Successfully generated $data-requirements report');
     return results;
   }
