@@ -164,7 +164,13 @@ export async function getDependentValueSets(lib: fhir4.Library) {
 
   // If we didn't find all in the cache, need to resolve via VSAC
   if (missingUrls.length > 0) {
-    const valueSetResolver = new ValueSetResolver(process.env.VSAC_API_KEY ?? '');
+    if (!process.env.VSAC_API_KEY) {
+      throw new Error(
+        'Attempting to resolve ValueSets, but no API key found. Add "VSAC_API_KEY" to your local .env file'
+      );
+    }
+
+    const valueSetResolver = new ValueSetResolver(process.env.VSAC_API_KEY);
 
     const [resolvedValueSets, errors] = await valueSetResolver.getExpansionForValuesetUrls(depValueSetUrls);
 
