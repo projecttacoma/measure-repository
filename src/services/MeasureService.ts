@@ -115,9 +115,5 @@ export class MeasureService implements Service<fhir4.Measure> {
     });
     logger.info('Successfully generated $data-requirements report');
     return results;
-
-    // TODO: Clarify return type from documentation (https://hl7.org/fhir/us/cqfmeasures/STU3/OperationDefinition-Measure-data-requirements.html)
-    // Documentation describes as a library, but the specified type is "Bundle".
-    // For now, this code returns a Library (similar to the Measure operation)
   }
 }
