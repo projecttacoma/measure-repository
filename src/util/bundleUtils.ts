@@ -118,48 +118,53 @@ function hasNoDependencies(lib: fhir4.Library) {
   return !lib.relatedArtifact || (Array.isArray(lib.relatedArtifact) && lib.relatedArtifact.length === 0);
 }
 
-export async function getDependentValueSets(lib: fhir4.Library) {
+export async function getDependentValueSets(lib: fhir4.Library, useFileCache = true) {
   if (hasNoDependencies(lib)) {
     return [];
   }
 
   logger.info('Resolving ValueSets');
 
-  const depValueSetUrls =
+  const depValueSetUrls = (
     lib.relatedArtifact
       ?.filter(ra => ra.type === 'depends-on' && ra.resource?.includes('ValueSet'))
-      .map(ra => ra.resource as string) ?? [];
+      .map(ra => ra.resource as string) ?? []
+  )
+    // TODO: This URL throws an internal server error on VSAC
+    // Ignore for now just to test caching
+    .filter(url => url !== 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.114222.4.11.3591');
 
   const valueSets: fhir4.ValueSet[] = [];
-  const missingUrls: string[] = [];
+  let missingUrls: string[] = [];
 
-  if (fs.existsSync('./cache')) {
-    const cacheLookup = fs
-      .readdirSync('./cache')
-      .map(f => JSON.parse(fs.readFileSync(`./cache/${f}`, 'utf8')) as fhir4.ValueSet)
-      .reduce((lookup, vs) => {
-        if (vs.url) {
-          lookup[vs.url] = vs;
+  if (useFileCache) {
+    if (fs.existsSync('./cache')) {
+      const cacheLookup = fs
+        .readdirSync('./cache')
+        .map(f => JSON.parse(fs.readFileSync(`./cache/${f}`, 'utf8')) as fhir4.ValueSet)
+        .reduce((lookup, vs) => {
+          if (vs.url) {
+            lookup[vs.url] = vs;
+          }
+
+          return lookup;
+        }, {} as Record<string, fhir4.ValueSet>);
+
+      depValueSetUrls.forEach(url => {
+        if (cacheLookup[url]) {
+          logger.debug(`Found ${url} in cache`);
+          valueSets.push(cacheLookup[url]);
+        } else {
+          logger.debug(`Could not find ${url} in cache`);
+          missingUrls.push(url);
         }
-
-        return lookup;
-      }, {} as Record<string, fhir4.ValueSet>);
-
-    depValueSetUrls.forEach(url => {
-      // TODO: This URL throws an internal server error on VSAC
-      // Ignore for now just to test caching
-      if (url === 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.114222.4.11.3591') return;
-
-      if (cacheLookup[url]) {
-        logger.debug(`Found ${url} in cache`);
-        valueSets.push(cacheLookup[url]);
-      } else {
-        logger.debug(`Could not find ${url} in cache`);
-        missingUrls.push(url);
-      }
-    });
+      });
+    } else {
+      fs.mkdirSync('./cache');
+      missingUrls = depValueSetUrls;
+    }
   } else {
-    fs.mkdirSync('./cache');
+    missingUrls = depValueSetUrls;
   }
 
   // If we didn't find all in the cache, need to resolve via VSAC
@@ -172,12 +177,14 @@ export async function getDependentValueSets(lib: fhir4.Library) {
 
     const valueSetResolver = new ValueSetResolver(process.env.VSAC_API_KEY);
 
-    const [resolvedValueSets, errors] = await valueSetResolver.getExpansionForValuesetUrls(depValueSetUrls);
+    const [resolvedValueSets, errors] = await valueSetResolver.getExpansionForValuesetUrls(missingUrls);
 
-    resolvedValueSets.forEach(vs => {
-      fs.writeFileSync(`./cache/${vs.id}.json`, JSON.stringify(vs));
-      logger.debug(`Wrote ${vs.url} to cache`);
-    });
+    if (useFileCache) {
+      resolvedValueSets.forEach(vs => {
+        fs.writeFileSync(`./cache/${vs.id}.json`, JSON.stringify(vs));
+        logger.debug(`Wrote ${vs.url} to cache`);
+      });
+    }
 
     if (errors.length > 0) {
       throw new Error(`Errors encountered resolving ValueSets: ${errors.join(', ')}`);
