@@ -1,11 +1,25 @@
+import nock from 'nock';
 import {
   createDepLibraryBundle,
   createLibraryPackageBundle,
   createMeasurePackageBundle,
   getAllDependentLibraries,
+  getDependentValueSets,
   getQueryFromReference
 } from '../../src/util/bundleUtils';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
+
+const MOCK_VS_1: fhir4.ValueSet = {
+  resourceType: 'ValueSet',
+  status: 'unknown',
+  url: 'http://example.com/ValueSet/1'
+};
+
+const MOCK_VS_2: fhir4.ValueSet = {
+  resourceType: 'ValueSet',
+  status: 'unknown',
+  url: 'http://example.com/ValueSet/2'
+};
 
 const LIB_WITH_NO_DEPS: fhir4.Library = {
   id: 'LibWithNoDeps',
@@ -25,6 +39,14 @@ const LIB_WITH_DEPS: fhir4.Library = {
     {
       type: 'depends-on',
       resource: 'http://example.com/LibraryWithNoDeps'
+    },
+    {
+      type: 'depends-on',
+      resource: MOCK_VS_1.url
+    },
+    {
+      type: 'depends-on',
+      resource: MOCK_VS_2.url
     }
   ]
 };
@@ -169,6 +191,27 @@ describe('bundleUtils', () => {
       expect(bundle.entry).toEqual(
         expect.arrayContaining([{ resource: LIB_WITH_DEPS }, { resource: LIB_WITH_NO_DEPS }])
       );
+    });
+  });
+
+  describe('getDependentValueSets', () => {
+    it('should return [] for library with no dependent valuesets', async () => {
+      const vs = await getDependentValueSets(LIB_WITH_NO_DEPS);
+      expect(vs).toEqual([]);
+    });
+
+    it('should include valuesets resolved with $expand requests', async () => {
+      nock(MOCK_VS_1.url as string)
+        .get('/$expand')
+        .reply(200, MOCK_VS_1);
+      nock(MOCK_VS_2.url as string)
+        .get('/$expand')
+        .reply(200, MOCK_VS_2);
+
+      const vs = await getDependentValueSets(LIB_WITH_DEPS, false);
+
+      expect(vs).toHaveLength(2);
+      expect(vs).toEqual(expect.arrayContaining([MOCK_VS_1, MOCK_VS_2]));
     });
   });
 
