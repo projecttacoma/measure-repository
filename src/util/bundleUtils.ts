@@ -41,12 +41,8 @@ export async function createMeasurePackageBundle(
     }
     const mainLib = libs[0];
 
-    const result = await createDepLibraryBundle(mainLib);
+    const result = await createDepLibraryBundle(mainLib, includeTerminology);
     result.entry?.unshift({ resource: measure });
-
-    if (includeTerminology) {
-      await addValueSetsToBundle(mainLib, result);
-    }
 
     return result;
   } else {
@@ -63,11 +59,7 @@ export async function createLibraryPackageBundle(
   includeTerminology?: boolean
 ): Promise<fhir4.Bundle<fhir4.FhirResource>> {
   logger.info(`Assembling collection bundle from Library ${library.id}`);
-  const result = await createDepLibraryBundle(library);
-
-  if (includeTerminology) {
-    await addValueSetsToBundle(library, result);
-  }
+  const result = await createDepLibraryBundle(library, includeTerminology);
 
   return result;
 }
@@ -76,7 +68,10 @@ export async function createLibraryPackageBundle(
  * Takes in the main library from either Measure/$package or Library/$package
  * and returns a bundle of all the dependent libraries
  */
-export async function createDepLibraryBundle(mainLib: fhir4.Library): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+export async function createDepLibraryBundle(
+  mainLib: fhir4.Library,
+  includeTerminology?: boolean
+): Promise<fhir4.Bundle<fhir4.FhirResource>> {
   const allLibsDups = await getAllDependentLibraries(mainLib);
   // de-dup by id using map
   const idMap = new Map(allLibsDups.map(lib => [lib.id, lib]));
@@ -85,6 +80,13 @@ export async function createDepLibraryBundle(mainLib: fhir4.Library): Promise<fh
   result.entry = allLibs.map(r => ({
     resource: r
   }));
+
+  if (includeTerminology) {
+    for (const lib of allLibs) {
+      await addValueSetsToBundle(lib, result);
+    }
+  }
+
   return result;
 }
 

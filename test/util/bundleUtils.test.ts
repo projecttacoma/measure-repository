@@ -21,6 +21,12 @@ const MOCK_VS_2: fhir4.ValueSet = {
   url: 'http://example.com/ValueSet/2'
 };
 
+const MOCK_VS_3: fhir4.ValueSet = {
+  resourceType: 'ValueSet',
+  status: 'unknown',
+  url: 'http://example.com/ValueSet/4'
+};
+
 const LIB_WITH_NO_DEPS: fhir4.Library = {
   id: 'LibWithNoDeps',
   url: 'http://example.com/LibraryWithNoDeps',
@@ -47,6 +53,42 @@ const LIB_WITH_DEPS: fhir4.Library = {
     {
       type: 'depends-on',
       resource: MOCK_VS_2.url
+    }
+  ]
+};
+
+const LIB_WITH_VALUESET: fhir4.Library = {
+  id: 'LibraryWithValueSet',
+  url: 'http://example.com/LibraryWithVS',
+  resourceType: 'Library',
+  status: 'draft',
+  type: { coding: [{ code: 'logic-library' }] },
+  relatedArtifact: [
+    {
+      type: 'depends-on',
+      resource: 'http://example.com/LibraryWithExtraVS'
+    },
+    {
+      type: 'depends-on',
+      resource: MOCK_VS_1.url
+    },
+    {
+      type: 'depends-on',
+      resource: MOCK_VS_2.url
+    }
+  ]
+};
+
+const LIB_WITH_EXTRA_VALUESET: fhir4.Library = {
+  id: 'LibraryWithExtraValueSet',
+  url: 'http://example.com/LibraryWithExtraVS',
+  resourceType: 'Library',
+  status: 'draft',
+  type: { coding: [{ code: 'logic-library' }] },
+  relatedArtifact: [
+    {
+      type: 'depends-on',
+      resource: MOCK_VS_3.url
     }
   ]
 };
@@ -87,7 +129,13 @@ const MEASURE_WITH_LIBRARY: fhir4.Measure = {
 
 describe('bundleUtils', () => {
   beforeAll(() => {
-    return setupTestDatabase([LIB_WITH_DEPS, LIB_WITH_NO_DEPS, LIB_WITH_MISSING_DEPS]);
+    return setupTestDatabase([
+      LIB_WITH_DEPS,
+      LIB_WITH_NO_DEPS,
+      LIB_WITH_MISSING_DEPS,
+      LIB_WITH_EXTRA_VALUESET,
+      LIB_WITH_EXTRA_VALUESET
+    ]);
   });
 
   describe('Testing getAllDependentLibraries()', () => {
@@ -142,6 +190,31 @@ describe('bundleUtils', () => {
       expect(libBundle.entry).toHaveLength(2);
       expect(libBundle.entry).toEqual(
         expect.arrayContaining([{ resource: LIB_WITH_DEPS }, { resource: LIB_WITH_NO_DEPS }])
+      );
+    });
+
+    it('should include all valuesets across libraries when using terminology', async () => {
+      nock(MOCK_VS_1.url as string)
+        .get('/$expand')
+        .reply(200, MOCK_VS_1);
+      nock(MOCK_VS_2.url as string)
+        .get('/$expand')
+        .reply(200, MOCK_VS_2);
+      nock(MOCK_VS_3.url as string)
+        .get('/$expand')
+        .reply(200, MOCK_VS_3);
+
+      const libBundle = await createDepLibraryBundle(LIB_WITH_VALUESET, true);
+      expect(libBundle.resourceType).toEqual('Bundle');
+      expect(libBundle.entry).toHaveLength(5);
+      expect(libBundle.entry).toEqual(
+        expect.arrayContaining([
+          { resource: LIB_WITH_VALUESET },
+          { resource: LIB_WITH_EXTRA_VALUESET },
+          { resource: MOCK_VS_1 },
+          { resource: MOCK_VS_2 },
+          { resource: MOCK_VS_3 }
+        ])
       );
     });
   });
@@ -208,7 +281,7 @@ describe('bundleUtils', () => {
         .get('/$expand')
         .reply(200, MOCK_VS_2);
 
-      const vs = await getDependentValueSets(LIB_WITH_DEPS, false);
+      const vs = await getDependentValueSets(LIB_WITH_VALUESET, false);
 
       expect(vs).toHaveLength(2);
       expect(vs).toEqual(expect.arrayContaining([MOCK_VS_1, MOCK_VS_2]));
