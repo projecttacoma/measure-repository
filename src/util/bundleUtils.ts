@@ -45,13 +45,7 @@ export async function createMeasurePackageBundle(
     result.entry?.unshift({ resource: measure });
 
     if (includeTerminology) {
-      const valueSets = await getDependentValueSets(mainLib);
-
-      result.entry?.push(
-        ...valueSets.map(vs => ({
-          resource: vs
-        }))
-      );
+      await addValueSetsToBundle(mainLib, result);
     }
 
     return result;
@@ -72,13 +66,7 @@ export async function createLibraryPackageBundle(
   const result = await createDepLibraryBundle(library);
 
   if (includeTerminology) {
-    const valueSets = await getDependentValueSets(library);
-
-    result.entry?.push(
-      ...valueSets.map(vs => ({
-        resource: vs
-      }))
-    );
+    await addValueSetsToBundle(library, result);
   }
 
   return result;
@@ -118,6 +106,10 @@ function hasNoDependencies(lib: fhir4.Library) {
   return !lib.relatedArtifact || (Array.isArray(lib.relatedArtifact) && lib.relatedArtifact.length === 0);
 }
 
+/*
+ * Resolves ValueSets listed in the relatedArtifact property of a library
+ * Optionally uses a file-system cache to grab ValueSets that have been resolved previously
+ */
 export async function getDependentValueSets(lib: fhir4.Library, useFileCache = true) {
   if (hasNoDependencies(lib)) {
     return [];
@@ -131,7 +123,7 @@ export async function getDependentValueSets(lib: fhir4.Library, useFileCache = t
       .map(ra => ra.resource as string) ?? []
   )
     // TODO: This URL throws an internal server error on VSAC
-    // Ignore for now just to test caching
+    // ticket has been submitted to the VSAC FHIR API team to look into this issue
     .filter(url => url !== 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.114222.4.11.3591');
 
   const valueSets: fhir4.ValueSet[] = [];
@@ -194,6 +186,19 @@ export async function getDependentValueSets(lib: fhir4.Library, useFileCache = t
   }
 
   return valueSets;
+}
+
+/*
+ * Updates the bundle entry array in-place to include any resolved ValueSets
+ */
+async function addValueSetsToBundle(rootLibrary: fhir4.Library, currentBundle: fhir4.Bundle) {
+  const valueSets = await getDependentValueSets(rootLibrary);
+
+  currentBundle.entry?.push(
+    ...valueSets.map(vs => ({
+      resource: vs
+    }))
+  );
 }
 
 /**
