@@ -133,7 +133,6 @@ describe('bundleUtils', () => {
       LIB_WITH_DEPS,
       LIB_WITH_NO_DEPS,
       LIB_WITH_MISSING_DEPS,
-      LIB_WITH_EXTRA_VALUESET,
       LIB_WITH_EXTRA_VALUESET
     ]);
   });
