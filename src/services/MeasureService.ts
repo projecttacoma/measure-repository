@@ -6,7 +6,7 @@ import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundl
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { gatherParams, validateSearchParams } from '../util/validationUtils';
-import { Calculator, ValueSetResolver } from 'fqm-execution';
+import { Calculator } from 'fqm-execution';
 
 const logger = loggers.get('default');
 
