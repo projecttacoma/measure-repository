@@ -374,10 +374,7 @@ describe('MeasureService', () => {
             expect.objectContaining({
               resourceType: 'Bundle'
             }),
-            expect.objectContaining({
-              measurementPeriodStart: '2022-01-01',
-              measurementPeriodEnd: '2022-12-31'
-            })
+            {}
           );
         });
     });
@@ -394,10 +391,7 @@ describe('MeasureService', () => {
             expect.objectContaining({
               resourceType: 'Bundle'
             }),
-            expect.objectContaining({
-              measurementPeriodStart: '2022-01-01',
-              measurementPeriodEnd: '2022-12-31'
-            })
+            {}
           );
         });
     });
