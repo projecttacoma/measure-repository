@@ -126,8 +126,8 @@ export async function getDependentValueSets(lib: fhir4.Library, useFileCache = t
   logger.info('Resolving ValueSets');
 
   const depValueSetUrls = (
-    lib.relatedArtifact
-      ?.filter(ra => ra.type === 'depends-on' && ra.resource?.includes('ValueSet'))
+    (lib.relatedArtifact as fhir4.RelatedArtifact[])
+      .filter(ra => ra.type === 'depends-on' && ra.resource?.includes('ValueSet'))
       .map(ra => ra.resource as string) ?? []
   )
     // TODO: This URL throws an internal server error on VSAC
@@ -204,11 +204,12 @@ export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir
   const results = [lib];
 
   // If the library has no dependencies, we are done
-  if (!lib.relatedArtifact || (Array.isArray(lib.relatedArtifact) && lib.relatedArtifact.length === 0)) {
+  if (hasNoDependencies(lib)) {
     return results;
   }
+
   // This filter checks for the 'Library' keyword on all related artifacts
-  const depLibUrls = lib.relatedArtifact
+  const depLibUrls = (lib.relatedArtifact as fhir4.RelatedArtifact[])
     .filter(
       ra =>
         ra.type === 'depends-on' &&
