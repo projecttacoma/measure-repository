@@ -86,6 +86,6 @@ export class LibraryService implements Service<fhir4.Library> {
       );
     }
 
-    return createLibraryPackageBundle(library[0]);
+    return createLibraryPackageBundle(library[0], req.query['include-terminology'] ?? false);
   }
 }
