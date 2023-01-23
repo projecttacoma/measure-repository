@@ -119,14 +119,10 @@ export async function getDependentValueSets(lib: fhir4.Library, useFileCache = t
 
   logger.info('Resolving ValueSets');
 
-  const depValueSetUrls = (
+  const depValueSetUrls =
     (lib.relatedArtifact as fhir4.RelatedArtifact[])
       .filter(ra => ra.type === 'depends-on' && ra.resource?.includes('ValueSet'))
-      .map(ra => ra.resource as string) ?? []
-  )
-    // TODO: This URL throws an internal server error on VSAC
-    // ticket has been submitted to the VSAC FHIR API team to look into this issue
-    .filter(url => url !== 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.114222.4.11.3591');
+      .map(ra => ra.resource as string) ?? [];
 
   const valueSets: fhir4.ValueSet[] = [];
   let missingUrls: string[] = [];
