@@ -1,0 +1,267 @@
+{
+  "mode": "server",
+  "resource": [
+    {
+      "type" : "Library",
+      "profile" : "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/library-cqfm",
+      "supportedProfile" : [
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-library-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-library-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/executable-library-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/modelinfo-library-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/quality-program-cqfm"
+      ],
+      "interaction" : [
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "code" : "read",
+          "documentation" : "Read allows clients to get the definitions and details of repository libraries"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "code" : "search-type",
+          "documentation" : "Search allows clients to search for repository libraries"
+        }
+      ],
+      "searchParam" : [
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "url",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-url",
+          "type" : "uri"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "version",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-version",
+          "type" : "token"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "identifier",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-identifier",
+          "type" : "token"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "name",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-name",
+          "type" : "string"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "title",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-title",
+          "type" : "string"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "description",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-description",
+          "type" : "string"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "status",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Library-status",
+          "type" : "token"
+        }
+      ],
+      "operation": [
+        {
+          "extension" : [{
+            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+            "valueCode" : "SHALL"
+          }],
+          "name" : "package",
+          "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package"
+        },
+        {
+          "extension" : [{
+            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+            "valueCode" : "SHALL"
+          }],
+          "name" : "data-requirements",
+          "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements"
+        }
+      ]
+    },
+    {
+      "type" : "Measure",
+      "profile" : "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/measure-cqfm",
+      "supportedProfile" : [
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-measure-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-measure-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cohort-measure-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/proportion-measure-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/ratio-measure-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cv-measure-cqfm",
+        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/composite-measure-cqfm"
+      ],
+      "interaction" : [
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "code" : "read",
+          "documentation" : "Read allows clients to get the definitions and details of repository measures"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "code" : "search-type",
+          "documentation" : "Search allows clients to search for repository measures"
+        }
+      ],
+      "searchParam" : [
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "url",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-url",
+          "type" : "uri"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "version",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-version",
+          "type" : "token"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "identifier",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-identifier",
+          "type" : "token"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "name",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-name",
+          "type" : "string"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "title",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-title",
+          "type" : "string"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "description",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-description",
+          "type" : "string"
+        },
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode" : "SHALL"
+            }
+          ],
+          "name" : "status",
+          "definition" : "http://hl7.org/fhir/SearchParameter/Measure-status",
+          "type" : "token"
+        }
+      ],
+      "operation": [
+        {
+          "extension" : [{
+            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+            "valueCode" : "SHALL"
+          }],
+          "name" : "package",
+          "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package"
+        },
+        {
+          "extension" : [{
+            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+            "valueCode" : "SHALL"
+          }],
+          "name" : "data-requirements",
+          "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements"
+        }
+      ]
+    }
+  ]
+}

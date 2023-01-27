@@ -1,5 +1,29 @@
-import { constants, ServerConfig } from '@projecttacoma/node-fhir-server-core';
+import { constants, ServerConfig, resolveSchema } from '@projecttacoma/node-fhir-server-core';
 import { MeasureService, LibraryService } from '../services';
+import capabilityStatementResources from './capabilityStatementResources.json';
+
+const customCapabilityStatement = (): fhir4.CapabilityStatement => {
+  const base_version = constants.VERSIONS['4_0_1'];
+  const CapabilityStatement = resolveSchema(base_version, 'CapabilityStatement');
+
+  return new CapabilityStatement({
+    id: 'MeasureRepositoryServiceCapabilityStatement',
+    name: 'MeasureRepositoryService',
+    title: 'FHIR Measure Repository Service Capability Statement',
+    status: 'active',
+    // date last modified
+    date: '2023-01-27',
+    publisher: 'The MITRE Corporation',
+    instantiates: [
+      'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/shareable-measure-repository',
+      'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/publishable-measure-repository'
+    ],
+    kind: 'instance',
+    fhirVersion: base_version.replace(/_/g, '.'),
+    format: ['application/fhir+json'],
+    rest: [capabilityStatementResources]
+  });
+};
 
 export const serverConfig: ServerConfig = {
   profiles: {
@@ -87,5 +111,8 @@ export const serverConfig: ServerConfig = {
         }
       ]
     }
+  },
+  statementGenerator() {
+    return { makeStatement: customCapabilityStatement, securityStatement: () => null };
   }
 };

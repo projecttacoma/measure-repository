@@ -110,7 +110,7 @@ declare module '@projecttacoma/node-fhir-server-core' {
 
   export type ServerConfig = {
     profiles: Partial<Record<FhirResourceType, ProfileConfig>>;
-    statementGenerator?: (args: RequestArgs) => {
+    statementGenerator?: () => {
       makeStatement: (resources: any) => fhir4.CapabilityStatement;
       securityStatement: () => any;
     };
