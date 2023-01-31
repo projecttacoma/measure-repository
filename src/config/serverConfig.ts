@@ -12,13 +12,16 @@ const customCapabilityStatement = (): fhir4.CapabilityStatement => {
     title: 'FHIR Measure Repository Service Capability Statement',
     status: 'active',
     // date last modified
-    date: '2023-01-27',
+    date: new Date(2023, 0, 31),
     publisher: 'The MITRE Corporation',
     instantiates: [
       'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/shareable-measure-repository',
       'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/publishable-measure-repository'
     ],
     kind: 'instance',
+    implementation: {
+      description: 'A prototype implementation of a FHIR Measure Repository Service'
+    },
     fhirVersion: base_version.replace(/_/g, '.'),
     format: ['application/fhir+json'],
     rest: [capabilityStatementResources]

@@ -54,7 +54,7 @@
           ],
           "name" : "version",
           "definition" : "http://hl7.org/fhir/SearchParameter/Library-version",
-          "type" : "token"
+          "type" : "string"
         },
         {
           "extension" : [
@@ -120,14 +120,6 @@
           }],
           "name" : "package",
           "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package"
-        },
-        {
-          "extension" : [{
-            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-            "valueCode" : "SHALL"
-          }],
-          "name" : "data-requirements",
-          "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements"
         }
       ]
     },
@@ -186,7 +178,7 @@
           ],
           "name" : "version",
           "definition" : "http://hl7.org/fhir/SearchParameter/Measure-version",
-          "type" : "token"
+          "type" : "string"
         },
         {
           "extension" : [
