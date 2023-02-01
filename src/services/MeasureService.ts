@@ -52,6 +52,11 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`${req.method} ${req.path}`);
 
     const params = gatherParams(req.query, args.resource);
+    if (req.params.id && params.id) {
+      throw new BadRequestError(
+        'Id argument may not be sourced from both a path parameter and a query or fhir parameter.'
+      );
+    }
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;
