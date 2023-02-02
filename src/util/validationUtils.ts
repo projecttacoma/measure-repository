@@ -40,3 +40,11 @@ export function gatherParams(query: RequestQuery, parameters?: fhir4.Parameters)
   }
   return gatheredParams;
 }
+
+export function validateParamIdSource(pathId: any, paramId: any) {
+  if (pathId && paramId) {
+    throw new BadRequestError(
+      'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
+    );
+  }
+}

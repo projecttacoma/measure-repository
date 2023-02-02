@@ -326,6 +326,34 @@ describe('MeasureService', () => {
         });
     });
 
+    it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/testWithRootLib/$package')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
+          );
+        });
+    });
+
+    it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/testWithRootLib/$package')
+        .query({ id: 'testWithRootLib' })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
+          );
+        });
+    });
+
     it('throws a 404 error when no measure matching id and url can be found', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
@@ -442,6 +470,34 @@ describe('MeasureService', () => {
               measurementPeriodStart: '2021-01-01',
               measurementPeriodEnd: '2021-12-31'
             })
+          );
+        });
+    });
+
+    it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/testWithRootLib/$data-requirements')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
+          );
+        });
+    });
+
+    it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/testWithRootLib/$data-requirements')
+        .query({ id: 'testWithRootLib' })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
           );
         });
     });

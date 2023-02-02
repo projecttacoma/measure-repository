@@ -5,7 +5,7 @@ import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateSearchParams } from '../util/validationUtils';
+import { gatherParams, validateSearchParams, validateParamIdSource } from '../util/validationUtils';
 import { Calculator } from 'fqm-execution';
 
 const logger = loggers.get('default');
@@ -52,6 +52,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`${req.method} ${req.path}`);
 
     const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;
