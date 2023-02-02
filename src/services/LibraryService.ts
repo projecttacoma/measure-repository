@@ -5,7 +5,7 @@ import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateSearchParams } from '../util/validationUtils';
+import { gatherParams, validateSearchParams, validateParamIdSource } from '../util/validationUtils';
 
 const logger = loggers.get('default');
 
@@ -51,11 +51,7 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.info(`${req.method} ${req.path}`);
 
     const params = gatherParams(req.query, args.resource);
-    if (req.params.id && params.id) {
-      throw new BadRequestError(
-        'Id argument may not be sourced from both a path parameter and a query or fhir parameter.'
-      );
-    }
+    validateParamIdSource(req.params.id, params.id);
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;

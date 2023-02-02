@@ -317,7 +317,7 @@ describe('LibraryService', () => {
         });
     });
 
-    it('throws a 400 error when an id is included in both the path and a fhir parameter', async () => {
+    it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library/testLibraryWithDeps/$package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
@@ -326,7 +326,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Id argument may not be sourced from both a path parameter and a query or fhir parameter.'
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
           );
         });
     });
@@ -340,7 +340,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Id argument may not be sourced from both a path parameter and a query or fhir parameter.'
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
           );
         });
     });
