@@ -1,12 +1,13 @@
-import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
+import { findResourceById, findResourcesWithQuery, createResource, updateResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { ResourceNotFoundError } from '../util/errorUtils';
+import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
+import { extractIdentificationForQuery, gatherParams, validateParamIdSource, checkContentTypeHeader, checkExpectedResourceType } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import { v4 as uuidv4 } from 'uuid';
 
 const logger = loggers.get('default');
 
@@ -89,5 +90,51 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     logger.info('Successfully generated $data-requirements report');
     return results;
+  }
+
+  /**
+   * result of sending a POST request to:
+   * {BASE_URL}/4_0_1/Measure/$submit or a PUT request to: {BASE_URL}/4_0_1/Measure/:id/$submit
+   * POSTs/PUTs a new artifact in "draft" status. The operation results in an error if the artifact
+   * does not have status set to "draft."
+   */
+  async submit(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+
+    // check for "draft" status on the resource
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Measure');
+    if (resource.status !== 'draft') {
+      throw new BadRequestError(`The artifact must be in 'draft' status`);
+    }
+
+    //lastUpdated should be second because it should overwrite a meta.lastUpdated tag in the request body
+    resource['meta'] = { ...resource['meta'], lastUpdated: new Date().toISOString() };
+
+    // check for id if the request method is PUT
+    if (req.params.id) {
+      // if (req.method === 'PUT' &&  req.params.id) {
+      if (resource.id !== req.params.id) {
+        throw new BadRequestError(
+          `Expected argument id to match resource id. Received ${req.params.id} and ${resource.id}.`
+        );
+      }
+      const results = await updateResource(req.params.id, resource, 'Measure');
+      if (results.created) {
+        req.res.status(201);
+      } else req.res.status(200);
+      const location = `${constants.VERSIONS['4_0_1']}/Measure/${results.id}`;
+      req.res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
+    } else {
+      // create new resource
+      resource['id'] = uuidv4();
+      const location = `${constants.VERSIONS['4_0_1']}/Measure/${resource.id}`;
+      req.res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
+      req.res.status(201);
+      createResource(resource, 'Measure');
+    }
   }
 }

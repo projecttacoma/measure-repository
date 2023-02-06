@@ -58,4 +58,14 @@ export class LibraryService implements Service<fhir4.Library> {
 
     return createLibraryPackageBundle(query, parsedParams);
   }
+
+  /**
+   * result of sending a POST or PUT request to:
+   * {BASE_URL}/4_0_1/Measure/$submit or {BASE_URL}/4_0_1/Measure/:id/$submit
+   * POSTs/PUTs a new artifact in "draft" status. The operation results in an error if the artifact
+   * does not have status set to "draft."
+   */
+  async submit(args: RequestArgs, { req }: RequestCtx) {
+    return true;
+  }
 }

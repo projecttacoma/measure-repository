@@ -1,4 +1,4 @@
-import { RequestArgs, RequestQuery } from '@projecttacoma/node-fhir-server-core';
+import { RequestArgs, RequestQuery, FhirResourceType } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { BadRequestError } from './errorUtils';
 
@@ -47,4 +47,20 @@ export function extractIdentificationForQuery(args: RequestArgs, params: Record<
   if (identifier) query.identifier = identifier;
 
   return query;
+}
+/**
+ * Checks that the content-type from the request headers accepts json + fhir.
+ */
+export function checkContentTypeHeader(contentType: string | undefined) {
+  if (contentType !== 'application/json+fhir' && contentType !== 'application/fhir+json') {
+    throw new BadRequestError(
+      'Ensure Content-Type is set to application/json+fhir or to application/fhir+json in headers'
+    );
+  }
+}
+
+export function checkExpectedResourceType(resourceType: string, expectedResourceType: FhirResourceType) {
+  if (resourceType !== expectedResourceType) {
+    throw new BadRequestError(`Expected resourceType '${expectedResourceType}' in body. Received '${resourceType}'.`);
+  }
 }

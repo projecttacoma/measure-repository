@@ -120,6 +120,14 @@
           }],
           "name" : "package",
           "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package"
+        },
+        {
+          "extension" : [{
+            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+            "valueCode" : "SHALL"
+          }],
+          "name" : "submit",
+          "definition" : "example.com"
         }
       ]
     },
@@ -252,6 +260,14 @@
           }],
           "name" : "data-requirements",
           "definition" : "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements"
+        },
+        {
+          "extension" : [{
+            "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+            "valueCode" : "SHALL"
+          }],
+          "name" : "submit",
+          "definition" : "example.com"
         }
       ]
     }

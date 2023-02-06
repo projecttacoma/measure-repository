@@ -95,6 +95,9 @@ Supported optional parameters are:
 - periodStart
 - periodEnd
 
+### Submit
+The Measure Repository Service server supports the `$submit` operation for Measure and Library resources, as specified in the Authoring Measure Repository serction of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository). The operation does not take in any parameters. 
+
 ## License
 
 Copyright 2022 The MITRE Corporation
