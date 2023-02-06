@@ -1,12 +1,13 @@
-import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateSearchParams, validateParamIdSource } from '../util/validationUtils';
+import { gatherParams, validateParamIdSource } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
+import { CoreSearchArgs, DataRequirementsArgs, PackageArgs } from '../requestSchemas';
 
 const logger = loggers.get('default');
 
@@ -23,7 +24,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`GET /Measure`);
     const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    validateSearchParams(query);
+    CoreSearchArgs.parse(query);
     const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
     return createSearchsetBundle(entries);
@@ -53,23 +54,19 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
+
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;
     const identifier = params.identifier;
-
-    if (!id && !url && !identifier) {
-      throw new BadRequestError(
-        'Must provide identifying information via either id, url, or identifier parameters',
-        constants.ISSUE.CODE.REQUIRED
-      );
-    }
 
     const query: Filter<any> = {};
     if (id) query.id = id;
     if (url) query.url = url;
     if (version) query.version = version;
     if (identifier) query.identifier = identifier;
+
+    PackageArgs.parse(query);
 
     const parsedQuery = getMongoQueryFromRequest(query);
     const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
@@ -98,12 +95,13 @@ export class MeasureService implements Service<fhir4.Measure> {
    * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
    */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
+    const params = gatherParams(req.query, args.resource);
+    DataRequirementsArgs.parse(params);
+
     logger.info(`${req.method} ${req.path}`);
     logger.info('Using package to create measure bundle');
     const path = req.path.replace(/data-requirements/i, 'package');
     const measureBundle = await this.package(args, { req: { ...req, path: path } });
-
-    const params = gatherParams(req.query, args.resource);
 
     // See https://jira.hl7.org/browse/FHIR-40230
     // periodStart and periodEnd should be optional. Right now, fqm-execution will default it to 2019.

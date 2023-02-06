@@ -1,12 +1,12 @@
-import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import { CoreSearchArgs, PackageArgs } from '../requestSchemas';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateSearchParams, validateParamIdSource } from '../util/validationUtils';
-
+import { gatherParams, validateParamIdSource } from '../util/inputUtils';
 const logger = loggers.get('default');
 
 /*
@@ -22,7 +22,7 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.info(`GET /Library`);
     const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    validateSearchParams(query);
+    CoreSearchArgs.parse(query);
     const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
     return createSearchsetBundle(entries);
@@ -52,23 +52,19 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
+
     const id = args.id || params.id;
     const url = params.url;
     const version = params.version;
     const identifier = params.identifier;
-
-    if (!id && !url && !identifier) {
-      throw new BadRequestError(
-        'Must provide identifying information via either id, url, or identifier parameters',
-        constants.ISSUE.CODE.REQUIRED
-      );
-    }
 
     const query: Filter<any> = {};
     if (id) query.id = id;
     if (url) query.url = url;
     if (version) query.version = version;
     if (identifier) query.identifier = identifier;
+
+    PackageArgs.parse(query);
 
     const parsedQuery = getMongoQueryFromRequest(query);
     const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
