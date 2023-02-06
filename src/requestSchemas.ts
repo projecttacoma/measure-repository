@@ -72,7 +72,7 @@ export function catchInvalidParams(
   };
 }
 
-function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.RefinementCtx) {
+export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.RefinementCtx) {
   if (!hasIdentifyingInfo(val)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
