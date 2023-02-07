@@ -392,7 +392,7 @@ describe('LibraryService', () => {
         .post('/4_0_1/Library/$submit')
         .send({resourceType: 'Library', status: 'draft'})
         .set('Accept', 'application/json+fhir')
-        .set('content-type', 'application/fhir+json')
+        .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
           expect(response.headers['content-location']).toBeDefined();
@@ -404,7 +404,7 @@ describe('LibraryService', () => {
         .post(`/4_0_1/Library/test-id/$submit`)
         .send({resourceType: 'Library', status: 'draft'})
         .set('Accept', 'application/json+fhir')
-        .set('content-type', 'application/fhir+json')
+        .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
           expect(response.headers['content-location']).toBeDefined();
@@ -416,7 +416,7 @@ describe('LibraryService', () => {
         .post(`/4_0_1/Library/$submit`)
         .send({resourceType: 'Library', status: 'active'})
         .set('Accept', 'application/json+fhir')
-        .set('content-type', 'application/fhir+json')
+        .set('content-type', 'application/json+fhir')
         .expect(400)
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');

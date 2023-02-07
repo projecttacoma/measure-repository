@@ -62,8 +62,8 @@ export class LibraryService implements Service<fhir4.Library> {
 
   /**
    * result of sending a POST request to:
-   * {BASE_URL}/4_0_1/Library/$submit or a PUT request to: {BASE_URL}/4_0_1/Library/:id/$submit
-   * POSTs/PUTs a new artifact in "draft" status. The operation results in an error if the artifact
+   * {BASE_URL}/4_0_1/Library/$submit or {BASE_URL}/4_0_1/Library/:id/$submit
+   * POSTs a new artifact in "draft" status. The operation results in an error if the artifact
    * does not have status set to "draft."
    */
   async submit(args: RequestArgs, { req }: RequestCtx) {
