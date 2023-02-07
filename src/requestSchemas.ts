@@ -54,6 +54,12 @@ z.setErrorMap(customErrorMap);
 
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
+/**
+ * Returns a function that checks if any unsupported params are present, then runs the
+ * other passed in functions in sequence. Each catchFunction is expected to check for
+ * invalid input and call ctx.addIssue if invalid input is detected. Any added issue will
+ * trigger an error to be thrown.
+ */
 export function catchInvalidParams(
   catchFunctions: ((val: Record<string, any>, ctx: z.RefinementCtx) => void)[],
   unsupportedArgs?: string[]
@@ -72,6 +78,10 @@ export function catchInvalidParams(
   };
 }
 
+/**
+ * Checks that either id, url, or identifier parameter is included. Adds an issue to the ctx
+ * that triggers a BadRequest to be thrown if not.
+ */
 export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.RefinementCtx) {
   if (!hasIdentifyingInfo(val)) {
     ctx.addIssue({

@@ -66,7 +66,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (version) query.version = version;
     if (identifier) query.identifier = identifier;
 
-    PackageArgs.parse(query);
+    PackageArgs.parse({ ...params, ...query });
 
     const parsedQuery = getMongoQueryFromRequest(query);
     const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');

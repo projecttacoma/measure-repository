@@ -64,7 +64,7 @@ export class LibraryService implements Service<fhir4.Library> {
     if (version) query.version = version;
     if (identifier) query.identifier = identifier;
 
-    PackageArgs.parse(query);
+    PackageArgs.parse({ ...params, ...query });
 
     const parsedQuery = getMongoQueryFromRequest(query);
     const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
