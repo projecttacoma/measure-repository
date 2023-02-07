@@ -1,11 +1,12 @@
-import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
+import { createResource, findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { ResourceNotFoundError } from '../util/errorUtils';
+import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
+import { extractIdentificationForQuery, gatherParams, validateParamIdSource, checkContentTypeHeader, checkExpectedResourceType } from '../util/inputUtils';
+import { v4 as uuidv4 } from 'uuid';
 const logger = loggers.get('default');
 
 /*
@@ -60,12 +61,34 @@ export class LibraryService implements Service<fhir4.Library> {
   }
 
   /**
-   * result of sending a POST or PUT request to:
-   * {BASE_URL}/4_0_1/Measure/$submit or {BASE_URL}/4_0_1/Measure/:id/$submit
+   * result of sending a POST request to:
+   * {BASE_URL}/4_0_1/Library/$submit or a PUT request to: {BASE_URL}/4_0_1/Library/:id/$submit
    * POSTs/PUTs a new artifact in "draft" status. The operation results in an error if the artifact
    * does not have status set to "draft."
    */
   async submit(args: RequestArgs, { req }: RequestCtx) {
-    return true;
+    logger.info(`${req.method} ${req.path}`);
+
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Library');
+
+    // check for "draft" status on the resource
+    if (resource.status !== 'draft') {
+      throw new BadRequestError(`The artifact must be in 'draft' status.`);
+    }
+
+    // lastUpdated should be second because it should overwrite a meta.lastUpdated tag in the request body
+    resource['meta'] = { ...resource['meta'], lastUpdated: new Date().toISOString() };
+
+    const res = req.res;
+    // create new resource with server-defined id
+    resource['id'] = uuidv4();
+    await createResource(resource, 'Library');
+    res.status(201);
+    const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
+    res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
   }
 }

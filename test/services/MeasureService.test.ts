@@ -503,6 +503,47 @@ describe('MeasureService', () => {
     });
   });
 
+  describe('$submit', () => {
+    it('returns 201 status with populated content location when provided correct headers and FHIR Measure', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$submit')
+        .send({resourceType: 'Measure', status: 'draft'})
+        .set('Accept', 'application/json+fhir')
+        .set('content-type', 'application/fhir+json')
+        .expect(201)
+        .then(response => {
+          expect(response.headers['content-location']).toBeDefined();
+        });
+    });
+
+    it('returns 201 status with populated content location when id is represent in the path', async () => {
+      await supertest(server.app)
+        .post(`/4_0_1/Measure/test-id/$submit`)
+        .send({resourceType: 'Measure', status: 'draft'})
+        .set('Accept', 'application/json+fhir')
+        .set('content-type', 'application/fhir+json')
+        .expect(201)
+        .then(response => {
+          expect(response.headers['content-location']).toBeDefined();
+        });
+    });
+
+    it('throws a 400 error when the measure is not in "draft" status', async () => {
+      await supertest(server.app)
+        .post(`/4_0_1/Measure/$submit`)
+        .send({resourceType: 'Measure', status: 'active'})
+        .set('Accept', 'application/json+fhir')
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            `The artifact must be in 'draft' status.`
+          );
+        });
+    });
+  });
+
   afterAll(() => {
     return cleanUpTestDatabase();
   });

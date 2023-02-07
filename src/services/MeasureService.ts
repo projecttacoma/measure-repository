@@ -1,5 +1,5 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery, createResource, updateResource } from '../db/dbOperations';
+import { findResourceById, findResourcesWithQuery, createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -104,37 +104,23 @@ export class MeasureService implements Service<fhir4.Measure> {
     const contentType: string | undefined = req.headers['content-type'];
     checkContentTypeHeader(contentType);
 
-    // check for "draft" status on the resource
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Measure');
+
+    // check for "draft" status on the resource
     if (resource.status !== 'draft') {
-      throw new BadRequestError(`The artifact must be in 'draft' status`);
+      throw new BadRequestError(`The artifact must be in 'draft' status.`);
     }
 
-    //lastUpdated should be second because it should overwrite a meta.lastUpdated tag in the request body
+    // lastUpdated should be second because it should overwrite a meta.lastUpdated tag in the request body
     resource['meta'] = { ...resource['meta'], lastUpdated: new Date().toISOString() };
 
-    // check for id if the request method is PUT
-    if (req.params.id) {
-      // if (req.method === 'PUT' &&  req.params.id) {
-      if (resource.id !== req.params.id) {
-        throw new BadRequestError(
-          `Expected argument id to match resource id. Received ${req.params.id} and ${resource.id}.`
-        );
-      }
-      const results = await updateResource(req.params.id, resource, 'Measure');
-      if (results.created) {
-        req.res.status(201);
-      } else req.res.status(200);
-      const location = `${constants.VERSIONS['4_0_1']}/Measure/${results.id}`;
-      req.res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
-    } else {
-      // create new resource
-      resource['id'] = uuidv4();
-      const location = `${constants.VERSIONS['4_0_1']}/Measure/${resource.id}`;
-      req.res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
-      req.res.status(201);
-      createResource(resource, 'Measure');
-    }
+    const res = req.res;
+    // create new resource with server-defined id
+    resource['id'] = uuidv4();
+    await createResource(resource, 'Library');
+    res.status(201);
+    const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
+    res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
   }
 }

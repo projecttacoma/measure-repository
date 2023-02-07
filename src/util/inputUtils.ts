@@ -59,6 +59,9 @@ export function checkContentTypeHeader(contentType: string | undefined) {
   }
 }
 
+/**
+ * Checks that the type of the resource in the body matches the resource type we expect.
+ */
 export function checkExpectedResourceType(resourceType: string, expectedResourceType: FhirResourceType) {
   if (resourceType !== expectedResourceType) {
     throw new BadRequestError(`Expected resourceType '${expectedResourceType}' in body. Received '${resourceType}'.`);
