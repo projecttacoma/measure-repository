@@ -54,7 +54,7 @@ export function extractIdentificationForQuery(args: RequestArgs, params: Record<
 export function checkContentTypeHeader(contentType: string | undefined) {
   if (contentType !== 'application/json+fhir' && contentType !== 'application/fhir+json') {
     throw new BadRequestError(
-      'Ensure Content-Type is set to application/json+fhir or to application/fhir+json in headers'
+      'Ensure Content-Type is set to application/json+fhir or to application/json+fhir in headers'
     );
   }
 }
