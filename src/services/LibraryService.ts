@@ -20,9 +20,9 @@ export class LibraryService implements Service<fhir4.Library> {
    */
   async search(_: RequestArgs, { req }: RequestCtx) {
     logger.info(`GET /Library`);
-    const { query } = req;
+    let { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    CoreSearchArgs.parse(query);
+    query = CoreSearchArgs.parse(query);
     const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
     return createSearchsetBundle(entries);
@@ -50,7 +50,7 @@ export class LibraryService implements Service<fhir4.Library> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
-    const params = gatherParams(req.query, args.resource);
+    let params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
     const id = args.id || params.id;
@@ -64,8 +64,7 @@ export class LibraryService implements Service<fhir4.Library> {
     if (version) query.version = version;
     if (identifier) query.identifier = identifier;
 
-    PackageArgs.parse({ ...params, ...query });
-
+    params = PackageArgs.parse({ ...params, ...query });
     const parsedQuery = getMongoQueryFromRequest(query);
     const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
     if (!library || !(library.length > 0)) {

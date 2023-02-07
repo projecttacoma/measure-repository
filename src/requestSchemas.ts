@@ -2,6 +2,9 @@ import { constants } from '@projecttacoma/node-fhir-server-core';
 import { z } from 'zod';
 import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
+const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
+
+// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#package
 const UNSUPPORTED_PACKAGE_ARGS = [
   'capability',
   'offset',
@@ -13,6 +16,7 @@ const UNSUPPORTED_PACKAGE_ARGS = [
   'include-components'
 ];
 
+// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#requirements
 const UNSUPPORTED_DATA_REQ_ARGS = [
   'expression',
   'parameters',
@@ -21,6 +25,7 @@ const UNSUPPORTED_DATA_REQ_ARGS = [
   'include-components'
 ];
 
+// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#search
 const UNSUPPORTED_SEARCH_ARGS = [
   'date',
   'effective',
@@ -92,6 +97,12 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
   }
 }
 
+const stringToBool = z.enum(['true', 'false']).transform(x => x === 'true');
+const stringToNumber = z.coerce.number().transform(x => Number(x));
+const checkDate = (paramName: string) => {
+  return z.string().regex(DATE_REGEX, `${paramName} parameter is not a valid FHIR date`);
+};
+
 export const IdentifyingParameters = z
   .object({
     id: z.string(),
@@ -103,27 +114,28 @@ export const IdentifyingParameters = z
 
 export const PackageArgs = IdentifyingParameters.extend({
   capability: z.string(),
-  offset: z.string(),
-  count: z.string(),
-  'system-version': z.string(),
-  'check-system-version': z.string(),
-  'force-system-version': z.string(),
+  offset: stringToNumber,
+  count: stringToNumber,
+  'system-version': z.string().url(),
+  'check-system-version': stringToBool,
+  'force-system-version': stringToBool,
   manifest: z.string(),
-  'include-dependencies': z.string(),
-  'include-components': z.string()
+  'include-dependencies': stringToBool,
+  'include-components': stringToBool,
+  'include-terminology': stringToBool
 })
   .partial()
   .strict()
   .superRefine(catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_PACKAGE_ARGS));
 
 export const DataRequirementsArgs = IdentifyingParameters.extend({
-  expression: z.string(),
-  parameters: z.string(),
-  manifest: z.string(),
-  periodStart: z.string(),
-  periodEnd: z.string(),
-  'include-dependencies': z.string(),
-  'include-components': z.string()
+  expression: z.string()
+  // parameters: z.string(),
+  // manifest: z.string(),
+  // periodStart: checkDate('periodStart'),
+  // periodEnd: checkDate('periodEnd'),
+  // 'include-dependencies': stringToBool,
+  // 'include-components': stringToBool
 })
   .partial()
   .strict()
@@ -131,14 +143,14 @@ export const DataRequirementsArgs = IdentifyingParameters.extend({
 
 export const CoreSearchArgs = z
   .object({
-    url: z.string(),
+    url: z.string().url(),
     version: z.string(),
     identifier: z.string(),
     name: z.string(),
     title: z.string(),
     status: z.string(),
     description: z.string(),
-    date: z.string(),
+    date: checkDate('date'),
     effective: z.string(),
     jurisdiction: z.string(),
     context: z.string(),

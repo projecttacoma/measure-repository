@@ -22,9 +22,9 @@ export class MeasureService implements Service<fhir4.Measure> {
    */
   async search(_: RequestArgs, { req }: RequestCtx) {
     logger.info(`GET /Measure`);
-    const { query } = req;
+    let { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    CoreSearchArgs.parse(query);
+    query = CoreSearchArgs.parse(query);
     const parsedQuery = getMongoQueryFromRequest(query);
     const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
     return createSearchsetBundle(entries);
@@ -52,7 +52,7 @@ export class MeasureService implements Service<fhir4.Measure> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
-    const params = gatherParams(req.query, args.resource);
+    let params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
     const id = args.id || params.id;
@@ -66,8 +66,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (version) query.version = version;
     if (identifier) query.identifier = identifier;
 
-    PackageArgs.parse({ ...params, ...query });
-
+    params = PackageArgs.parse({ ...params, ...query });
     const parsedQuery = getMongoQueryFromRequest(query);
     const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
     if (!measure || !(measure.length > 0)) {
@@ -95,8 +94,8 @@ export class MeasureService implements Service<fhir4.Measure> {
    * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
    */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
-    const params = gatherParams(req.query, args.resource);
-    DataRequirementsArgs.parse(params);
+    let params = gatherParams(req.query, args.resource);
+    params = DataRequirementsArgs.parse(params);
 
     logger.info(`${req.method} ${req.path}`);
     logger.info('Using package to create measure bundle');
