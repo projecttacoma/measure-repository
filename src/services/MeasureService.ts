@@ -5,7 +5,7 @@ import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateParamIdSource } from '../util/inputUtils';
+import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
 import { CoreSearchArgs, DataRequirementsArgs, PackageArgs } from '../requestSchemas';
 
@@ -55,36 +55,11 @@ export class MeasureService implements Service<fhir4.Measure> {
     let params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
-    const id = args.id || params.id;
-    const url = params.url;
-    const version = params.version;
-    const identifier = params.identifier;
-
-    const query: Filter<any> = {};
-    if (id) query.id = id;
-    if (url) query.url = url;
-    if (version) query.version = version;
-    if (identifier) query.identifier = identifier;
+    const query = extractIdentificationForQuery(args, params);
 
     params = PackageArgs.parse({ ...params, ...query });
-    const parsedQuery = getMongoQueryFromRequest(query);
-    const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
-    if (!measure || !(measure.length > 0)) {
-      throw new ResourceNotFoundError(
-        `No resource found in collection: Measure, with ${Object.keys(query)
-          .map(key => `${key}: ${query[key]}`)
-          .join(' and ')}`
-      );
-    }
-    if (measure.length > 1) {
-      throw new BadRequestError(
-        `Multiple resources found in collection: Measure, with ${Object.keys(query)
-          .map(key => `${key}: ${query[key]}`)
-          .join(' and ')}. /Measure/$package operation must specify a single Measure`
-      );
-    }
 
-    return createMeasurePackageBundle(measure[0], req.query['include-terminology'] ?? false);
+    return createMeasurePackageBundle(query);
   }
 
   /**
@@ -98,9 +73,10 @@ export class MeasureService implements Service<fhir4.Measure> {
     params = DataRequirementsArgs.parse(params);
 
     logger.info(`${req.method} ${req.path}`);
-    logger.info('Using package to create measure bundle');
-    const path = req.path.replace(/data-requirements/i, 'package');
-    const measureBundle = await this.package(args, { req: { ...req, path: path } });
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const measureBundle = await createMeasurePackageBundle(query);
 
     // See https://jira.hl7.org/browse/FHIR-40230
     // periodStart and periodEnd should be optional. Right now, fqm-execution will default it to 2019.

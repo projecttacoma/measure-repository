@@ -1,4 +1,5 @@
-import { RequestQuery } from '@projecttacoma/node-fhir-server-core';
+import { RequestArgs, RequestQuery } from '@projecttacoma/node-fhir-server-core';
+import { Filter } from 'mongodb';
 import { BadRequestError } from './errorUtils';
 
 /*
@@ -31,4 +32,19 @@ export function validateParamIdSource(pathId: any, paramId: any) {
       'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
     );
   }
+}
+
+export function extractIdentificationForQuery(args: RequestArgs, params: Record<string, any>) {
+  const id = args.id || params.id;
+  const url = params.url;
+  const version = params.version;
+  const identifier = params.identifier;
+
+  const query: Filter<any> = {};
+  if (id) query.id = id;
+  if (url) query.url = url;
+  if (version) query.version = version;
+  if (identifier) query.identifier = identifier;
+
+  return query;
 }

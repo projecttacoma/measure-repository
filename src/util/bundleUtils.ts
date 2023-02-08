@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { findResourcesWithQuery } from '../db/dbOperations';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import fs from 'fs';
+import { getMongoQueryFromRequest } from './queryUtils';
 
 const logger = loggers.get('default');
 
@@ -27,26 +28,44 @@ export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]
  * Takes in a measure resource, finds all dependent library resources and bundles them
  * together with the measure in a collection bundle
  */
-export async function createMeasurePackageBundle(
-  measure: fhir4.Measure,
-  includeTerminology?: boolean
-): Promise<fhir4.Bundle<fhir4.FhirResource>> {
-  logger.info(`Assembling collection bundle from Measure ${measure.id}`);
-  if (measure.library && measure.library.length > 0) {
-    const [mainLibraryRef] = measure.library;
+export async function createMeasurePackageBundle(query: Filter<any>): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  const parsedQuery = getMongoQueryFromRequest(query);
+  const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
+  if (!measure || !(measure.length > 0)) {
+    throw new ResourceNotFoundError(
+      `No resource found in collection: Measure, with ${Object.keys(query)
+        .map(key => `${key}: ${query[key]}`)
+        .join(' and ')}`
+    );
+  }
+  if (measure.length > 1) {
+    throw new BadRequestError(
+      `Multiple resources found in collection: Measure, with ${Object.keys(query)
+        .map(key => `${key}: ${query[key]}`)
+        .join(' and ')}. /Measure/$package operation must specify a single Measure`
+    );
+  }
+
+  const measureForPackaging = measure[0];
+  const includeTerminology = query['include-terminology'] ?? false;
+  logger.info(`Assembling collection bundle from Measure ${measureForPackaging.id}`);
+  if (measureForPackaging.library && measureForPackaging.library.length > 0) {
+    const [mainLibraryRef] = measureForPackaging.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
     const libs = await findResourcesWithQuery<fhir4.Library>(mainLibQuery, 'Library');
     if (!libs || libs.length < 1) {
-      throw new ResourceNotFoundError(`Could not find Library ${mainLibraryRef} referenced by Measure ${measure.id}`);
+      throw new ResourceNotFoundError(
+        `Could not find Library ${mainLibraryRef} referenced by Measure ${measureForPackaging.id}`
+      );
     }
     const mainLib = libs[0];
 
     const result = await createDepLibraryBundle(mainLib, includeTerminology);
-    result.entry?.unshift({ resource: measure });
+    result.entry?.unshift({ resource: measureForPackaging });
 
     return result;
   } else {
-    throw new BadRequestError(`Uploaded measure: ${measure.id} does not reference a Library`);
+    throw new BadRequestError(`Uploaded measure: ${measureForPackaging.id} does not reference a Library`);
   }
 }
 
@@ -54,12 +73,26 @@ export async function createMeasurePackageBundle(
  * Takes in a library resource, finds all dependent library resources and bundles them
  * together with the library in a collection bundle
  */
-export async function createLibraryPackageBundle(
-  library: fhir4.Library,
-  includeTerminology?: boolean
-): Promise<fhir4.Bundle<fhir4.FhirResource>> {
-  logger.info(`Assembling collection bundle from Library ${library.id}`);
-  const result = await createDepLibraryBundle(library, includeTerminology);
+export async function createLibraryPackageBundle(query: Filter<any>): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  const parsedQuery = getMongoQueryFromRequest(query);
+  const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
+  if (!library || !(library.length > 0)) {
+    throw new ResourceNotFoundError(
+      `No resource found in collection: Library, with ${Object.keys(query)
+        .map(key => `${key}: ${query[key]}`)
+        .join(' and ')}`
+    );
+  }
+  if (library.length > 1) {
+    throw new BadRequestError(
+      `Multiple resources found in collection: Library, with ${Object.keys(query)
+        .map(key => `${key}: ${query[key]}`)
+        .join(' and ')}. /Library/$package operation must specify a single Library`
+    );
+  }
+  let libraryForPackaging = library[0];
+  logger.info(`Assembling collection bundle from Library ${libraryForPackaging.id}`);
+  const result = await createDepLibraryBundle(libraryForPackaging, query['include-terminology'] ?? false);
 
   return result;
 }

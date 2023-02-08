@@ -6,7 +6,7 @@ import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateParamIdSource } from '../util/inputUtils';
+import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 const logger = loggers.get('default');
 
 /*
@@ -53,35 +53,10 @@ export class LibraryService implements Service<fhir4.Library> {
     let params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
-    const id = args.id || params.id;
-    const url = params.url;
-    const version = params.version;
-    const identifier = params.identifier;
-
-    const query: Filter<any> = {};
-    if (id) query.id = id;
-    if (url) query.url = url;
-    if (version) query.version = version;
-    if (identifier) query.identifier = identifier;
+    const query = extractIdentificationForQuery(args, params);
 
     params = PackageArgs.parse({ ...params, ...query });
-    const parsedQuery = getMongoQueryFromRequest(query);
-    const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
-    if (!library || !(library.length > 0)) {
-      throw new ResourceNotFoundError(
-        `No resource found in collection: Library, with ${Object.keys(query)
-          .map(key => `${key}: ${query[key]}`)
-          .join(' and ')}`
-      );
-    }
-    if (library.length > 1) {
-      throw new BadRequestError(
-        `Multiple resources found in collection: Library, with ${Object.keys(query)
-          .map(key => `${key}: ${query[key]}`)
-          .join(' and ')}. /Library/$package operation must specify a single Library`
-      );
-    }
 
-    return createLibraryPackageBundle(library[0], req.query['include-terminology'] ?? false);
+    return createLibraryPackageBundle(query);
   }
 }

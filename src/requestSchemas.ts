@@ -129,13 +129,13 @@ export const PackageArgs = IdentifyingParameters.extend({
   .superRefine(catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_PACKAGE_ARGS));
 
 export const DataRequirementsArgs = IdentifyingParameters.extend({
-  expression: z.string()
-  // parameters: z.string(),
-  // manifest: z.string(),
-  // periodStart: checkDate('periodStart'),
-  // periodEnd: checkDate('periodEnd'),
-  // 'include-dependencies': stringToBool,
-  // 'include-components': stringToBool
+  expression: z.string(),
+  parameters: z.string(),
+  manifest: z.string(),
+  periodStart: checkDate('periodStart'),
+  periodEnd: checkDate('periodEnd'),
+  'include-dependencies': stringToBool,
+  'include-components': stringToBool
 })
   .partial()
   .strict()
