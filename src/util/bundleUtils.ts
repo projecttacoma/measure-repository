@@ -25,8 +25,8 @@ export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]
 }
 
 /**
- * Takes in a measure resource, finds all dependent library resources and bundles them
- * together with the measure in a collection bundle
+ * Takes in a mongo query, finds a Measure based on the query and all dependent
+ * Library resources and bundles them together with the Measure in a collection bundle
  */
 export async function createMeasurePackageBundle(query: Filter<any>): Promise<fhir4.Bundle<fhir4.FhirResource>> {
   const parsedQuery = getMongoQueryFromRequest(query);
@@ -70,8 +70,8 @@ export async function createMeasurePackageBundle(query: Filter<any>): Promise<fh
 }
 
 /**
- * Takes in a library resource, finds all dependent library resources and bundles them
- * together with the library in a collection bundle
+ * Takes in a mongo query, finds a Library resource based on the query and all dependent
+ * Library resources and bundles them together with the Library in a collection bundle
  */
 export async function createLibraryPackageBundle(query: Filter<any>): Promise<fhir4.Bundle<fhir4.FhirResource>> {
   const parsedQuery = getMongoQueryFromRequest(query);

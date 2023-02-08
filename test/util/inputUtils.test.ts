@@ -2,8 +2,6 @@ import { gatherParams } from '../../src/util/inputUtils';
 
 const VALID_QUERY = { url: 'http://example.com' };
 
-const INVALID_QUERY = { invalid: 'test' };
-
 const POPULATED_PARAMETERS: fhir4.Parameters = {
   resourceType: 'Parameters',
   parameter: [

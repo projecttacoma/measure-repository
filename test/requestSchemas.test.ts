@@ -39,7 +39,7 @@ describe('requestSchemas', () => {
       expect(addIssue.mock.calls[0][0]).toEqual({
         code: z.ZodIssueCode.custom,
         params: { type: 'NotImplemented' },
-        message: 'Parameters: unsupportedArg are not yet supported on this server'
+        message: 'Parameter(s): unsupportedArg are not yet supported on this server'
       });
     });
 

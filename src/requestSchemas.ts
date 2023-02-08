@@ -75,7 +75,7 @@ export function catchInvalidParams(
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         params: { type: 'NotImplemented' },
-        message: `Parameters: ${includedUnsupported.join(', ')} are not yet supported on this server`
+        message: `Parameter(s): ${includedUnsupported.join(', ')} are not yet supported on this server`
       });
     } else {
       catchFunctions.forEach(func => func(val, ctx));
@@ -117,8 +117,8 @@ export const PackageArgs = IdentifyingParameters.extend({
   offset: stringToNumber,
   count: stringToNumber,
   'system-version': z.string().url(),
-  'check-system-version': stringToBool,
-  'force-system-version': stringToBool,
+  'check-system-version': z.string().url(),
+  'force-system-version': z.string().url(),
   manifest: z.string(),
   'include-dependencies': stringToBool,
   'include-components': stringToBool,
