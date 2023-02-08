@@ -90,7 +90,7 @@ export async function createLibraryPackageBundle(query: Filter<any>): Promise<fh
         .join(' and ')}. /Library/$package operation must specify a single Library`
     );
   }
-  let libraryForPackaging = library[0];
+  const libraryForPackaging = library[0];
   logger.info(`Assembling collection bundle from Library ${libraryForPackaging.id}`);
   const result = await createDepLibraryBundle(libraryForPackaging, query['include-terminology'] ?? false);
 

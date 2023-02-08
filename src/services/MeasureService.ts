@@ -1,9 +1,8 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { Filter } from 'mongodb';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
+import { ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';

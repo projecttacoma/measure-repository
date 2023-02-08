@@ -1,10 +1,9 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { Filter } from 'mongodb';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { CoreSearchArgs, PackageArgs } from '../requestSchemas';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
+import { ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 const logger = loggers.get('default');
