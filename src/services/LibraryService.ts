@@ -1,6 +1,6 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
-import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
@@ -14,6 +14,7 @@ import {
   checkExpectedResourceType
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 
 /*
@@ -99,5 +100,27 @@ export class LibraryService implements Service<fhir4.Library> {
     res.status(201);
     const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
     res.set('Location', location);
+  }
+
+  async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+    const query = extractIdentificationForQuery(args, params);
+    const parsedParams = parseRequestSchema<typeof LibraryDataRequirementsArgs>(
+      { ...params, ...query },
+      LibraryDataRequirementsArgs
+    );
+
+    logger.info(`${req.method} ${req.path}`);
+
+    const libraryBundle = await createLibraryPackageBundle(query, parsedParams);
+
+    const { results } = await Calculator.calculateLibraryDataRequirements(libraryBundle, {
+      ...(params.periodStart && { measurementPeriodStart: params.periodStart }),
+      ...(params.periodEnd && { measurementPeriodEnd: params.periodEnd })
+    });
+
+    logger.info('Successfully generated $data-requirements report');
+    return results;
   }
 }
