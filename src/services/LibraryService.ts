@@ -89,6 +89,6 @@ export class LibraryService implements Service<fhir4.Library> {
     await createResource(resource, 'Library');
     res.status(201);
     const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
-    res.set('Content-Location', `${process.env.HOST}/${process.env.PORT}/${location}`);
+    res.set('Content-Location', `${process.env.HOST}:${process.env.PORT}/${location}`);
   }
 }
