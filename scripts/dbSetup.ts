@@ -97,7 +97,7 @@ async function insertFHIRModelInfoLibrary() {
 /*
  * Inserts one data object into database with specified FHIR resource type
  */
-async function createResource(data: fhir4.FhirResource, resourceType: string) {
+export async function createResource(data: fhir4.FhirResource, resourceType: string) {
   const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
   console.log(`Inserting ${resourceType}/${data.id} into database`);
   await collection.insertOne(data);

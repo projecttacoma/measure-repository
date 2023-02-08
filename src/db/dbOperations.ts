@@ -1,5 +1,5 @@
 import { FhirResourceType } from '@projecttacoma/node-fhir-server-core';
-import { Filter, ObjectId } from 'mongodb';
+import { Filter } from 'mongodb';
 import { Connection } from './Connection';
 
 /**
@@ -19,10 +19,4 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
 ) {
   const collection = Connection.db.collection(resourceType);
   return collection.find<T>(query, { projection: { _id: 0 } }).toArray();
-}
-
-export async function createResource(data: Partial<fhir4.FhirResource> & { _id: ObjectId }, resourceType: string) {
-  const collection = Connection.db.collection(resourceType);
-  await collection.insertOne(data);
-  return { id: data.id };
 }

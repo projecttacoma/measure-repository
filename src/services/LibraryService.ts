@@ -1,6 +1,7 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
-import { createResource, findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import { createResource } from '../../scripts/dbSetup';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';

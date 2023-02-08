@@ -1,5 +1,5 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery, createResource } from '../db/dbOperations';
+import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -8,6 +8,7 @@ import { extractIdentificationForQuery, gatherParams, validateParamIdSource, che
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
+import { createResource } from '../../scripts/dbSetup';
 
 const logger = loggers.get('default');
 
