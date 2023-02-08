@@ -69,11 +69,11 @@ export class MeasureService implements Service<fhir4.Measure> {
    */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
     let params = gatherParams(req.query, args.resource);
-    params = DataRequirementsArgs.parse(params);
+    validateParamIdSource(req.params.id, params.id);
+    const query = extractIdentificationForQuery(args, params);
+    params = DataRequirementsArgs.parse({ ...params, ...query });
 
     logger.info(`${req.method} ${req.path}`);
-
-    const query = extractIdentificationForQuery(args, params);
 
     const measureBundle = await createMeasurePackageBundle(query);
 

@@ -98,7 +98,7 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
 }
 
 const stringToBool = z.enum(['true', 'false']).transform(x => x === 'true');
-const stringToNumber = z.coerce.number().transform(x => Number(x));
+const stringToNumber = z.coerce.number();
 const checkDate = (paramName: string) => {
   return z.string().regex(DATE_REGEX, `${paramName} parameter is not a valid FHIR date`);
 };

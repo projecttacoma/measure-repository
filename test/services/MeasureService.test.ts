@@ -158,7 +158,7 @@ describe('MeasureService', () => {
     });
   });
 
-  describe.only('$package', () => {
+  describe('$package', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through args', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/testWithRootLib/$package')
@@ -292,7 +292,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it.only('throws a 404 error when both the Measure id and url are specified but one of them is invalid', async () => {
+    it('throws a 404 error when both the Measure id and url are specified but one of them is invalid', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$package')
         .send({
@@ -361,7 +361,7 @@ describe('MeasureService', () => {
           resourceType: 'Parameters',
           parameter: [
             { name: 'id', valueString: 'invalid' },
-            { name: 'url', valueUrl: 'invalid' }
+            { name: 'url', valueUrl: 'http://example.com/invalid' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -369,7 +369,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
-            'No resource found in collection: Measure, with id: invalid and url: invalid'
+            'No resource found in collection: Measure, with id: invalid and url: http://example.com/invalid'
           );
         });
     });
