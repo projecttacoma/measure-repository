@@ -6,7 +6,7 @@ import { ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
-import { CoreSearchArgs, DataRequirementsArgs, PackageArgs } from '../requestSchemas';
+import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs } from '../requestSchemas';
 
 const logger = loggers.get('default');
 
@@ -21,11 +21,11 @@ export class MeasureService implements Service<fhir4.Measure> {
    */
   async search(_: RequestArgs, { req }: RequestCtx) {
     logger.info(`GET /Measure`);
-    let { query } = req;
+    const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    query = CoreSearchArgs.parse(query);
-    const parsedQuery = getMongoQueryFromRequest(query);
-    const entries = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
+    const parsedQuery = MeasureSearchArgs.parse(query);
+    const mongoQuery = getMongoQueryFromRequest(parsedQuery);
+    const entries = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
     return createSearchsetBundle(entries);
   }
 
@@ -51,12 +51,13 @@ export class MeasureService implements Service<fhir4.Measure> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
-    let params = gatherParams(req.query, args.resource);
+    const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
     const query = extractIdentificationForQuery(args, params);
 
-    params = PackageArgs.parse({ ...params, ...query });
+    // Currently and unused variable, but eventually will get passed in to createMeasurePackageBundle
+    const parsedParams = PackageArgs.parse({ ...params, ...query });
 
     return createMeasurePackageBundle(query);
   }
@@ -68,10 +69,11 @@ export class MeasureService implements Service<fhir4.Measure> {
    * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
    */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
-    let params = gatherParams(req.query, args.resource);
+    const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
     const query = extractIdentificationForQuery(args, params);
-    params = DataRequirementsArgs.parse({ ...params, ...query });
+
+    const parsedParams = MeasureDataRequirementsArgs.parse({ ...params, ...query });
 
     logger.info(`${req.method} ${req.path}`);
 
@@ -82,8 +84,8 @@ export class MeasureService implements Service<fhir4.Measure> {
     // This will be handled in a separate task
     // TODO: Update the fqm-execution dependency and delete this comment block once periodStart/End can safely be excluded
     const { results } = await Calculator.calculateDataRequirements(measureBundle, {
-      ...(params.periodStart && { measurementPeriodStart: params.periodStart }),
-      ...(params.periodEnd && { measurementPeriodEnd: params.periodEnd })
+      ...(parsedParams.periodStart && { measurementPeriodStart: parsedParams.periodStart }),
+      ...(parsedParams.periodEnd && { measurementPeriodEnd: parsedParams.periodEnd })
     });
 
     logger.info('Successfully generated $data-requirements report');

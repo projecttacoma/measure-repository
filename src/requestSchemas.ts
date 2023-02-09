@@ -7,40 +7,45 @@ const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|
 // Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#package
 const UNSUPPORTED_PACKAGE_ARGS = [
   'capability',
-  'offset',
-  'count',
-  'system-version',
   'check-system-version',
+  'count',
   'force-system-version',
+  'include-components',
+  'include-dependencies',
   'manifest',
-  'include-components'
+  'offset',
+  'system-version'
 ];
 
 // Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#requirements
 const UNSUPPORTED_DATA_REQ_ARGS = [
   'expression',
-  'parameters',
-  'manifest',
   'include-dependencies',
-  'include-components'
+  'include-components',
+  'manifest',
+  'parameters'
 ];
 
 // Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#search
-const UNSUPPORTED_SEARCH_ARGS = [
-  'date',
-  'effective',
-  'jurisdiction',
+const UNSUPPORTED_CORE_SEARCH_ARGS = [
+  'composed-of',
   'context',
   'context-type',
   'context-type-quantity',
   'context-type-value',
-  'topic',
-  'composed-of',
+  'date',
   'depends-on',
   'derived-from',
+  'effective',
+  'jurisdiction',
+  'predecessor',
   'successor',
-  'predecessor'
+  'topic'
 ];
+
+const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'content-type', 'type'];
+
+const UNSUPPORTED_MEASURE_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'publisher'];
 
 const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
   if (issue.code === z.ZodIssueCode.custom) {
@@ -114,28 +119,40 @@ export const IdentifyingParameters = z
 
 export const PackageArgs = IdentifyingParameters.extend({
   capability: z.string(),
-  offset: stringToNumber,
+  'check-system-version': z.string(),
   count: stringToNumber,
-  'system-version': z.string().url(),
-  'check-system-version': z.string().url(),
-  'force-system-version': z.string().url(),
-  manifest: z.string(),
-  'include-dependencies': stringToBool,
+  'force-system-version': z.string(),
   'include-components': stringToBool,
-  'include-terminology': stringToBool
+  'include-dependencies': stringToBool,
+  'include-terminology': stringToBool,
+  manifest: z.string(),
+  offset: stringToNumber,
+  'system-version': z.string()
 })
   .partial()
   .strict()
   .superRefine(catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_PACKAGE_ARGS));
 
-export const DataRequirementsArgs = IdentifyingParameters.extend({
-  expression: z.string(),
-  parameters: z.string(),
-  manifest: z.string(),
-  periodStart: checkDate('periodStart'),
-  periodEnd: checkDate('periodEnd'),
+export const CommonDataRequirementsArgs = IdentifyingParameters.extend({
+  'check-system-version': z.string(),
+  'force-system-version': z.string(),
+  'include-components': stringToBool,
   'include-dependencies': stringToBool,
-  'include-components': stringToBool
+  manifest: z.string(),
+  parameters: z.string(),
+  periodEnd: checkDate('periodEnd'),
+  periodStart: checkDate('periodStart'),
+  'system-version': z.string()
+})
+  .partial()
+  .strict();
+
+export const MeasureDataRequirementsArgs = CommonDataRequirementsArgs.superRefine(
+  catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_DATA_REQ_ARGS)
+);
+
+export const LibraryDataRequirementsArgs = CommonDataRequirementsArgs.extend({
+  expression: z.string()
 })
   .partial()
   .strict()
@@ -143,27 +160,42 @@ export const DataRequirementsArgs = IdentifyingParameters.extend({
 
 export const CoreSearchArgs = z
   .object({
-    url: z.string().url(),
-    version: z.string(),
-    identifier: z.string(),
-    name: z.string(),
-    title: z.string(),
-    status: z.string(),
-    description: z.string(),
-    date: checkDate('date'),
-    effective: z.string(),
-    jurisdiction: z.string(),
+    'composed-of': z.string(),
     context: z.string(),
+    'context-quantity': z.string(),
     'context-type': z.string(),
     'context-type-quantity': z.string(),
     'context-type-value': z.string(),
-    topic: z.string(),
-    'composed-of': z.string(),
+    date: checkDate('date'),
     'depends-on': z.string(),
     'derived-from': z.string(),
+    description: z.string(),
+    effective: z.string(),
+    identifier: z.string(),
+    jurisdiction: z.string(),
+    name: z.string(),
+    predecessor: z.string(),
+    status: z.string(),
     successor: z.string(),
-    predecessor: z.string()
+    title: z.string(),
+    topic: z.string(),
+    url: z.string().url(),
+    version: z.string()
   })
   .partial()
+  .strict();
+
+export const LibrarySearchArgs = CoreSearchArgs.extend({
+  'content-type': z.string(),
+  type: z.string()
+})
+  .partial()
   .strict()
-  .superRefine(catchInvalidParams([], UNSUPPORTED_SEARCH_ARGS));
+  .superRefine(catchInvalidParams([], UNSUPPORTED_LIBRARY_SEARCH_ARGS));
+
+export const MeasureSearchArgs = CoreSearchArgs.extend({
+  publisher: z.string()
+})
+  .partial()
+  .strict()
+  .superRefine(catchInvalidParams([], UNSUPPORTED_MEASURE_SEARCH_ARGS));

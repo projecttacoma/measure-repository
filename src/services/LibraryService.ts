@@ -1,6 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
-import { CoreSearchArgs, PackageArgs } from '../requestSchemas';
+import { LibrarySearchArgs, PackageArgs } from '../requestSchemas';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
@@ -19,11 +19,11 @@ export class LibraryService implements Service<fhir4.Library> {
    */
   async search(_: RequestArgs, { req }: RequestCtx) {
     logger.info(`GET /Library`);
-    let { query } = req;
+    const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    query = CoreSearchArgs.parse(query);
-    const parsedQuery = getMongoQueryFromRequest(query);
-    const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
+    const parsedQuery = LibrarySearchArgs.parse(query);
+    const mongoQuery = getMongoQueryFromRequest(parsedQuery);
+    const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
     return createSearchsetBundle(entries);
   }
 
@@ -49,12 +49,13 @@ export class LibraryService implements Service<fhir4.Library> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
-    let params = gatherParams(req.query, args.resource);
+    const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
     const query = extractIdentificationForQuery(args, params);
 
-    params = PackageArgs.parse({ ...params, ...query });
+    // Currently and unused variable, but eventually will get passed in to createMeasurePackageBundle
+    const parsedParams = PackageArgs.parse({ ...params, ...query });
 
     return createLibraryPackageBundle(query);
   }
