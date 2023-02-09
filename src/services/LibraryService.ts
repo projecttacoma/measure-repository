@@ -102,6 +102,12 @@ export class LibraryService implements Service<fhir4.Library> {
     res.set('Location', location);
   }
 
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$data-requirements or {BASE_URL}/4_0_1/Library/:id/$data-requirements
+   * creates a Library with all data requirements for the specified Library
+   * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
+   */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
@@ -113,11 +119,12 @@ export class LibraryService implements Service<fhir4.Library> {
 
     logger.info(`${req.method} ${req.path}`);
 
-    const libraryBundle = await createLibraryPackageBundle(query, parsedParams);
+    const { libraryBundle, rootLibRef } = await createLibraryPackageBundle(query, parsedParams);
 
     const { results } = await Calculator.calculateLibraryDataRequirements(libraryBundle, {
       ...(params.periodStart && { measurementPeriodStart: params.periodStart }),
-      ...(params.periodEnd && { measurementPeriodEnd: params.periodEnd })
+      ...(params.periodEnd && { measurementPeriodEnd: params.periodEnd }),
+      ...(rootLibRef && { rootLibRef })
     });
 
     logger.info('Successfully generated $data-requirements report');
