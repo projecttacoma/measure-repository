@@ -225,7 +225,7 @@ describe('bundleUtils', () => {
     it('throws a 404 error when dependent Library does not exist', async () => {
       expect.assertions(2);
       try {
-        await createMeasurePackageBundle({ id: 'MeasureMissingLib' });
+        await createMeasurePackageBundle({ id: 'MeasureMissingLib' }, {});
       } catch (e: any) {
         expect(e.statusCode).toEqual(404);
         expect(e.issue[0].details.text).toEqual(
@@ -237,7 +237,7 @@ describe('bundleUtils', () => {
     it('throws a 400 error when uploaded measure does not reference a library', async () => {
       expect.assertions(2);
       try {
-        await createMeasurePackageBundle({ id: 'MeasureNoLib' });
+        await createMeasurePackageBundle({ id: 'MeasureNoLib' }, {});
       } catch (e: any) {
         expect(e.statusCode).toEqual(400);
         expect(e.issue[0].details.text).toEqual('Uploaded measure: MeasureNoLib does not reference a Library');
@@ -245,7 +245,7 @@ describe('bundleUtils', () => {
     });
 
     it('returns a bundle including a Measure and all dependent Libraries on valid input', async () => {
-      const bundle = await createMeasurePackageBundle({ id: 'MeasureWithLib' });
+      const bundle = await createMeasurePackageBundle({ id: 'MeasureWithLib' }, {});
       expect(bundle.resourceType).toEqual('Bundle');
       expect(bundle.entry).toHaveLength(3);
       expect(bundle.entry).toEqual(
@@ -260,7 +260,7 @@ describe('bundleUtils', () => {
 
   describe('createLibraryPackageBundle', () => {
     it('returns a bundle including a Library and all dependent Libraries on valid input', async () => {
-      const bundle = await createLibraryPackageBundle({ id: 'LibraryWithDeps' });
+      const bundle = await createLibraryPackageBundle({ id: 'LibraryWithDeps' }, {});
       expect(bundle.resourceType).toEqual('Bundle');
       expect(bundle.entry).toHaveLength(2);
       expect(bundle.entry).toEqual(

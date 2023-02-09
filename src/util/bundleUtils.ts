@@ -4,8 +4,10 @@ import { Filter } from 'mongodb';
 import { v4 } from 'uuid';
 import { findResourcesWithQuery } from '../db/dbOperations';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
+import { PackageArgs } from '../requestSchemas';
 import fs from 'fs';
 import { getMongoQueryFromRequest } from './queryUtils';
+import { z } from 'zod';
 
 const logger = loggers.get('default');
 
@@ -28,9 +30,12 @@ export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]
  * Takes in a mongo query, finds a Measure based on the query and all dependent
  * Library resources and bundles them together with the Measure in a collection bundle
  */
-export async function createMeasurePackageBundle(query: Filter<any>): Promise<fhir4.Bundle<fhir4.FhirResource>> {
-  const parsedQuery = getMongoQueryFromRequest(query);
-  const measure = await findResourcesWithQuery<fhir4.Measure>(parsedQuery, 'Measure');
+export async function createMeasurePackageBundle(
+  query: Filter<any>,
+  params: z.infer<typeof PackageArgs>
+): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  const mongoQuery = getMongoQueryFromRequest(query);
+  const measure = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
   if (!measure || !(measure.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Measure, with ${Object.keys(query)
@@ -47,7 +52,7 @@ export async function createMeasurePackageBundle(query: Filter<any>): Promise<fh
   }
 
   const measureForPackaging = measure[0];
-  const includeTerminology = query['include-terminology'] ?? false;
+  const includeTerminology = params['include-terminology'] ?? false;
   logger.info(`Assembling collection bundle from Measure ${measureForPackaging.id}`);
   if (measureForPackaging.library && measureForPackaging.library.length > 0) {
     const [mainLibraryRef] = measureForPackaging.library;
@@ -73,9 +78,12 @@ export async function createMeasurePackageBundle(query: Filter<any>): Promise<fh
  * Takes in a mongo query, finds a Library resource based on the query and all dependent
  * Library resources and bundles them together with the Library in a collection bundle
  */
-export async function createLibraryPackageBundle(query: Filter<any>): Promise<fhir4.Bundle<fhir4.FhirResource>> {
-  const parsedQuery = getMongoQueryFromRequest(query);
-  const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
+export async function createLibraryPackageBundle(
+  query: Filter<any>,
+  params: z.infer<typeof PackageArgs>
+): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+  const mongoQuery = getMongoQueryFromRequest(query);
+  const library = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
   if (!library || !(library.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Library, with ${Object.keys(query)
@@ -92,9 +100,8 @@ export async function createLibraryPackageBundle(query: Filter<any>): Promise<fh
   }
   const libraryForPackaging = library[0];
   logger.info(`Assembling collection bundle from Library ${libraryForPackaging.id}`);
-  const result = await createDepLibraryBundle(libraryForPackaging, query['include-terminology'] ?? false);
 
-  return result;
+  return createDepLibraryBundle(libraryForPackaging, params['include-terminology'] ?? false);
 }
 
 /**

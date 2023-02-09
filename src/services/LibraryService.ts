@@ -54,9 +54,8 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const query = extractIdentificationForQuery(args, params);
 
-    // Currently and unused variable, but eventually will get passed in to createMeasurePackageBundle
     const parsedParams = PackageArgs.parse({ ...params, ...query });
 
-    return createLibraryPackageBundle(query);
+    return createLibraryPackageBundle(query, parsedParams);
   }
 }

@@ -56,10 +56,9 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     const query = extractIdentificationForQuery(args, params);
 
-    // Currently and unused variable, but eventually will get passed in to createMeasurePackageBundle
     const parsedParams = PackageArgs.parse({ ...params, ...query });
 
-    return createMeasurePackageBundle(query);
+    return createMeasurePackageBundle(query, parsedParams);
   }
 
   /**
@@ -77,7 +76,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     logger.info(`${req.method} ${req.path}`);
 
-    const measureBundle = await createMeasurePackageBundle(query);
+    const measureBundle = await createMeasurePackageBundle(query, parsedParams);
 
     // See https://jira.hl7.org/browse/FHIR-40230
     // periodStart and periodEnd should be optional. Right now, fqm-execution will default it to 2019.
