@@ -1,6 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
-import { LibrarySearchArgs, PackageArgs } from '../requestSchemas';
+import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { ResourceNotFoundError } from '../util/errorUtils';
@@ -21,7 +21,7 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.info(`GET /Library`);
     const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    const parsedQuery = LibrarySearchArgs.parse(query);
+    const parsedQuery = parseRequestSchema<typeof LibrarySearchArgs>(query, LibrarySearchArgs);
     const mongoQuery = getMongoQueryFromRequest(parsedQuery);
     const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
     return createSearchsetBundle(entries);
@@ -54,7 +54,7 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const query = extractIdentificationForQuery(args, params);
 
-    const parsedParams = PackageArgs.parse({ ...params, ...query });
+    const parsedParams = parseRequestSchema<typeof PackageArgs>({ ...params, ...query }, PackageArgs);
 
     return createLibraryPackageBundle(query, parsedParams);
   }

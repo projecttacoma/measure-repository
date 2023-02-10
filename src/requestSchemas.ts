@@ -47,21 +47,6 @@ const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'conte
 
 const UNSUPPORTED_MEASURE_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'publisher'];
 
-const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-  if (issue.code === z.ZodIssueCode.custom) {
-    if (issue.params?.type === 'NotImplemented') {
-      throw new NotImplementedError(issue.message ?? ctx.defaultError);
-    } else {
-      throw new BadRequestError(issue.message ?? ctx.defaultError, issue.params?.serverErrorCode);
-    }
-  } else if (issue.code === z.ZodIssueCode.unrecognized_keys) {
-    throw new BadRequestError(issue.message ?? ctx.defaultError, constants.ISSUE.CODE.VALUE);
-  }
-  throw new BadRequestError(issue.message ?? ctx.defaultError);
-};
-
-z.setErrorMap(customErrorMap);
-
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
 /**
@@ -102,7 +87,9 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
   }
 }
 
-const stringToBool = z.enum(['true', 'false']).transform(x => x === 'true');
+const stringToBool = z
+  .union([z.enum(['true', 'false']), z.boolean()])
+  .transform(x => (typeof x === 'boolean' ? x : x === 'true'));
 const stringToNumber = z.coerce.number();
 const checkDate = (paramName: string) => {
   return z.string().regex(DATE_REGEX, `${paramName} parameter is not a valid FHIR date`);
@@ -199,3 +186,25 @@ export const MeasureSearchArgs = CoreSearchArgs.extend({
   .partial()
   .strict()
   .superRefine(catchInvalidParams([], UNSUPPORTED_MEASURE_SEARCH_ARGS));
+
+/**
+ * wrapper around the Zod parse function that catches Zod errors, parses the messages and throws appropriate ServerErrors
+ */
+export function parseRequestSchema<T extends z.ZodTypeAny>(params: Record<string, any>, schema: T): z.infer<T> {
+  try {
+    return schema.parse(params);
+  } catch (e) {
+    if (e instanceof z.ZodError) {
+      if (e.issues[0].code === z.ZodIssueCode.custom) {
+        if (e.issues[0].params?.type === 'NotImplemented') {
+          throw new NotImplementedError(e.issues[0].message);
+        } else {
+          throw new BadRequestError(e.issues[0].message, e.issues[0].params?.serverErrorCode);
+        }
+      } else if (e.issues[0].code === z.ZodIssueCode.unrecognized_keys) {
+        throw new BadRequestError(e.issues[0].message, constants.ISSUE.CODE.VALUE);
+      }
+      throw new BadRequestError(e.issues[0].message);
+    }
+  }
+}

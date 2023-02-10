@@ -6,7 +6,7 @@ import { ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
-import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs } from '../requestSchemas';
+import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 
 const logger = loggers.get('default');
 
@@ -23,7 +23,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`GET /Measure`);
     const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    const parsedQuery = MeasureSearchArgs.parse(query);
+    const parsedQuery = parseRequestSchema<typeof MeasureSearchArgs>(query, MeasureSearchArgs);
     const mongoQuery = getMongoQueryFromRequest(parsedQuery);
     const entries = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
     return createSearchsetBundle(entries);
@@ -56,7 +56,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     const query = extractIdentificationForQuery(args, params);
 
-    const parsedParams = PackageArgs.parse({ ...params, ...query });
+    const parsedParams = parseRequestSchema<typeof PackageArgs>({ ...params, ...query }, PackageArgs);
 
     return createMeasurePackageBundle(query, parsedParams);
   }
@@ -72,7 +72,10 @@ export class MeasureService implements Service<fhir4.Measure> {
     validateParamIdSource(req.params.id, params.id);
     const query = extractIdentificationForQuery(args, params);
 
-    const parsedParams = MeasureDataRequirementsArgs.parse({ ...params, ...query });
+    const parsedParams = parseRequestSchema<typeof MeasureDataRequirementsArgs>(
+      { ...params, ...query },
+      MeasureDataRequirementsArgs
+    );
 
     logger.info(`${req.method} ${req.path}`);
 
