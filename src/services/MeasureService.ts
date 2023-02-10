@@ -118,9 +118,6 @@ export class MeasureService implements Service<fhir4.Measure> {
       throw new BadRequestError(`The artifact must be in 'draft' status.`);
     }
 
-    // lastUpdated should be second because it should overwrite a meta.lastUpdated tag in the request body
-    resource['meta'] = { ...resource['meta'], lastUpdated: new Date().toISOString() };
-
     const res = req.res;
     // create new resource with server-defined id
     resource['id'] = uuidv4();
