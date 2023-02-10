@@ -70,7 +70,9 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, PackageArgs);
 
-    return createLibraryPackageBundle(query, parsedParams);
+    const { libraryBundle } = await createLibraryPackageBundle(query, parsedParams);
+
+    return libraryBundle;
   }
 
   /**

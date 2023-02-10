@@ -35,9 +35,17 @@ const LIB_WITH_NO_DEPS: fhir4.Library = {
   type: { coding: [{ code: 'logic-library' }] }
 };
 
+const LIB_WITH_NO_URL: fhir4.Library = {
+  id: 'LibWithNoUrl',
+  resourceType: 'Library',
+  status: 'draft',
+  type: { coding: [{ code: 'logic-library' }] }
+};
+
 const LIB_WITH_DEPS: fhir4.Library = {
   id: 'LibraryWithDeps',
   url: 'http://example.com/LibraryWithDeps',
+  version: '0.0.1-test',
   resourceType: 'Library',
   status: 'draft',
   type: { coding: [{ code: 'logic-library' }] },
@@ -132,6 +140,7 @@ describe('bundleUtils', () => {
     return setupTestDatabase([
       LIB_WITH_DEPS,
       LIB_WITH_NO_DEPS,
+      LIB_WITH_NO_URL,
       LIB_WITH_MISSING_DEPS,
       LIB_WITH_EXTRA_VALUESET,
       MEASURE_WITH_MISSING_LIBRARY,
@@ -259,13 +268,28 @@ describe('bundleUtils', () => {
   });
 
   describe('createLibraryPackageBundle', () => {
-    it('returns a bundle including a Library and all dependent Libraries on valid input', async () => {
-      const bundle = await createLibraryPackageBundle({ id: 'LibraryWithDeps' }, {});
-      expect(bundle.resourceType).toEqual('Bundle');
-      expect(bundle.entry).toHaveLength(2);
-      expect(bundle.entry).toEqual(
+    it('returns bundle including a Library and all dependent Libraries on valid input', async () => {
+      const { libraryBundle } = await createLibraryPackageBundle({ id: 'LibraryWithDeps' }, {});
+      expect(libraryBundle.resourceType).toEqual('Bundle');
+      expect(libraryBundle.entry).toHaveLength(2);
+      expect(libraryBundle.entry).toEqual(
         expect.arrayContaining([{ resource: LIB_WITH_DEPS }, { resource: LIB_WITH_NO_DEPS }])
       );
+    });
+
+    it('returns rootLibRef with url and version when both present', async () => {
+      const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibraryWithDeps' }, {});
+      expect(rootLibRef).toEqual('http://example.com/LibraryWithDeps|0.0.1-test');
+    });
+
+    it('returns rootLibRef with just url when url present and version missing', async () => {
+      const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibWithNoDeps' }, {});
+      expect(rootLibRef).toEqual('http://example.com/LibraryWithNoDeps');
+    });
+
+    it('returns rootLibRef with just url when url present and version missing', async () => {
+      const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibWithNoUrl' }, {});
+      expect(rootLibRef).toEqual('LibWithNoUrl');
     });
   });
 
