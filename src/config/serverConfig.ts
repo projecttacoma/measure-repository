@@ -25,6 +25,9 @@ const customCapabilityStatement = (): fhir4.CapabilityStatement => {
     },
     fhirVersion: base_version.replace(/_/g, '.'),
     format: ['application/fhir+json'],
+    // NOTE: the definitions for authoring measure repository operations
+    // are not FHIR OperationDefinitions, and we should update the JSON
+    // when FHIR OperationDefinitions are available
     rest: [capabilityStatementResources]
   });
 };

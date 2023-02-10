@@ -267,7 +267,7 @@
             "valueCode" : "SHALL"
           }],
           "name" : "submit",
-          "definition" : "example.com"
+          "definition" : "http://hl7.org/fhir/us/cqfmeasures/STU3/measure-repository-service.html#submit"
         }
       ]
     }

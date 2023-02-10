@@ -53,6 +53,11 @@ export class MeasureService implements Service<fhir4.Measure> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
