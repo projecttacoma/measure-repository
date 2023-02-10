@@ -21,7 +21,7 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.info(`GET /Library`);
     const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    const parsedQuery = parseRequestSchema<typeof LibrarySearchArgs>(query, LibrarySearchArgs);
+    const parsedQuery = parseRequestSchema(query, LibrarySearchArgs);
     const mongoQuery = getMongoQueryFromRequest(parsedQuery);
     const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
     return createSearchsetBundle(entries);
@@ -54,7 +54,7 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const query = extractIdentificationForQuery(args, params);
 
-    const parsedParams = parseRequestSchema<typeof PackageArgs>({ ...params, ...query }, PackageArgs);
+    const parsedParams = parseRequestSchema({ ...params, ...query }, PackageArgs);
 
     return createLibraryPackageBundle(query, parsedParams);
   }

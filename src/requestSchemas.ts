@@ -20,8 +20,8 @@ const UNSUPPORTED_PACKAGE_ARGS = [
 // Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#requirements
 const UNSUPPORTED_DATA_REQ_ARGS = [
   'expression',
-  'include-dependencies',
   'include-components',
+  'include-dependencies',
   'manifest',
   'parameters'
 ];
@@ -39,13 +39,14 @@ const UNSUPPORTED_CORE_SEARCH_ARGS = [
   'effective',
   'jurisdiction',
   'predecessor',
+  'publisher',
   'successor',
   'topic'
 ];
 
 const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'content-type', 'type'];
 
-const UNSUPPORTED_MEASURE_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'publisher'];
+const UNSUPPORTED_MEASURE_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS];
 
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
@@ -162,6 +163,7 @@ export const CoreSearchArgs = z
     jurisdiction: z.string(),
     name: z.string(),
     predecessor: z.string(),
+    publisher: z.string(),
     status: z.string(),
     successor: z.string(),
     title: z.string(),
@@ -180,12 +182,9 @@ export const LibrarySearchArgs = CoreSearchArgs.extend({
   .strict()
   .superRefine(catchInvalidParams([], UNSUPPORTED_LIBRARY_SEARCH_ARGS));
 
-export const MeasureSearchArgs = CoreSearchArgs.extend({
-  publisher: z.string()
-})
-  .partial()
+export const MeasureSearchArgs = CoreSearchArgs.partial()
   .strict()
-  .superRefine(catchInvalidParams([], UNSUPPORTED_MEASURE_SEARCH_ARGS));
+  .superRefine(catchInvalidParams([], UNSUPPORTED_CORE_SEARCH_ARGS));
 
 /**
  * wrapper around the Zod parse function that catches Zod errors, parses the messages and throws appropriate ServerErrors
@@ -204,7 +203,7 @@ export function parseRequestSchema<T extends z.ZodTypeAny>(params: Record<string
       } else if (e.issues[0].code === z.ZodIssueCode.unrecognized_keys) {
         throw new BadRequestError(e.issues[0].message, constants.ISSUE.CODE.VALUE);
       }
-      throw new BadRequestError(e.issues[0].message);
+      throw new BadRequestError(`${e.issues[0].message} received for parameter: ${e.issues[0].path.join('.')}`);
     }
   }
 }
