@@ -1,6 +1,8 @@
-import { FhirResourceType } from '@projecttacoma/node-fhir-server-core';
+import { loggers, FhirResourceType } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { Connection } from './Connection';
+
+const logger = loggers.get('default');
 
 /**
  * searches the database for the desired resource and returns the data
@@ -26,7 +28,7 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
  */
 export async function createResource(data: fhir4.FhirResource, resourceType: string) {
   const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
-  console.log(`Inserting ${resourceType}/${data.id} into database`);
+  logger.info(`Inserting ${resourceType}/${data.id} into database`);
   await collection.insertOne(data);
   return { id: data.id };
 }
