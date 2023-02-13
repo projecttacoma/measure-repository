@@ -391,11 +391,10 @@ describe('LibraryService', () => {
       await supertest(server.app)
         .post('/4_0_1/Library/$submit')
         .send({resourceType: 'Library', status: 'draft'})
-        .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
-          expect(response.headers['content-location']).toBeDefined();
+          expect(response.headers.location).toBeDefined();
         });
     });
 
@@ -403,11 +402,10 @@ describe('LibraryService', () => {
       await supertest(server.app)
         .post(`/4_0_1/Library/test-id/$submit`)
         .send({resourceType: 'Library', status: 'draft'})
-        .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
-          expect(response.headers['content-location']).toBeDefined();
+          expect(response.headers.location).toBeDefined();
         });
     });
 
@@ -415,7 +413,6 @@ describe('LibraryService', () => {
       await supertest(server.app)
         .post(`/4_0_1/Library/$submit`)
         .send({resourceType: 'Library', status: 'active'})
-        .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(400)
         .then(response => {

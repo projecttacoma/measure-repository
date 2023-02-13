@@ -8,7 +8,7 @@ import { extractIdentificationForQuery, gatherParams, validateParamIdSource, che
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
-import { createResource } from '../../scripts/dbSetup';
+import { createResource } from '../db/dbOperations';
 
 const logger = loggers.get('default');
 
@@ -121,9 +121,9 @@ export class MeasureService implements Service<fhir4.Measure> {
     const res = req.res;
     // create new resource with server-defined id
     resource['id'] = uuidv4();
-    await createResource(resource, 'Library');
+    await createResource(resource, 'Measure');
     res.status(201);
-    const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
-    res.set('Content-Location', `${process.env.HOST}:${process.env.PORT}/${location}`);
+    const location = `${constants.VERSIONS['4_0_1']}/Measure/${resource.id}`;
+    res.set('Location', location);
   }
 }

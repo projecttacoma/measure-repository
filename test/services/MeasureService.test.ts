@@ -508,11 +508,10 @@ describe('MeasureService', () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$submit')
         .send({resourceType: 'Measure', status: 'draft'})
-        .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
-          expect(response.headers['content-location']).toBeDefined();
+          expect(response.headers.location).toBeDefined();
         });
     });
 
@@ -520,11 +519,10 @@ describe('MeasureService', () => {
       await supertest(server.app)
         .post(`/4_0_1/Measure/test-id/$submit`)
         .send({resourceType: 'Measure', status: 'draft'})
-        .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
-          expect(response.headers['content-location']).toBeDefined();
+          expect(response.headers.location).toBeDefined();
         });
     });
 
@@ -532,7 +530,6 @@ describe('MeasureService', () => {
       await supertest(server.app)
         .post(`/4_0_1/Measure/$submit`)
         .send({resourceType: 'Measure', status: 'active'})
-        .set('Accept', 'application/json+fhir')
         .set('content-type', 'application/json+fhir')
         .expect(400)
         .then(response => {

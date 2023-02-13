@@ -20,3 +20,13 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
   const collection = Connection.db.collection(resourceType);
   return collection.find<T>(query, { projection: { _id: 0 } }).toArray();
 }
+
+/*
+ * Inserts one data object into database with specified FHIR resource type
+ */
+export async function createResource(data: fhir4.FhirResource, resourceType: string) {
+  const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
+  console.log(`Inserting ${resourceType}/${data.id} into database`);
+  await collection.insertOne(data);
+  return { id: data.id };
+}

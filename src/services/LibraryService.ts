@@ -1,7 +1,7 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
-import { createResource } from '../../scripts/dbSetup';
+import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -92,6 +92,6 @@ export class LibraryService implements Service<fhir4.Library> {
     await createResource(resource, 'Library');
     res.status(201);
     const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
-    res.set('Content-Location', `${process.env.HOST}:${process.env.PORT}/${location}`);
+    res.set('Location', location);
   }
 }

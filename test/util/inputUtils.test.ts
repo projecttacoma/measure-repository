@@ -41,7 +41,7 @@ describe('checkContentTypeHeader', () => {
         issue: [
           expect.objectContaining({
             details: {
-              text: 'Ensure Content-Type is set to application/json+fhir or to application/json+fhir in headers'
+              text: 'Ensure Content-Type is set to application/json+fhir or to application/fhir+json in headers'
             }
           })
         ]

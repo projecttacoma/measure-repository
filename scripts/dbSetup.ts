@@ -2,6 +2,7 @@ import { Connection } from '../src/db/Connection';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
+import { createResource } from '../src/db/dbOperations';
 
 dotenv.config();
 
@@ -92,16 +93,6 @@ async function insertFHIRModelInfoLibrary() {
   const fhirModelInfoLibrary: fhir4.Library = JSON.parse(fhirModelInfo); 
 
   await createResource(fhirModelInfoLibrary, 'Library');
-}
-
-/*
- * Inserts one data object into database with specified FHIR resource type
- */
-export async function createResource(data: fhir4.FhirResource, resourceType: string) {
-  const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
-  console.log(`Inserting ${resourceType}/${data.id} into database`);
-  await collection.insertOne(data);
-  return { id: data.id };
 }
 
 if (process.argv[2] === 'delete') {

@@ -51,10 +51,10 @@ export function extractIdentificationForQuery(args: RequestArgs, params: Record<
 /**
  * Checks that the content-type from the request headers accepts json + fhir.
  */
-export function checkContentTypeHeader(contentType: string | undefined) {
+export function checkContentTypeHeader(contentType?: string) {
   if (contentType !== 'application/json+fhir' && contentType !== 'application/fhir+json') {
     throw new BadRequestError(
-      'Ensure Content-Type is set to application/json+fhir or to application/json+fhir in headers'
+      'Ensure Content-Type is set to application/json+fhir or to application/fhir+json in headers'
     );
   }
 }
