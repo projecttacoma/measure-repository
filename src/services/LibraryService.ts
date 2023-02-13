@@ -6,7 +6,13 @@ import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { extractIdentificationForQuery, gatherParams, validateParamIdSource, checkContentTypeHeader, checkExpectedResourceType } from '../util/inputUtils';
+import {
+  extractIdentificationForQuery,
+  gatherParams,
+  validateParamIdSource,
+  checkContentTypeHeader,
+  checkExpectedResourceType
+} from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 const logger = loggers.get('default');
 
