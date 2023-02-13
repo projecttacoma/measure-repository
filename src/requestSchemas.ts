@@ -90,9 +90,7 @@ const stringToBool = z
   .union([z.enum(['true', 'false']), z.boolean()])
   .transform(x => (typeof x === 'boolean' ? x : x === 'true'));
 const stringToNumber = z.coerce.number();
-const checkDate = (paramName: string) => {
-  return z.string().regex(DATE_REGEX, `${paramName} parameter is not a valid FHIR date`);
-};
+const checkDate = z.string().regex(DATE_REGEX, `Invalid FHIR date`);
 
 export const IdentifyingParameters = z
   .object({
@@ -126,8 +124,8 @@ export const CommonDataRequirementsArgs = IdentifyingParameters.extend({
   'include-dependencies': stringToBool,
   manifest: z.string(),
   parameters: z.string(),
-  periodEnd: checkDate('periodEnd'),
-  periodStart: checkDate('periodStart'),
+  periodEnd: checkDate,
+  periodStart: checkDate,
   'system-version': z.string()
 })
   .partial()
@@ -152,7 +150,7 @@ export const CoreSearchArgs = z
     'context-type': z.string(),
     'context-type-quantity': z.string(),
     'context-type-value': z.string(),
-    date: checkDate('date'),
+    date: checkDate,
     'depends-on': z.string(),
     'derived-from': z.string(),
     description: z.string(),
