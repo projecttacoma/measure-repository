@@ -133,7 +133,10 @@ describe('bundleUtils', () => {
       LIB_WITH_DEPS,
       LIB_WITH_NO_DEPS,
       LIB_WITH_MISSING_DEPS,
-      LIB_WITH_EXTRA_VALUESET
+      LIB_WITH_EXTRA_VALUESET,
+      MEASURE_WITH_MISSING_LIBRARY,
+      MEASURE_WITH_NO_LIBRARY,
+      MEASURE_WITH_LIBRARY
     ]);
   });
 
@@ -222,7 +225,7 @@ describe('bundleUtils', () => {
     it('throws a 404 error when dependent Library does not exist', async () => {
       expect.assertions(2);
       try {
-        await createMeasurePackageBundle(MEASURE_WITH_MISSING_LIBRARY);
+        await createMeasurePackageBundle({ id: 'MeasureMissingLib' }, {});
       } catch (e: any) {
         expect(e.statusCode).toEqual(404);
         expect(e.issue[0].details.text).toEqual(
@@ -234,7 +237,7 @@ describe('bundleUtils', () => {
     it('throws a 400 error when uploaded measure does not reference a library', async () => {
       expect.assertions(2);
       try {
-        await createMeasurePackageBundle(MEASURE_WITH_NO_LIBRARY);
+        await createMeasurePackageBundle({ id: 'MeasureNoLib' }, {});
       } catch (e: any) {
         expect(e.statusCode).toEqual(400);
         expect(e.issue[0].details.text).toEqual('Uploaded measure: MeasureNoLib does not reference a Library');
@@ -242,7 +245,7 @@ describe('bundleUtils', () => {
     });
 
     it('returns a bundle including a Measure and all dependent Libraries on valid input', async () => {
-      const bundle = await createMeasurePackageBundle(MEASURE_WITH_LIBRARY);
+      const bundle = await createMeasurePackageBundle({ id: 'MeasureWithLib' }, {});
       expect(bundle.resourceType).toEqual('Bundle');
       expect(bundle.entry).toHaveLength(3);
       expect(bundle.entry).toEqual(
@@ -257,7 +260,7 @@ describe('bundleUtils', () => {
 
   describe('createLibraryPackageBundle', () => {
     it('returns a bundle including a Library and all dependent Libraries on valid input', async () => {
-      const bundle = await createLibraryPackageBundle(LIB_WITH_DEPS);
+      const bundle = await createLibraryPackageBundle({ id: 'LibraryWithDeps' }, {});
       expect(bundle.resourceType).toEqual('Bundle');
       expect(bundle.entry).toHaveLength(2);
       expect(bundle.entry).toEqual(

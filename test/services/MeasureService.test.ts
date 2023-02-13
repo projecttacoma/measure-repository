@@ -299,7 +299,7 @@ describe('MeasureService', () => {
           resourceType: 'Parameters',
           parameter: [
             { name: 'id', valueString: 'testWithUrl' },
-            { name: 'url', valueUrl: 'invalid' }
+            { name: 'url', valueUrl: 'http://example.com/invalid' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -307,7 +307,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
-            'No resource found in collection: Measure, with id: testWithUrl and url: invalid'
+            'No resource found in collection: Measure, with id: testWithUrl and url: http://example.com/invalid'
           );
         });
     });
@@ -361,7 +361,7 @@ describe('MeasureService', () => {
           resourceType: 'Parameters',
           parameter: [
             { name: 'id', valueString: 'invalid' },
-            { name: 'url', valueUrl: 'invalid' }
+            { name: 'url', valueUrl: 'http://example.com/invalid' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -369,7 +369,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
-            'No resource found in collection: Measure, with id: invalid and url: invalid'
+            'No resource found in collection: Measure, with id: invalid and url: http://example.com/invalid'
           );
         });
     });

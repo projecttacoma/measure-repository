@@ -1,21 +1,6 @@
-import { RequestQuery, constants } from '@projecttacoma/node-fhir-server-core';
+import { RequestArgs, RequestQuery } from '@projecttacoma/node-fhir-server-core';
+import { Filter } from 'mongodb';
 import { BadRequestError } from './errorUtils';
-
-const UNIVERSAL_VALID_SEARCH_PARAMS = ['url', 'version', 'identifier', 'name', 'title', 'status', 'description'];
-
-/**
- * Takes in an Express request query and checks the keys against a list of accepted parameters.
- * Throws a BadRequest error if invalid parameters are discovered
- */
-export function validateSearchParams(query: RequestQuery) {
-  const invalidParams = Object.keys(query).filter(param => !UNIVERSAL_VALID_SEARCH_PARAMS.includes(param));
-  if (invalidParams.length > 0) {
-    throw new BadRequestError(
-      `Parameters ${invalidParams.join(', ')} are not valid for search`,
-      constants.ISSUE.CODE.VALUE
-    );
-  }
-}
 
 /*
  * Gathers parameters from both the query and the FHIR parameter request body resource
@@ -47,4 +32,19 @@ export function validateParamIdSource(pathId: any, paramId: any) {
       'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
     );
   }
+}
+
+export function extractIdentificationForQuery(args: RequestArgs, params: Record<string, any>) {
+  const id = args.id || params.id;
+  const url = params.url;
+  const version = params.version;
+  const identifier = params.identifier;
+
+  const query: Filter<any> = {};
+  if (id) query.id = id;
+  if (url) query.url = url;
+  if (version) query.version = version;
+  if (identifier) query.identifier = identifier;
+
+  return query;
 }

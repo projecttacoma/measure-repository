@@ -352,7 +352,7 @@ describe('LibraryService', () => {
           resourceType: 'Parameters',
           parameter: [
             { name: 'id', valueString: 'testLibraryWithDeps' },
-            { name: 'url', valueUrl: 'invalid' }
+            { name: 'url', valueUrl: 'http://example.com/invalid' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -360,7 +360,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
-            'No resource found in collection: Library, with id: testLibraryWithDeps and url: invalid'
+            'No resource found in collection: Library, with id: testLibraryWithDeps and url: http://example.com/invalid'
           );
         });
     });
@@ -372,7 +372,7 @@ describe('LibraryService', () => {
           resourceType: 'Parameters',
           parameter: [
             { name: 'id', valueString: 'invalid' },
-            { name: 'url', valueUrl: 'invalid' }
+            { name: 'url', valueUrl: 'http://example.com/invalid' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -380,7 +380,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('not-found');
           expect(response.body.issue[0].details.text).toEqual(
-            'No resource found in collection: Library, with id: invalid and url: invalid'
+            'No resource found in collection: Library, with id: invalid and url: http://example.com/invalid'
           );
         });
     });

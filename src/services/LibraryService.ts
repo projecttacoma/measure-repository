@@ -1,12 +1,11 @@
-import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
-import { Filter } from 'mongodb';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
+import { ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { gatherParams, validateSearchParams, validateParamIdSource } from '../util/validationUtils';
-
+import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 const logger = loggers.get('default');
 
 /*
@@ -22,9 +21,9 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.info(`GET /Library`);
     const { query } = req;
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
-    validateSearchParams(query);
-    const parsedQuery = getMongoQueryFromRequest(query);
-    const entries = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
+    const parsedQuery = parseRequestSchema(query, LibrarySearchArgs);
+    const mongoQuery = getMongoQueryFromRequest(parsedQuery);
+    const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
     return createSearchsetBundle(entries);
   }
 
@@ -52,41 +51,11 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
-    const id = args.id || params.id;
-    const url = params.url;
-    const version = params.version;
-    const identifier = params.identifier;
 
-    if (!id && !url && !identifier) {
-      throw new BadRequestError(
-        'Must provide identifying information via either id, url, or identifier parameters',
-        constants.ISSUE.CODE.REQUIRED
-      );
-    }
+    const query = extractIdentificationForQuery(args, params);
 
-    const query: Filter<any> = {};
-    if (id) query.id = id;
-    if (url) query.url = url;
-    if (version) query.version = version;
-    if (identifier) query.identifier = identifier;
+    const parsedParams = parseRequestSchema({ ...params, ...query }, PackageArgs);
 
-    const parsedQuery = getMongoQueryFromRequest(query);
-    const library = await findResourcesWithQuery<fhir4.Library>(parsedQuery, 'Library');
-    if (!library || !(library.length > 0)) {
-      throw new ResourceNotFoundError(
-        `No resource found in collection: Library, with ${Object.keys(query)
-          .map(key => `${key}: ${query[key]}`)
-          .join(' and ')}`
-      );
-    }
-    if (library.length > 1) {
-      throw new BadRequestError(
-        `Multiple resources found in collection: Library, with ${Object.keys(query)
-          .map(key => `${key}: ${query[key]}`)
-          .join(' and ')}. /Library/$package operation must specify a single Library`
-      );
-    }
-
-    return createLibraryPackageBundle(library[0], req.query['include-terminology'] ?? false);
+    return createLibraryPackageBundle(query, parsedParams);
   }
 }
