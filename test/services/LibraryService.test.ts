@@ -387,7 +387,7 @@ describe('LibraryService', () => {
   });
 
   describe('$submit', () => {
-    it('returns 201 status with populated content location when provided correct headers and FHIR Library', async () => {
+    it('returns 201 status with populated location when provided correct headers and FHIR Library', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library/$submit')
         .send({resourceType: 'Library', status: 'draft'})
@@ -398,7 +398,7 @@ describe('LibraryService', () => {
         });
     });
 
-    it('returns 201 status with populated content location when id is represent in the path', async () => {
+    it('returns 201 status with populated location when id is represent in the path', async () => {
       await supertest(server.app)
         .post(`/4_0_1/Library/test-id/$submit`)
         .send({resourceType: 'Library', status: 'draft'})

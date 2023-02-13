@@ -504,7 +504,7 @@ describe('MeasureService', () => {
   });
 
   describe('$submit', () => {
-    it('returns 201 status with populated content location when provided correct headers and FHIR Measure', async () => {
+    it('returns 201 status with populated location when provided correct headers and FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$submit')
         .send({resourceType: 'Measure', status: 'draft'})
@@ -515,7 +515,7 @@ describe('MeasureService', () => {
         });
     });
 
-    it('returns 201 status with populated content location when id is represent in the path', async () => {
+    it('returns 201 status with populated location when id is represent in the path', async () => {
       await supertest(server.app)
         .post(`/4_0_1/Measure/test-id/$submit`)
         .send({resourceType: 'Measure', status: 'draft'})
