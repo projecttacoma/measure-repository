@@ -14,7 +14,7 @@ A prototype implementation of a [FHIR Measure Repository Service](https://build.
 Clone the source code:
 
 ```bash
-git clone https://github.com/projecttacoma/measure-repository-service.git 
+git clone https://github.com/projecttacoma/measure-repository-service.git
 ```
 
 Install dependencies:
@@ -22,6 +22,7 @@ Install dependencies:
 ```bash
 npm install
 ```
+
 ### MongoDB
 
 This test server makes use of [MongoDB](https://www.mongodb.com), a cross-platform document-oriented database program.
@@ -83,7 +84,7 @@ The Measure Repository Service server supports the `Library` and `Measure` `$pac
 
 ### Data Requirements
 
-The Measure Repository Service server supports the `Measure` `$data-requirements` operation with the SHALL parameters specified in the publishable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). SHALL parameters are:
+The Measure Repository Service server supports the `Measure` and `Library` `$data-requirements` operations with the SHALL parameters specified in the publishable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). SHALL parameters are:
 
 - id
 - url
