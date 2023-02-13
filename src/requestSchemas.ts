@@ -46,8 +46,6 @@ const UNSUPPORTED_CORE_SEARCH_ARGS = [
 
 const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'content-type', 'type'];
 
-const UNSUPPORTED_MEASURE_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS];
-
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
 /**
