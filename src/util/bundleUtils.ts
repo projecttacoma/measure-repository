@@ -81,7 +81,7 @@ export async function createMeasurePackageBundle(
 export async function createLibraryPackageBundle(
   query: Filter<any>,
   params: z.infer<typeof PackageArgs>
-): Promise<{ libraryBundle: fhir4.Bundle<fhir4.FhirResource>; rootLibRef: string | undefined }> {
+): Promise<{ libraryBundle: fhir4.Bundle<fhir4.FhirResource>; rootLibRef?: string }> {
   const mongoQuery = getMongoQueryFromRequest(query);
   const library = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
   if (!library || !(library.length > 0)) {
