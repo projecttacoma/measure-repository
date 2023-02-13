@@ -114,10 +114,7 @@ export class LibraryService implements Service<fhir4.Library> {
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
     const query = extractIdentificationForQuery(args, params);
-    const parsedParams = parseRequestSchema<typeof LibraryDataRequirementsArgs>(
-      { ...params, ...query },
-      LibraryDataRequirementsArgs
-    );
+    const parsedParams = parseRequestSchema({ ...params, ...query }, LibraryDataRequirementsArgs);
 
     logger.info(`${req.method} ${req.path}`);
 
