@@ -1,12 +1,20 @@
-import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { ResourceNotFoundError } from '../util/errorUtils';
+import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
+import {
+  extractIdentificationForQuery,
+  gatherParams,
+  validateParamIdSource,
+  checkContentTypeHeader,
+  checkExpectedResourceType
+} from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import { v4 as uuidv4 } from 'uuid';
+import { createResource } from '../db/dbOperations';
 
 const logger = loggers.get('default');
 
@@ -51,6 +59,11 @@ export class MeasureService implements Service<fhir4.Measure> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
@@ -89,5 +102,34 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     logger.info('Successfully generated $data-requirements report');
     return results;
+  }
+
+  /**
+   * result of sending a POST request to:
+   * {BASE_URL}/4_0_1/Measure/$submit or {BASE_URL}/4_0_1/Measure/:id/$submit
+   * POSTs a new artifact in "draft" status. The operation results in an error if the artifact
+   * does not have status set to "draft."
+   */
+  async submit(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Measure');
+
+    // check for "draft" status on the resource
+    if (resource.status !== 'draft') {
+      throw new BadRequestError(`The artifact must be in 'draft' status.`);
+    }
+
+    const res = req.res;
+    // create new resource with server-defined id
+    resource['id'] = uuidv4();
+    await createResource(resource, 'Measure');
+    res.status(201);
+    const location = `${constants.VERSIONS['4_0_1']}/Measure/${resource.id}`;
+    res.set('Location', location);
   }
 }

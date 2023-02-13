@@ -16,7 +16,8 @@ const customCapabilityStatement = (): fhir4.CapabilityStatement => {
     publisher: 'The MITRE Corporation',
     instantiates: [
       'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/shareable-measure-repository',
-      'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/publishable-measure-repository'
+      'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/publishable-measure-repository',
+      'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/authoring-measure-repository'
     ],
     kind: 'instance',
     implementation: {
@@ -24,6 +25,9 @@ const customCapabilityStatement = (): fhir4.CapabilityStatement => {
     },
     fhirVersion: base_version.replace(/_/g, '.'),
     format: ['application/fhir+json'],
+    // NOTE: the definitions for authoring measure repository operations
+    // are not FHIR OperationDefinitions, and we should update the JSON
+    // when FHIR OperationDefinitions are available
     rest: [capabilityStatementResources]
   });
 };
@@ -81,6 +85,16 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$data-requirements',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
+        },
+        {
+          name: 'submit',
+          route: '/$submit',
+          method: 'POST'
+        },
+        {
+          name: 'submit',
+          route: '/:id/$submit',
+          method: 'POST'
         }
       ]
     },
@@ -111,6 +125,16 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$package',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
+        },
+        {
+          name: 'submit',
+          route: '/$submit',
+          method: 'POST'
+        },
+        {
+          name: 'submit',
+          route: '/:id/$submit',
+          method: 'POST'
         }
       ]
     }
