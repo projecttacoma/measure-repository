@@ -287,7 +287,7 @@ describe('bundleUtils', () => {
       expect(rootLibRef).toEqual('http://example.com/LibraryWithNoDeps');
     });
 
-    it('returns rootLibRef with just url when url present and version missing', async () => {
+    it('returns rootLibRef with id when url and version missing', async () => {
       const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibWithNoUrl' }, {});
       expect(rootLibRef).toEqual('LibWithNoUrl');
     });

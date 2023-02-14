@@ -127,7 +127,6 @@ export const serverConfig: ServerConfig = {
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
         },
         {
-<<<<<<< HEAD
           name: 'submit',
           route: '/$submit',
           method: 'POST'
@@ -136,30 +135,30 @@ export const serverConfig: ServerConfig = {
           name: 'submit',
           route: '/:id/$submit',
           method: 'POST'
-=======
+        },
+        {
           name: 'dataRequirements',
           route: '/$data-requirements',
           method: 'GET',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements'
         },
         {
           name: 'dataRequirements',
           route: '/$data-requirements',
           method: 'POST',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements'
         },
         {
           name: 'dataRequirements',
           route: '/:id/$data-requirements',
           method: 'GET',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements'
         },
         {
           name: 'dataRequirements',
           route: '/:id/$data-requirements',
           method: 'POST',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
->>>>>>> 0384995 (mostly working)
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements'
         }
       ]
     }
