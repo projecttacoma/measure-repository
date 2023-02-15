@@ -81,7 +81,7 @@ export async function createMeasurePackageBundle(
 export async function createLibraryPackageBundle(
   query: Filter<any>,
   params: z.infer<typeof PackageArgs>
-): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+): Promise<{ libraryBundle: fhir4.Bundle<fhir4.FhirResource>; rootLibRef?: string }> {
   const mongoQuery = getMongoQueryFromRequest(query);
   const library = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
   if (!library || !(library.length > 0)) {
@@ -99,9 +99,18 @@ export async function createLibraryPackageBundle(
     );
   }
   const libraryForPackaging = library[0];
+
+  const rootLibRef =
+    libraryForPackaging.url && libraryForPackaging.version
+      ? `${libraryForPackaging.url}|${libraryForPackaging.version}`
+      : libraryForPackaging.url ?? libraryForPackaging.id;
+
   logger.info(`Assembling collection bundle from Library ${libraryForPackaging.id}`);
 
-  return createDepLibraryBundle(libraryForPackaging, params['include-terminology'] ?? false);
+  return {
+    libraryBundle: await createDepLibraryBundle(libraryForPackaging, params['include-terminology'] ?? false),
+    rootLibRef: rootLibRef
+  };
 }
 
 /**

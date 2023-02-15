@@ -47,7 +47,7 @@
     "@projecttacoma/node-fhir-server-core": "^2.2.8",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "fqm-execution": "^1.0.4",
+    "fqm-execution": "git+https://git@github.com/projecttacoma/fqm-execution",
     "mongodb": "^4.12.1",
     "uuid": "^9.0.0",
     "zod": "^3.20.2"

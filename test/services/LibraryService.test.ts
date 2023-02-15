@@ -2,6 +2,7 @@ import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../../src/config/serverConfig';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
+import { Calculator } from 'fqm-execution';
 
 let server: Server;
 
@@ -62,6 +63,7 @@ const LIBRARY_WITH_NESTED_DEPS: fhir4.Library = {
   resourceType: 'Library',
   id: 'testLibraryWithDeps',
   status: 'draft',
+  version: '0.0.1-test',
   url: 'http://example.com/testLibraryWithDeps',
   type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
@@ -390,7 +392,7 @@ describe('LibraryService', () => {
     it('returns 201 status with populated location when provided correct headers and FHIR Library', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library/$submit')
-        .send({resourceType: 'Library', status: 'draft'})
+        .send({ resourceType: 'Library', status: 'draft' })
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -401,7 +403,7 @@ describe('LibraryService', () => {
     it('returns 201 status with populated location when id is represent in the path', async () => {
       await supertest(server.app)
         .post(`/4_0_1/Library/test-id/$submit`)
-        .send({resourceType: 'Library', status: 'draft'})
+        .send({ resourceType: 'Library', status: 'draft' })
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -412,18 +414,144 @@ describe('LibraryService', () => {
     it('throws a 400 error when the library is not in "draft" status', async () => {
       await supertest(server.app)
         .post(`/4_0_1/Library/$submit`)
-        .send({resourceType: 'Library', status: 'active'})
+        .send({ resourceType: 'Library', status: 'active' })
         .set('content-type', 'application/json+fhir')
         .expect(400)
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(`The artifact must be in 'draft' status.`);
+        });
+    });
+  });
+  describe('$data-requirements', () => {
+    // spy on calculation function
+    const calc = jest.spyOn(Calculator, 'calculateLibraryDataRequirements').mockResolvedValue({
+      results: {
+        resourceType: 'Library',
+        type: {
+          coding: [{ code: 'module-definition', system: 'http://terminology.hl7.org/CodeSystem/library-type' }]
+        },
+        status: 'draft',
+        dataRequirement: []
+      }
+    });
+
+    it('returns 200 and a Library for a simple Library with url, version, dependencies and no period params', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$data-requirements')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
+          expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            { rootLibRef: 'http://example.com/testLibraryWithDeps|0.0.1-test' }
+          );
+        });
+    });
+
+    it('returns 200 and a Library for a request with id in the url', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/testLibraryWithDeps/$data-requirements')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
+          expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            { rootLibRef: 'http://example.com/testLibraryWithDeps|0.0.1-test' }
+          );
+        });
+    });
+
+    it('returns 200 with passed period parameters', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$data-requirements')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'testLibraryWithDeps' },
+            { name: 'periodStart', valueDate: '2021-01-01' },
+            { name: 'periodEnd', valueDate: '2021-12-31' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
+          expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            expect.objectContaining({
+              measurementPeriodStart: '2021-01-01',
+              measurementPeriodEnd: '2021-12-31',
+              rootLibRef: 'http://example.com/testLibraryWithDeps|0.0.1-test'
+            })
+          );
+        });
+    });
+
+    it('returns 200 with query params', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/$data-requirements')
+        .query({ id: 'testLibraryWithDeps', periodStart: '2021-01-01', periodEnd: '2021-12-31' })
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Library');
+          expect(response.body.type.coding[0].code).toEqual('module-definition');
+          expect(response.body.dataRequirement).toHaveLength(0);
+          expect(calc).toBeCalledWith(
+            expect.objectContaining({
+              resourceType: 'Bundle'
+            }),
+            expect.objectContaining({
+              measurementPeriodStart: '2021-01-01',
+              measurementPeriodEnd: '2021-12-31',
+              rootLibRef: 'http://example.com/testLibraryWithDeps|0.0.1-test'
+            })
+          );
+        });
+    });
+
+    it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/testLibraryWithDeps/$data-requirements')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            `The artifact must be in 'draft' status.`
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
+          );
+        });
+    });
+
+    it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/testLibraryWithDeps/$data-requirements')
+        .query({ id: 'testLibraryWithDeps' })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
           );
         });
     });
   });
-
   afterAll(() => {
     return cleanUpTestDatabase();
   });

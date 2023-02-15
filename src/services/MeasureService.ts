@@ -77,7 +77,7 @@ export class MeasureService implements Service<fhir4.Measure> {
   /**
    * result of sending a POST or GET request to:
    * {BASE_URL}/4_0_1/Measure/$data-requirements or {BASE_URL}/4_0_1/Measure/:id/$data-requirements
-   * creates a Library with all data requirements for the specified measure
+   * creates a Library with all data requirements for the specified Measure
    * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
    */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {

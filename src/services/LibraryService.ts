@@ -1,6 +1,6 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
-import { LibrarySearchArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
@@ -14,6 +14,7 @@ import {
   checkExpectedResourceType
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 
 /*
@@ -69,7 +70,9 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, PackageArgs);
 
-    return createLibraryPackageBundle(query, parsedParams);
+    const { libraryBundle } = await createLibraryPackageBundle(query, parsedParams);
+
+    return libraryBundle;
   }
 
   /**
@@ -99,5 +102,31 @@ export class LibraryService implements Service<fhir4.Library> {
     res.status(201);
     const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
     res.set('Location', location);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$data-requirements or {BASE_URL}/4_0_1/Library/:id/$data-requirements
+   * creates a Library with all data requirements for the specified Library
+   * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
+   */
+  async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+    const query = extractIdentificationForQuery(args, params);
+    const parsedParams = parseRequestSchema({ ...params, ...query }, LibraryDataRequirementsArgs);
+
+    logger.info(`${req.method} ${req.path}`);
+
+    const { libraryBundle, rootLibRef } = await createLibraryPackageBundle(query, parsedParams);
+
+    const { results } = await Calculator.calculateLibraryDataRequirements(libraryBundle, {
+      ...(parsedParams.periodStart && { measurementPeriodStart: parsedParams.periodStart }),
+      ...(parsedParams.periodEnd && { measurementPeriodEnd: parsedParams.periodEnd }),
+      ...(rootLibRef && { rootLibRef })
+    });
+
+    logger.info('Successfully generated $data-requirements report');
+    return results;
   }
 }
