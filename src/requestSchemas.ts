@@ -86,6 +86,57 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
   }
 }
 
+/**
+ * Returns a function that checks if the resource in the body matches the resource
+ * type we expect, then runs the other passed in functions in sequence. Each catchFunction
+ * is expected to check for invalid input and call ctx.addIssue if invalid input is detected.
+ * Any added issue will trigger an error to be thrown.
+ */
+export function checkExpectedResourceType(
+  catchFunctions: ((val: Record<string, any>, ctx: z.RefinementCtx) => void)[],
+  expectedResourceType: string
+) {
+  return (val: Record<string, any>, ctx: z.RefinementCtx) => {
+    if (val.body.resourceType !== expectedResourceType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Expected resourceType '${expectedResourceType}' in body. Received '${val.body.resourceType}'.`
+      });
+    } else {
+      catchFunctions.forEach(func => func(val, ctx));
+    }
+  };
+}
+
+/**
+ * Checks that the content-type from the request headers accepts json + fhir.
+ */
+export function checkContentTypeHeader(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (val.method === 'POST') {
+    if (
+      val.headers['content-type'] !== 'application/json+fhir' &&
+      val.headers['content-type'] !== 'application/fhir+json'
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Ensure Content-Type is set to application/json+fhir or to application/fhir+json in headers'
+      });
+    }
+  }
+}
+
+/**
+ * Checks that the status on the resource is "draft".
+ */
+export function checkResourceDraftStatus(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (val.body.status !== 'draft') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "The artifact must be in 'draft' status."
+    });
+  }
+}
+
 const stringToBool = z
   .union([z.enum(['true', 'false']), z.boolean()])
   .transform(x => (typeof x === 'boolean' ? x : x === 'true'));
@@ -115,7 +166,7 @@ export const PackageArgs = IdentifyingParameters.extend({
 })
   .partial()
   .strict()
-  .superRefine(catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_PACKAGE_ARGS));
+  .superRefine(catchInvalidParams([catchMissingIdentifyingInfo, checkContentTypeHeader], UNSUPPORTED_PACKAGE_ARGS));
 
 export const CommonDataRequirementsArgs = IdentifyingParameters.extend({
   'check-system-version': z.string(),
@@ -141,6 +192,24 @@ export const LibraryDataRequirementsArgs = CommonDataRequirementsArgs.extend({
   .partial()
   .strict()
   .superRefine(catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_DATA_REQ_ARGS));
+
+export const CoreSubmitArgs = z.object({
+  headers: z.object({
+    'content-type': z.string()
+  }),
+  body: z.object({
+    status: z.string(),
+    resourceType: z.string()
+  })
+});
+
+export const LibrarySubmitArgs = CoreSubmitArgs.superRefine(
+  checkExpectedResourceType([checkContentTypeHeader, checkResourceDraftStatus], 'Library')
+);
+
+export const MeasureSubmitArgs = CoreSubmitArgs.superRefine(
+  checkExpectedResourceType([checkContentTypeHeader, checkResourceDraftStatus], 'Measure')
+);
 
 export const CoreSearchArgs = z
   .object({

@@ -1,18 +1,18 @@
 import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
-import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import {
+  LibrarySearchArgs,
+  LibraryDataRequirementsArgs,
+  PackageArgs,
+  parseRequestSchema,
+  LibrarySubmitArgs
+} from '../requestSchemas';
 import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
-import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
+import { ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
-import {
-  extractIdentificationForQuery,
-  gatherParams,
-  validateParamIdSource,
-  checkContentTypeHeader,
-  checkExpectedResourceType
-} from '../util/inputUtils';
+import { extractIdentificationForQuery, gatherParams, validateParamIdSource } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
@@ -58,11 +58,6 @@ export class LibraryService implements Service<fhir4.Library> {
   async package(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
-    if (req.method === 'POST') {
-      const contentType: string | undefined = req.headers['content-type'];
-      checkContentTypeHeader(contentType);
-    }
-
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
 
@@ -84,18 +79,11 @@ export class LibraryService implements Service<fhir4.Library> {
   async submit(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
 
-    const contentType: string | undefined = req.headers['content-type'];
-    checkContentTypeHeader(contentType);
+    parseRequestSchema(req, LibrarySubmitArgs);
 
     const resource = req.body;
-    checkExpectedResourceType(resource.resourceType, 'Library');
-
-    // check for "draft" status on the resource
-    if (resource.status !== 'draft') {
-      throw new BadRequestError(`The artifact must be in 'draft' status.`);
-    }
-
     const res = req.res;
+
     // create new resource with server-defined id
     resource['id'] = uuidv4();
     await createResource(resource, 'Library');
