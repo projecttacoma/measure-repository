@@ -85,7 +85,7 @@ export class MeasureService implements Service<fhir4.Measure> {
       const contentType: string | undefined = req.headers['content-type'];
       checkContentTypeHeader(contentType);
     }
-    
+
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
     const query = extractIdentificationForQuery(args, params);
