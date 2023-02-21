@@ -111,6 +111,11 @@ export class LibraryService implements Service<fhir4.Library> {
    * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
    */
   async dataRequirements(args: RequestArgs, { req }: RequestCtx) {
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
     const query = extractIdentificationForQuery(args, params);
