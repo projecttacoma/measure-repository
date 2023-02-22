@@ -138,12 +138,12 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle when query matches multiple resources', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ status: 'active', version: 'searchable' })
+        .query({ status: 'active' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(2);
+          expect(response.body.total).toEqual(7);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -153,6 +153,20 @@ describe('MeasureService', () => {
                 resource: MEASURE_WITH_URL
               })
             ])
+          );
+        });
+    });
+
+    it('returns 400 when query contains version without url', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure')
+        .query({ status: 'active', version: 'searchable'})
+        .set('Accept', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Version can only appear in combination with a url search'
           );
         });
     });

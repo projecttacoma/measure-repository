@@ -164,6 +164,20 @@ describe('LibraryService', () => {
           );
         });
     });
+
+    it('returns 400 when query contains version without url', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library')
+        .query({ status: 'active', version: 'searchable'})
+        .set('Accept', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Version can only appear in combination with a url search'
+          );
+        });
+    });
   });
 
   describe('$package', () => {

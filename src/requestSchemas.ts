@@ -86,6 +86,21 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
   }
 }
 
+/**
+ * For searches, checks that the version only appears in combination with a url. Adds an
+ * issue to the ctx that triggers a BadRequest to be thrown if url is not specified when version
+ * is specified.
+ */
+export function catchVersionWithoutUrl(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (Object.keys(val).includes('version') && !Object.keys(val).includes('url')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.INVALID },
+      message: 'Version can only appear in combination with a url search'
+    });
+  }
+}
+
 const stringToBool = z
   .union([z.enum(['true', 'false']), z.boolean()])
   .transform(x => (typeof x === 'boolean' ? x : x === 'true'));
@@ -176,11 +191,11 @@ export const LibrarySearchArgs = CoreSearchArgs.extend({
 })
   .partial()
   .strict()
-  .superRefine(catchInvalidParams([], UNSUPPORTED_LIBRARY_SEARCH_ARGS));
+  .superRefine(catchInvalidParams([catchVersionWithoutUrl], UNSUPPORTED_LIBRARY_SEARCH_ARGS));
 
 export const MeasureSearchArgs = CoreSearchArgs.partial()
   .strict()
-  .superRefine(catchInvalidParams([], UNSUPPORTED_CORE_SEARCH_ARGS));
+  .superRefine(catchInvalidParams([catchVersionWithoutUrl], UNSUPPORTED_CORE_SEARCH_ARGS));
 
 /**
  * wrapper around the Zod parse function that catches Zod errors, parses the messages and throws appropriate ServerErrors
