@@ -92,7 +92,7 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
  * is specified.
  */
 export function catchVersionWithoutUrl(val: Record<string, any>, ctx: z.RefinementCtx) {
-  if (Object.keys(val).includes('version') && !Object.keys(val).includes('url')) {
+  if ('version' in val && !('url' in val)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       params: { serverErrorCode: constants.ISSUE.CODE.INVALID },
