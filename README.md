@@ -71,7 +71,7 @@ The Measure Repository Service server supports `Library` and `Measure` resource 
 - status
 - title
 - url
-- version
+- version (can appear only in combination with a url search)
 
 ### Package
 
