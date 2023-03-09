@@ -450,7 +450,7 @@ describe('LibraryService', () => {
       }
     });
 
-    it('returns 200 and a Library for a simple Library with url, version, dependencies and no period params', async () => {
+    it('returns 200 and a Library for a simple Library with url, version, dependencies', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library/$data-requirements')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
