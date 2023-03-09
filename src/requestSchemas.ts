@@ -139,16 +139,18 @@ export const CommonDataRequirementsArgs = IdentifyingParameters.extend({
   'include-dependencies': stringToBool,
   manifest: z.string(),
   parameters: z.string(),
-  periodEnd: checkDate,
-  periodStart: checkDate,
   'system-version': z.string()
 })
   .partial()
   .strict();
 
-export const MeasureDataRequirementsArgs = CommonDataRequirementsArgs.superRefine(
-  catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_DATA_REQ_ARGS)
-);
+export const MeasureDataRequirementsArgs = CommonDataRequirementsArgs.extend({
+  periodEnd: checkDate,
+  periodStart: checkDate
+})
+  .partial()
+  .strict()
+  .superRefine(catchInvalidParams([catchMissingIdentifyingInfo], UNSUPPORTED_DATA_REQ_ARGS));
 
 export const LibraryDataRequirementsArgs = CommonDataRequirementsArgs.extend({
   expression: z.string()

@@ -126,8 +126,6 @@ export class LibraryService implements Service<fhir4.Library> {
     const { libraryBundle, rootLibRef } = await createLibraryPackageBundle(query, parsedParams);
 
     const { results } = await Calculator.calculateLibraryDataRequirements(libraryBundle, {
-      ...(parsedParams.periodStart && { measurementPeriodStart: parsedParams.periodStart }),
-      ...(parsedParams.periodEnd && { measurementPeriodEnd: parsedParams.periodEnd }),
       ...(rootLibRef && { rootLibRef })
     });
 
