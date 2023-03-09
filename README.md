@@ -91,7 +91,7 @@ The Measure Repository Service server supports the `Measure` and `Library` `$dat
 - version
 - identifier
 
-Supported optional parameters are:
+Supported optional parameters for `Measure` are:
 
 - periodStart
 - periodEnd
