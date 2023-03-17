@@ -160,7 +160,7 @@ describe('MeasureService', () => {
     it('returns 400 when query contains version without url', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ status: 'active', version: 'searchable'})
+        .query({ status: 'active', version: 'searchable' })
         .set('Accept', 'application/json+fhir')
         .expect(400)
         .then(response => {
@@ -521,7 +521,7 @@ describe('MeasureService', () => {
     it('returns 201 status with populated location when provided correct headers and FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$submit')
-        .send({resourceType: 'Measure', status: 'draft'})
+        .send({ resourceType: 'Measure', status: 'draft' })
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -532,7 +532,7 @@ describe('MeasureService', () => {
     it('returns 201 status with populated location when id is represent in the path', async () => {
       await supertest(server.app)
         .post(`/4_0_1/Measure/test-id/$submit`)
-        .send({resourceType: 'Measure', status: 'draft'})
+        .send({ resourceType: 'Measure', status: 'draft' })
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -543,14 +543,12 @@ describe('MeasureService', () => {
     it('throws a 400 error when the measure is not in "draft" status', async () => {
       await supertest(server.app)
         .post(`/4_0_1/Measure/$submit`)
-        .send({resourceType: 'Measure', status: 'active'})
+        .send({ resourceType: 'Measure', status: 'active' })
         .set('content-type', 'application/json+fhir')
         .expect(400)
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
-          expect(response.body.issue[0].details.text).toEqual(
-            `The artifact must be in 'draft' status.`
-          );
+          expect(response.body.issue[0].details.text).toEqual(`The artifact must be in 'draft' status.`);
         });
     });
   });

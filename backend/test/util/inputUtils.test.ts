@@ -29,7 +29,7 @@ describe('gatherParams', () => {
 describe('checkContentTypeHeader', () => {
   it('does not throw an error when content-type is application/json+fhir', () => {
     expect(() => {
-      checkContentTypeHeader('application/json+fhir')
+      checkContentTypeHeader('application/json+fhir');
     }).not.toThrow();
   });
 
@@ -55,7 +55,7 @@ describe('checkExpectedResourceType', () => {
     const BODY_RESOURCE_TYPE = 'Library';
     const EXPECTED_RESOURCE_TYPE = 'Library';
     expect(() => {
-      checkExpectedResourceType(BODY_RESOURCE_TYPE, EXPECTED_RESOURCE_TYPE)
+      checkExpectedResourceType(BODY_RESOURCE_TYPE, EXPECTED_RESOURCE_TYPE);
     }).not.toThrow();
   });
 
@@ -76,4 +76,3 @@ describe('checkExpectedResourceType', () => {
     );
   });
 });
-
