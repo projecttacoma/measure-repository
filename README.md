@@ -24,9 +24,7 @@ Refer to the READMEs for both the frontend and backend of the Measure Repository
 
 ## Usage
 
-### Overall Usage
-
-Once you have things installed and setup in the `frontend` and `backend` directories, you can run the following in the root directory:
+Once you have the necessary dependencies installed in the `frontend` and `backend` directories, you can run the following in the root directory:
 
 To start the the frontend application and backend server in parallel:
 

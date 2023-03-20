@@ -20,6 +20,7 @@ git clone https://github.com/projecttacoma/measure-repository-service.git
 Install dependencies:
 
 ```bash
+cd backend
 npm install
 ```
 
@@ -97,11 +98,12 @@ Supported optional parameters for `Measure` are:
 - periodEnd
 
 ### Submit
-The Measure Repository Service server supports the `$submit` operation for `Measure` and `Library` resources, as specified in the Authoring Measure Repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository). The operation does not take in any parameters. 
+
+The Measure Repository Service server supports the `$submit` operation for `Measure` and `Library` resources, as specified in the Authoring Measure Repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository). The operation does not take in any parameters.
 
 ## License
 
-Copyright 2022 The MITRE Corporation
+Copyright 2022-2023 The MITRE Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
