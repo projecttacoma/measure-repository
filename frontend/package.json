@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "prettier": "prettier --check \"{pages,public,styles}/*.{js,ts,jsx,tsx,css}\"",
+    "prettier": "prettier --check \"**/*.{js,ts,jsx,tsx,css}\"",
     "prettier:fix": "prettier --write \"**/*.{js,ts,jsx,tsx,css}\""
   },
   "dependencies": {
