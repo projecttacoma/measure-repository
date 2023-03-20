@@ -9,10 +9,12 @@
     "build:all": "npm run build --workspaces",
     "check:all": "npm run test --workspace=backend && npm run lint --workspace=backend && npm run prettier --workspace=backend && npm run lint --workspace=frontend && npm run prettier --workspace=backend",
     "lint:all": "npm run lint --workspaces",
-    "lint:all-fix": "npm run lint:fix --workspaces",
+    "lint:all:fix": "npm run lint:fix --workspaces",
     "prettier:all": "npm run prettier --workspaces",
-    "prettier:all-fix": "npm run prettier:fix --workspaces",
+    "prettier:all:fix": "npm run prettier:fix --workspaces",
     "start:all": "concurrently \"npm run start --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "start:backend": "npm run start --workspace=backend",
+    "start:frontend": "npm run  dev --workspace=frontend",
     "test:backend": "npm run test --workspace=backend"
   },
   "devDependencies": {
