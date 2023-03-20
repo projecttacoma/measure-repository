@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
-    "check:all": "npm run test --workspace=backend && npm run lint --workspace=backend && npm run prettier --workspace=backend && npm run lint --workspace=frontend && npm run prettier --workspace=backend",
+    "check:all": "npm run test --workspace=backend && npm run lint --workspace=backend && npm run prettier --workspace=backend && npm run lint --workspace=frontend && npm run prettier --workspace=frontend",
     "lint:all": "npm run lint --workspaces",
     "lint:all:fix": "npm run lint:fix --workspaces",
     "prettier:all": "npm run prettier --workspaces",
