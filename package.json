@@ -12,9 +12,9 @@
     "lint:all:fix": "npm run lint:fix --workspaces",
     "prettier:all": "npm run prettier --workspaces",
     "prettier:all:fix": "npm run prettier:fix --workspaces",
-    "start:all": "concurrently \"npm run start --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "start:all": "concurrently \"npm run start --workspace=backend\" \"npm run dev --workspace=frontend -- -p 3001\"",
     "start:backend": "npm run start --workspace=backend",
-    "start:frontend": "npm run  dev --workspace=frontend",
+    "start:frontend": "npm run dev --workspace=frontend",
     "test:backend": "npm run test --workspace=backend"
   },
   "devDependencies": {
