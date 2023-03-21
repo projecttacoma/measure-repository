@@ -32,7 +32,7 @@ To start the the frontend application and backend server in parallel:
 npm run start:all
 ```
 
-This starts up the Measure Repository service at `localhost:3000` and you can open the Measure Repository Service frontend application by navigating to [http://localhost:3001](http://localhost:3001) in your browser.
+This starts up the Measure Repository service at `localhost:3000` and you can open the Measure Repository Service frontend application by navigating to http://localhost:3001 in your browser.
 
 To start only the frontend:
 

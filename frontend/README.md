@@ -2,18 +2,16 @@
 
 A frontend application for a prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html).
 
-- Installation(#installation)
-
+- [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Local Installation](#local-installation)
-
-- Usage(#usage)
+- [Usage](#usage)
 
 ## Installation
 
 ### Prerequisites
 
-- [Node.js >=11.15.0](https://nodejs.org/en/)
+- [Node.js >=16.0.0](https://nodejs.org/en/)
 - [Git](https://git-scm.com/)
 
 ### Local Installation
