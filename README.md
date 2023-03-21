@@ -12,19 +12,21 @@ Clone the source code:
 git clone https://github.com/projecttacoma/measure-repository-service.git
 ```
 
-Install root directory dependencies:
+This repository uses [`npm workspaces`](https://docs.npmjs.com/cli/v7/using-npm/workspaces), so in order to install all dependencies, run the following:
 
 ```bash
 npm install
 ```
 
-### Frontend and Backend Installation
+If you want to install a dependency in only the frontend or the backend directory, run the following:
 
-Refer to the READMEs for both the frontend and backend of the Measure Repository Service in their respective directories for specific setup and installation instructions.
+```bash
+npm install --workspace=<frontend-or-backend> <package-name>
+```
 
 ## Usage
 
-Once you have the necessary dependencies installed in the `frontend` and `backend` directories, you can run the following in the root directory:
+Once you have the necessary dependencies installed, you can run the following in the root directory:
 
 To start the the frontend application and backend server in parallel:
 
@@ -51,3 +53,15 @@ To run `lint` and `prettier` in both the frontend and backend and unit tests in 
 ```bash
 npm run check:all
 ```
+
+## License
+
+Copyright 2022-2023 The MITRE Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+```bash
+http://www.apache.org/licenses/LICENSE-2.0
+```
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
