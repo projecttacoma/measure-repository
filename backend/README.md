@@ -11,17 +11,18 @@ A prototype implementation of a [FHIR Measure Repository Service](https://build.
 
 ### Local Installation
 
-Clone the source code:
-
-```bash
-git clone https://github.com/projecttacoma/measure-repository-service.git
-```
-
 Install dependencies:
 
+At the root directory:
+
 ```bash
-cd backend
 npm install
+```
+
+This repository uses [`npm workspaces`](https://docs.npmjs.com/cli/v7/using-npm/workspaces), so if you want to install a dependency in this directory, you have to run the following from the root directory:
+
+```bash
+npm install --workspace=backend <package-name>
 ```
 
 ### MongoDB
@@ -47,7 +48,9 @@ npm run db:reset
 
 ## Usage
 
-Once MongoDB is running on your machine, run the `npm start` command to start up the Measure Repository Service server at `localhost:3000`.
+Once MongoDB is running on your machine, run the `npm start` command in this directory to start up the Measure Repository Service server at `localhost:3000`.
+
+You can also start the Measure Repository Server server in the root directory by running the `npm run start:backend` command.
 
 You can also run `npm run start:clean`, which will reset the database before starting up the Measure Repository Service server.
 
