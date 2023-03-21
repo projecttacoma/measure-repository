@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig-base",
+  "compilerOptions": {
+    "module": "commonJS",
+    "outDir": "./dist"
+  },
+  "ts-node": {
+    "files": true
+  }
+}

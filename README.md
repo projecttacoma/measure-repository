@@ -1,13 +1,8 @@
-# Measure Repository Service
+# Measure Repository
 
-A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html)
+A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html) and associated frontend application.
 
 ## Installation
-
-### Prerequisites
-
-- [Node.js >=16.0.0](https://nodejs.org/en/)
-- [MongoDB >= 6.0](https://www.mongodb.com)
 
 ### Local Installation
 
@@ -17,91 +12,51 @@ Clone the source code:
 git clone https://github.com/projecttacoma/measure-repository-service.git
 ```
 
-Install dependencies:
+This repository uses [`npm workspaces`](https://docs.npmjs.com/cli/v7/using-npm/workspaces), so in order to install all dependencies, run the following:
 
 ```bash
 npm install
 ```
 
-### MongoDB
+If you want to install a dependency in only the frontend or the backend directory, run the following:
 
-This test server makes use of [MongoDB](https://www.mongodb.com), a cross-platform document-oriented database program.
-
-Follow the [MongoDB Community Edition installation guide](https://docs.mongodb.com/manual/installation/) for your platform, and follow the commands for running MongoDB on your machine.
-
-### First time Database Setup
-
-This server comes with a script to create collections for FHIR Measure, Library, and MeasureReport resources which will be used by the measure repository service.
-To create these collections:
-
-```
-npm run db:setup
-```
-
-to clear the database and regenerate empty FHIR Measure, Library, and MeasureReport collections, run:
-
-```
-npm run db:reset
+```bash
+npm install --workspace=<frontend-or-backend> <package-name>
 ```
 
 ## Usage
 
-Once MongoDB is running on your machine, run the `npm start` command to start up the Measure Repository Service server at `localhost:3000`.
+Once you have the necessary dependencies installed, you can run the following in the root directory:
 
-You can also run `npm run start:clean`, which will reset the database before starting up the Measure Repository Service server.
+To start the the frontend application and backend server in parallel:
 
-For ease of testing, it is recommended to download [Insomnia API Client and Design Tool](https://insomnia.rest) for sending HTTP requests to the server and [Robo 3T](https://robomongo.org) as a GUI for viewing the Mongo database.
+```bash
+npm run start:all
+```
 
-When sending requests, ensure that the `"Content-type": "application/json+fhir"` header is set.
+This starts up the Measure Repository service at `localhost:3000` and you can open the Measure Repository Service frontend application by navigating to http://localhost:3001 in your browser.
 
-### CRUD Operations
+To start only the frontend:
 
-This server currently supports the following CRUD operations:
+```bash
+npm run start:frontend
+```
 
-- Read by ID to endpoint: `4_0_1/<resourceType>/<resourceId>`
-  _More functionality coming soon!_
+To start only the backend:
 
-### Search
+```bash
+npm run start:backend
+```
 
-The Measure Repository Service server supports `Library` and `Measure` resource search by the parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#shareable-measure-repository). These parameters are:
+To run `lint` and `prettier` in both the frontend and backend and unit tests in the backend:
 
-- description
-- identifier
-- name
-- status
-- title
-- url
-- version (can appear only in combination with a url search)
-
-### Package
-
-The Measure Repository Service server supports the `Library` and `Measure` `$package` operation with the `id` and `identifier` parameters and SHALL parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). Accepted parameters are:
-
-- id
-- url
-- identifier
-- version
-
-### Data Requirements
-
-The Measure Repository Service server supports the `Measure` and `Library` `$data-requirements` operations with the SHALL parameters specified in the publishable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). SHALL parameters are:
-
-- id
-- url
-- version
-- identifier
-
-Supported optional parameters for `Measure` are:
-
-- periodStart
-- periodEnd
-
-### Submit
-The Measure Repository Service server supports the `$submit` operation for `Measure` and `Library` resources, as specified in the Authoring Measure Repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository). The operation does not take in any parameters. 
+```bash
+npm run check:all
+```
 
 ## License
 
-Copyright 2022 The MITRE Corporation
+Copyright 2022-2023 The MITRE Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

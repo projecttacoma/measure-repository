@@ -1,55 +1,23 @@
 {
-  "name": "measure-repository-service",
+  "name": "measure-repository",
   "version": "0.0.1",
-  "description": "Prototype implementation of a FHIR Measure Repository Service",
-  "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "build": "tsc -p ./tsconfig.build.json",
-    "build:watch": "tsc -p ./tsconfig.build.json -w",
-    "check": "npm run test && npm run lint && npm run prettier",
-    "db:delete": "ts-node ./scripts/dbSetup.ts delete",
-    "db:reset": "ts-node ./scripts/dbSetup.ts reset",
-    "db:setup": "ts-node ./scripts/dbSetup.ts create",
-    "db:loadBundle": "ts-node ./scripts/dbSetup.ts loadBundle",
-    "lint": "eslint \"./src/**/*.{js,ts}\"",
-    "lint:fix": "eslint \"./src/**/*.{js,ts}\" --fix",
-    "prettier": "prettier --check \"./src/**/*.{js,ts}\"",
-    "prettier:fix": "prettier --write \"src/**/*.{js,ts}\"",
-    "start": "ts-node ./src/index.ts",
-    "start:watch": "nodemon ./src/index.ts",
-    "start:clean": "npm run db:reset && npm run start",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "build:all": "npm run build --workspaces",
+    "check:all": "npm run test:backend && npm run lint:all && npm run prettier:all",
+    "lint:all": "npm run lint --workspaces",
+    "lint:all:fix": "npm run lint:fix --workspaces",
+    "prettier:all": "npm run prettier --workspaces",
+    "prettier:all:fix": "npm run prettier:fix --workspaces",
+    "start:all": "concurrently \"npm run start --workspace=backend\" \"npm run dev --workspace=frontend -- -p 3001\"",
+    "start:backend": "npm run start --workspace=backend",
+    "start:frontend": "npm run dev --workspace=frontend",
+    "test:backend": "npm run test --workspace=backend"
   },
   "devDependencies": {
-    "@shelf/jest-mongodb": "^4.1.4",
-    "@types/express": "^4.17.17",
-    "@types/fhir": "^0.0.35",
-    "@types/jest": "^29.2.3",
-    "@types/node": "^18.11.5",
-    "@types/supertest": "^2.0.12",
-    "@types/uuid": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.45.0",
-    "@typescript-eslint/parser": "^5.45.0",
-    "eslint": "^8.28.0",
-    "eslint-config-prettier": "^8.5.0",
-    "jest": "^29.3.1",
-    "nock": "^13.3.0",
-    "nodemon": "^2.0.20",
-    "prettier": "^2.8.0",
-    "supertest": "^6.3.3",
-    "ts-jest": "^29.0.3",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
-  },
-  "dependencies": {
-    "@projecttacoma/node-fhir-server-core": "^2.2.8",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "fqm-execution": "git+https://git@github.com/projecttacoma/fqm-execution",
-    "mongodb": "^4.12.1",
-    "uuid": "^9.0.0",
-    "zod": "^3.20.2"
+    "concurrently": "^7.6.0"
   }
 }

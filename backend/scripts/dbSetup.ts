@@ -86,11 +86,11 @@ async function loadBundle(filePath: string) {
 }
 
 /*
- * Inserts the FHIR ModelInfo library into the database 
+ * Inserts the FHIR ModelInfo library into the database
  */
 async function insertFHIRModelInfoLibrary() {
   const fhirModelInfo = fs.readFileSync('scripts/fixtures/Library-FHIR-ModelInfo.json', 'utf8');
-  const fhirModelInfoLibrary: fhir4.Library = JSON.parse(fhirModelInfo); 
+  const fhirModelInfoLibrary: fhir4.Library = JSON.parse(fhirModelInfo);
 
   await createResource(fhirModelInfoLibrary, 'Library');
 }
@@ -108,7 +108,8 @@ if (process.argv[2] === 'delete') {
   createCollections()
     .then(() => {
       return insertFHIRModelInfoLibrary();
-    }).then(() => {
+    })
+    .then(() => {
       console.log('Done');
     })
     .catch(console.error)
@@ -119,7 +120,8 @@ if (process.argv[2] === 'delete') {
   deleteCollections()
     .then(() => {
       return createCollections();
-    }).then(() => {
+    })
+    .then(() => {
       return insertFHIRModelInfoLibrary();
     })
     .then(() => {

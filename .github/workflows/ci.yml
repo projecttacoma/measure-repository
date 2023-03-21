@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        mongodb-version: ['6.0']
+        mongodb-version: ["6.0"]
 
     steps:
       - uses: actions/checkout@v2
@@ -27,13 +27,13 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: npm run build:all
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:all
 
       - name: Prettier
-        run: npm run prettier
+        run: npm run prettier:all
 
       - name: Unit Test
-        run: npm run test
+        run: npm run test:backend
