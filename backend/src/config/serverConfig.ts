@@ -85,16 +85,6 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$data-requirements',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
-        },
-        {
-          name: 'submit',
-          route: '/$submit',
-          method: 'POST'
-        },
-        {
-          name: 'submit',
-          route: '/:id/$submit',
-          method: 'POST'
         }
       ]
     },
@@ -125,16 +115,6 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$package',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
-        },
-        {
-          name: 'submit',
-          route: '/$submit',
-          method: 'POST'
-        },
-        {
-          name: 'submit',
-          route: '/:id/$submit',
-          method: 'POST'
         },
         {
           name: 'dataRequirements',

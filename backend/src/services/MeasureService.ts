@@ -1,4 +1,4 @@
-import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
@@ -14,7 +14,7 @@ import {
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
-import { createResource } from '../db/dbOperations';
+import { createResource, updateResource } from '../db/dbOperations';
 
 const logger = loggers.get('default');
 
@@ -48,6 +48,39 @@ export class MeasureService implements Service<fhir4.Measure> {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
     return result;
+  }
+
+  /**
+   * result of sending a POST request to {BASE_URL}/4_0_1/Measure
+   * creates a new Measure resource, generates an id for it, and adds it to the database
+   */
+  async create(_: RequestArgs, { req }: RequestCtx) {
+    logger.info('POST /Measure');
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Measure');
+    // create new id
+    resource['id'] = uuidv4();
+    return createResource(resource, 'Measure');
+  }
+
+  /**
+   * result of sending a PUT request to {BASE_URL}/4_0_1/Measure/{id}
+   * updates the measure with the passed in id using the passed in data
+   * or creates a measure with passed in id if it does not exist in the database
+   */
+  async update(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`PUT /Measure/${args.id}`);
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Measure');
+    // Throw error if the id arg in the url does not match the id in the request body
+    if (resource.id !== args.id) {
+      throw new BadRequestError('Argument id must match request body id for PUT request');
+    }
+    return updateResource(args.id, resource, 'Measure');
   }
 
   /**
@@ -107,34 +140,5 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     logger.info('Successfully generated $data-requirements report');
     return results;
-  }
-
-  /**
-   * result of sending a POST request to:
-   * {BASE_URL}/4_0_1/Measure/$submit or {BASE_URL}/4_0_1/Measure/:id/$submit
-   * POSTs a new artifact in "draft" status. The operation results in an error if the artifact
-   * does not have status set to "draft."
-   */
-  async submit(args: RequestArgs, { req }: RequestCtx) {
-    logger.info(`${req.method} ${req.path}`);
-
-    const contentType: string | undefined = req.headers['content-type'];
-    checkContentTypeHeader(contentType);
-
-    const resource = req.body;
-    checkExpectedResourceType(resource.resourceType, 'Measure');
-
-    // check for "draft" status on the resource
-    if (resource.status !== 'draft') {
-      throw new BadRequestError(`The artifact must be in 'draft' status.`);
-    }
-
-    const res = req.res;
-    // create new resource with server-defined id
-    resource['id'] = uuidv4();
-    await createResource(resource, 'Measure');
-    res.status(201);
-    const location = `${constants.VERSIONS['4_0_1']}/Measure/${resource.id}`;
-    res.set('Location', location);
   }
 }
