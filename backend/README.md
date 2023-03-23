@@ -62,9 +62,9 @@ When sending requests, ensure that the `"Content-type": "application/json+fhir"`
 
 This server currently supports the following CRUD operations:
 
-- Read by ID to endpoint: `4_0_1/<resourceType>/<resourceId>`
-- Create resource (Library or Measure) to endpoint: `4_0_1/<resourceType>`
-- Update resource (Library or Measure) to endpoint: `4_0_1/<resourceType>/<resourceId>`
+- Read by ID with `GET` to endpoint: `4_0_1/<resourceType>/<resourceId>`
+- Create resource (Library or Measure) with `POST` to endpoint: `4_0_1/<resourceType>`
+- Update resource (Library or Measure) with `PUT` to endpoint: `4_0_1/<resourceType>/<resourceId>`
   _More functionality coming soon!_
 
 ### Search
