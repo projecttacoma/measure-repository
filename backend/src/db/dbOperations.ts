@@ -28,7 +28,7 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
  */
 export async function createResource(data: fhir4.FhirResource, resourceType: string) {
   const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
-  console.log(`Inserting ${resourceType}/${data.id} into database`);
+  logger.info(`Inserting ${resourceType}/${data.id} into database`);
   await collection.insertOne(data);
   return { id: data.id as string };
 }
@@ -49,6 +49,5 @@ export async function updateResource(id: string, data: fhir4.FhirResource, resou
     return { id, created: true };
   }
 
-  // value being present indicates an update, so set created flag to false
   return { id, created: false };
 }

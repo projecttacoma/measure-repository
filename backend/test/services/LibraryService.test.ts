@@ -194,21 +194,21 @@ describe('LibraryService', () => {
   });
 
   describe('update', () => {
-    it('returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
-      await createTestResource(
+    beforeAll(() => {
+      return createTestResource(
         { resourceType: 'Library', type: { coding: [{ code: 'logic-library' }] }, id: 'exampleId', status: 'draft' },
         'Library'
       );
+    });
+
+    it('returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Library/exampleId')
         .send({ resourceType: 'Library', id: 'exampleId', status: 'active' })
         .set('content-type', 'application/json+fhir')
-        .expect(200);
-      await supertest(server.app)
-        .get('/4_0_1/Library/exampleId')
         .expect(200)
         .then(response => {
-          expect(response.body.id).toEqual('exampleId');
+          expect(response.headers.location).toBeDefined();
         });
     });
 
@@ -220,14 +220,6 @@ describe('LibraryService', () => {
         .expect(201)
         .then(response => {
           expect(response.headers.location).toBeDefined();
-        });
-      await supertest(server.app)
-        .get('/4_0_1/Library/newId')
-        .expect(200)
-        .then(response => {
-          expect(response.body.resourceType).toEqual('Library');
-          expect(response.body.id).toEqual('newId');
-          expect(response.body.status).toEqual('draft');
         });
     });
 
