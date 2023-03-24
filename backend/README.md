@@ -62,7 +62,9 @@ When sending requests, ensure that the `"Content-type": "application/json+fhir"`
 
 This server currently supports the following CRUD operations:
 
-- Read by ID to endpoint: `4_0_1/<resourceType>/<resourceId>`
+- Read by ID with `GET` to endpoint: `4_0_1/<resourceType>/<resourceId>`
+- Create resource (Library or Measure) with `POST` to endpoint: `4_0_1/<resourceType>`
+- Update resource (Library or Measure) with `PUT` to endpoint: `4_0_1/<resourceType>/<resourceId>`
   _More functionality coming soon!_
 
 ### Search
@@ -99,10 +101,6 @@ Supported optional parameters for `Measure` are:
 
 - periodStart
 - periodEnd
-
-### Submit
-
-The Measure Repository Service server supports the `$submit` operation for `Measure` and `Library` resources, as specified in the Authoring Measure Repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository). The operation does not take in any parameters.
 
 ## License
 

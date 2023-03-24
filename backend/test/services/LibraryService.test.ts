@@ -1,6 +1,6 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../../src/config/serverConfig';
-import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
+import { cleanUpTestDatabase, setupTestDatabase, createTestResource } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
 
@@ -176,6 +176,66 @@ describe('LibraryService', () => {
           expect(response.body.issue[0].details.text).toEqual(
             'Version can only appear in combination with a url search'
           );
+        });
+    });
+  });
+
+  describe('create', () => {
+    it('returns 201 status with populated location when provided correct headers and a FHIR Library', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library')
+        .send({ resourceType: 'Library', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+  });
+
+  describe('update', () => {
+    beforeAll(() => {
+      return createTestResource(
+        { resourceType: 'Library', type: { coding: [{ code: 'logic-library' }] }, id: 'exampleId', status: 'draft' },
+        'Library'
+      );
+    });
+
+    it('returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/exampleId')
+        .send({ resourceType: 'Library', id: 'exampleId', status: 'active' })
+        .set('content-type', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('returns 201 when provided correct headers and a FHIR Library whose id is not in the database', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/newId')
+        .send({ resourceType: 'Library', id: 'newId', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('returns 400 when the argument id does not match the id in the body', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/invalidId')
+        .send({
+          resourceType: 'Library',
+          id: 'exampleId',
+          status: 'draft'
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
     });
   });
@@ -402,41 +462,6 @@ describe('LibraryService', () => {
     });
   });
 
-  describe('$submit', () => {
-    it('returns 201 status with populated location when provided correct headers and FHIR Library', async () => {
-      await supertest(server.app)
-        .post('/4_0_1/Library/$submit')
-        .send({ resourceType: 'Library', status: 'draft' })
-        .set('content-type', 'application/json+fhir')
-        .expect(201)
-        .then(response => {
-          expect(response.headers.location).toBeDefined();
-        });
-    });
-
-    it('returns 201 status with populated location when id is represent in the path', async () => {
-      await supertest(server.app)
-        .post(`/4_0_1/Library/test-id/$submit`)
-        .send({ resourceType: 'Library', status: 'draft' })
-        .set('content-type', 'application/json+fhir')
-        .expect(201)
-        .then(response => {
-          expect(response.headers.location).toBeDefined();
-        });
-    });
-
-    it('throws a 400 error when the library is not in "draft" status', async () => {
-      await supertest(server.app)
-        .post(`/4_0_1/Library/$submit`)
-        .send({ resourceType: 'Library', status: 'active' })
-        .set('content-type', 'application/json+fhir')
-        .expect(400)
-        .then(response => {
-          expect(response.body.issue[0].code).toEqual('invalid');
-          expect(response.body.issue[0].details.text).toEqual(`The artifact must be in 'draft' status.`);
-        });
-    });
-  });
   describe('$data-requirements', () => {
     // spy on calculation function
     const calc = jest.spyOn(Calculator, 'calculateLibraryDataRequirements').mockResolvedValue({

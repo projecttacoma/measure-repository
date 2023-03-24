@@ -1,7 +1,7 @@
 import { FhirResourceType } from '@projecttacoma/node-fhir-server-core';
 import { Connection } from '../src/db/Connection';
 
-async function createTestResource(data: fhir4.FhirResource, resourceType: FhirResourceType) {
+export async function createTestResource(data: fhir4.FhirResource, resourceType: FhirResourceType) {
   const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
   await collection.insertOne({ ...data });
 }

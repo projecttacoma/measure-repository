@@ -1,6 +1,6 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../../src/config/serverConfig';
-import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
+import { cleanUpTestDatabase, createTestResource, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
 
@@ -168,6 +168,63 @@ describe('MeasureService', () => {
           expect(response.body.issue[0].details.text).toEqual(
             'Version can only appear in combination with a url search'
           );
+        });
+    });
+  });
+
+  describe('create', () => {
+    it('returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send({ resourceType: 'Measure', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+  });
+
+  describe('update', () => {
+    beforeAll(() => {
+      return createTestResource({ resourceType: 'Measure', id: 'exampleId', status: 'draft' }, 'Measure');
+    });
+
+    it('returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/exampleId')
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active' })
+        .set('content-type', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('returns 201 when provided correct headers and a FHIR Measure whose id is not in the database', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/newId')
+        .send({ resourceType: 'Measure', id: 'newId', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('returns 400 when the argument id does not match the id in the body', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/invalidId')
+        .send({
+          resourceType: 'Measure',
+          id: 'exampleId',
+          status: 'draft'
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
     });
   });
@@ -513,42 +570,6 @@ describe('MeasureService', () => {
           expect(response.body.issue[0].details.text).toEqual(
             'Id argument may not be sourced from both a path parameter and a query or FHIR parameter.'
           );
-        });
-    });
-  });
-
-  describe('$submit', () => {
-    it('returns 201 status with populated location when provided correct headers and FHIR Measure', async () => {
-      await supertest(server.app)
-        .post('/4_0_1/Measure/$submit')
-        .send({ resourceType: 'Measure', status: 'draft' })
-        .set('content-type', 'application/json+fhir')
-        .expect(201)
-        .then(response => {
-          expect(response.headers.location).toBeDefined();
-        });
-    });
-
-    it('returns 201 status with populated location when id is represent in the path', async () => {
-      await supertest(server.app)
-        .post(`/4_0_1/Measure/test-id/$submit`)
-        .send({ resourceType: 'Measure', status: 'draft' })
-        .set('content-type', 'application/json+fhir')
-        .expect(201)
-        .then(response => {
-          expect(response.headers.location).toBeDefined();
-        });
-    });
-
-    it('throws a 400 error when the measure is not in "draft" status', async () => {
-      await supertest(server.app)
-        .post(`/4_0_1/Measure/$submit`)
-        .send({ resourceType: 'Measure', status: 'active' })
-        .set('content-type', 'application/json+fhir')
-        .expect(400)
-        .then(response => {
-          expect(response.body.issue[0].code).toEqual('invalid');
-          expect(response.body.issue[0].details.text).toEqual(`The artifact must be in 'draft' status.`);
         });
     });
   });

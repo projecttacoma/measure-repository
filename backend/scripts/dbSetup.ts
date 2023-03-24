@@ -2,8 +2,6 @@ import { Connection } from '../src/db/Connection';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
-import { createResource } from '../src/db/dbOperations';
-
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -56,7 +54,9 @@ async function loadBundle(filePath: string) {
           (res?.resource?.resourceType === 'Library' || res?.resource?.resourceType === 'Measure')
         ) {
           try {
-            await createResource(res.resource, res.resource.resourceType);
+            const collection = Connection.db.collection<fhir4.FhirResource>(res.resource.resourceType);
+            console.log(`Inserting ${res?.resource?.resourceType}/${res.resource.id} into database`);
+            await collection.insertOne(res.resource);
             resourcesUploaded += 1;
           } catch (e) {
             // ignore duplicate key errors for Libraries, Note: if ValueSets added, also ignore for those
@@ -92,7 +92,9 @@ async function insertFHIRModelInfoLibrary() {
   const fhirModelInfo = fs.readFileSync('scripts/fixtures/Library-FHIR-ModelInfo.json', 'utf8');
   const fhirModelInfoLibrary: fhir4.Library = JSON.parse(fhirModelInfo);
 
-  await createResource(fhirModelInfoLibrary, 'Library');
+  const collection = Connection.db.collection<fhir4.FhirResource>('Library');
+  console.log(`Inserting Library/${fhirModelInfoLibrary.id} into database`);
+  await collection.insertOne(fhirModelInfoLibrary);
 }
 
 if (process.argv[2] === 'delete') {

@@ -1,5 +1,5 @@
-import { loggers, RequestArgs, RequestCtx, constants } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
+import { findResourceById, findResourcesWithQuery, updateResource } from '../db/dbOperations';
 import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
@@ -50,6 +50,38 @@ export class LibraryService implements Service<fhir4.Library> {
   }
 
   /**
+   * result of sending a POST request to {BASE_URL}/4_0_1/Library
+   * creates a new Library resource, generates an id for it, and adds it to the database
+   */
+  async create(_: RequestArgs, { req }: RequestCtx) {
+    logger.info(`POST /Library`);
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Library');
+    resource['id'] = uuidv4();
+    return createResource(resource, 'Library');
+  }
+
+  /**
+   * result of sending a PUT request to {BASE_URL}/4_0_1/Library/{id}
+   * updates the library with the passed in id using the passed in data
+   * or creates a library with passed in id if it does not exist in the database
+   */
+  async update(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`PUT /Library/${args.id}`);
+    const contentType: string | undefined = req.headers['content-type'];
+    checkContentTypeHeader(contentType);
+    const resource = req.body;
+    checkExpectedResourceType(resource.resourceType, 'Library');
+    // Throw error if the id arg in the url does not match the id in the request body
+    if (resource.id !== args.id) {
+      throw new BadRequestError('Argument id must match request body id for PUT request');
+    }
+    return updateResource(args.id, resource, 'Library');
+  }
+
+  /**
    * result of sending a POST or GET request to:
    * {BASE_URL}/4_0_1/Library/$package or {BASE_URL}/4_0_1/Library/:id/$package
    * creates a bundle of the library (specified by parameters) and all dependent libraries
@@ -73,35 +105,6 @@ export class LibraryService implements Service<fhir4.Library> {
     const { libraryBundle } = await createLibraryPackageBundle(query, parsedParams);
 
     return libraryBundle;
-  }
-
-  /**
-   * result of sending a POST request to:
-   * {BASE_URL}/4_0_1/Library/$submit or {BASE_URL}/4_0_1/Library/:id/$submit
-   * POSTs a new artifact in "draft" status. The operation results in an error if the artifact
-   * does not have status set to "draft."
-   */
-  async submit(args: RequestArgs, { req }: RequestCtx) {
-    logger.info(`${req.method} ${req.path}`);
-
-    const contentType: string | undefined = req.headers['content-type'];
-    checkContentTypeHeader(contentType);
-
-    const resource = req.body;
-    checkExpectedResourceType(resource.resourceType, 'Library');
-
-    // check for "draft" status on the resource
-    if (resource.status !== 'draft') {
-      throw new BadRequestError(`The artifact must be in 'draft' status.`);
-    }
-
-    const res = req.res;
-    // create new resource with server-defined id
-    resource['id'] = uuidv4();
-    await createResource(resource, 'Library');
-    res.status(201);
-    const location = `${constants.VERSIONS['4_0_1']}/Library/${resource.id}`;
-    res.set('Location', location);
   }
 
   /**
