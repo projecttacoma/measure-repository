@@ -31,6 +31,26 @@
           ],
           "code": "search-type",
           "documentation": "Search allows clients to search for repository libraries"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "create",
+          "documentation": "Create allows authoring workflows to post new libraries in _draft_ (**submit**) or _active_ (**publish**) status."
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "update",
+          "documentation": "Update allows authoring workflows to update existing libraries in _draft_ (**revise**) status, add comments to existing libraries (**review** and **approve**), and **release** or **retire** a library."
         }
       ],
       "searchParam": [
@@ -167,6 +187,26 @@
           ],
           "code": "search-type",
           "documentation": "Search allows clients to search for repository measures"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "create",
+          "documentation": "Create allows authoring workflows to post new measures in _draft_ (**submit**) or _active_ (**publish**) status."
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "update",
+          "documentation": "Update allows authoring workflows to update existing measures in _draft_ (**revise**) status, add comments to existing measures (**review** and **approve**), and **release** or **retire** a measure."
         }
       ],
       "searchParam": [

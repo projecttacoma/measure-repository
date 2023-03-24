@@ -59,7 +59,6 @@ export class LibraryService implements Service<fhir4.Library> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Library');
-    // create new id
     resource['id'] = uuidv4();
     return createResource(resource, 'Library');
   }

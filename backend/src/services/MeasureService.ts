@@ -60,7 +60,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Measure');
-    // create new id
     resource['id'] = uuidv4();
     return createResource(resource, 'Measure');
   }
