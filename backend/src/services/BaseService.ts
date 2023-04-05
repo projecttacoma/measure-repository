@@ -80,7 +80,11 @@ async function insertBundleResources(entry: DetailedEntry, method: string) {
       );
     }
   } else {
-    throw new BadRequestError('Resource in the entry must be of type Measure or Library.');
+    throw new BadRequestError(
+      entry.resource
+        ? `All resource entries must be of either resourceType 'Measure' or 'Library'. Received resourceType ${entry.resource?.resourceType}.`
+        : `All entries must contain resources of resourceType 'Measure' or 'Library'.`
+    );
   }
   return entry;
 }
