@@ -170,7 +170,9 @@ describe('BaseService', () => {
         .set('content-type', 'application/json+fhir')
         .expect(400)
         .then(response => {
-          expect(response.body.issue[0].details.text).toEqual(`Expected 'type: transaction. Received type: invalid'.`);
+          expect(response.body.issue[0].details.text).toEqual(
+            `Expected 'type: transaction'. Received 'type: invalid'.`
+          );
         });
     });
 

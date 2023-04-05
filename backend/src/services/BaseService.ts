@@ -13,7 +13,6 @@ const logger = loggers.get('default');
  */
 export async function uploadTransactionBundle(req: any, res: any) {
   logger.info('POST /');
-  logger.info(`Base >>> transaction`);
   const contentType: string | undefined = req.headers['content-type'];
   checkContentTypeHeader(contentType);
 
@@ -25,7 +24,7 @@ export async function uploadTransactionBundle(req: any, res: any) {
   }
 
   if (req.body.type.toLowerCase() != 'transaction') {
-    throw new BadRequestError(`Expected 'type: transaction. Received type: ${req.body.type}'.`);
+    throw new BadRequestError(`Expected 'type: transaction'. Received 'type: ${req.body.type}'.`);
   }
 
   const requestResults = await uploadResourcesFromBundle(entries);
@@ -39,7 +38,7 @@ export async function uploadTransactionBundle(req: any, res: any) {
  * Uploads Library and Measure resources from a transaction bundle to the server.
  */
 async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
-  logger.info(`Inserting Measure and Library resources from transaction bundle`);
+  logger.info('Inserting Measure and Library resources from transaction bundle');
   const scrubbedEntries = replaceReferences(entries);
 
   const requestsArray = scrubbedEntries.map(async entry => {
@@ -73,7 +72,7 @@ async function insertBundleResources(entry: DetailedEntry, method: string) {
           entry.statusText = 'OK';
         }
       } else {
-        throw new BadRequestError(`Requests of type PUT must have an id associated with the resource.`);
+        throw new BadRequestError('Requests of type PUT must have an id associated with the resource.');
       }
     } else {
       throw new BadRequestError(
@@ -94,7 +93,7 @@ function makeTransactionResponseBundle(
   res: any,
   baseVersion: keyof typeof constants.VERSIONS
 ) {
-  logger.info('Compiling transaction response bundle');
+  logger.info('Compiling transaction-response bundle');
   const Bundle = resolveSchema(baseVersion, 'bundle');
   const bundle = new Bundle({ type: 'transaction-response', id: uuidv4() });
   bundle.link = {
@@ -112,6 +111,6 @@ function makeTransactionResponseBundle(
   });
 
   bundle.entry = entries;
-  logger.info(`Completed transaction response`);
+  logger.info('Completed transaction response');
   return bundle;
 }

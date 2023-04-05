@@ -5,11 +5,11 @@ const logger = loggers.get('default');
 
 export type DetailedEntry = fhir4.BundleEntry & {
   isPost: boolean;
-  oldId: string | undefined;
+  oldId?: string;
   newId: string;
-  status: number | undefined;
-  statusText: string | undefined;
-  data: string | undefined;
+  status?: number;
+  statusText?: string;
+  data?: string;
 };
 
 /**
