@@ -49,7 +49,7 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
           `Expected requests of type PUT or POST, received ${method} for ${entry.resource?.resourceType}/${entry.resource?.id}`
         );
       } else {
-        return insertBundleResources(entry, method);
+        return insertBundleResources(entry);
       }
     } else {
       throw new BadRequestError('Each entry must contain request details that provide the HTTP details of the action.');
@@ -61,17 +61,16 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
 /**
  * Inserts Library or Measure resources from Bundle into the database through create or update.
  */
-async function insertBundleResources(entry: DetailedEntry, method: string) {
+async function insertBundleResources(entry: DetailedEntry) {
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
-    if (method === 'POST') {
+    if (entry.isPost) {
       entry.resource.id = uuidv4();
       const { id } = await createResource(entry.resource, entry.resource.resourceType);
       if (id != null) {
         entry.status = 201;
         entry.statusText = 'Created';
       }
-    }
-    if (method === 'PUT') {
+    } else {
       if (entry.resource.id) {
         const { id, created } = await updateResource(entry.resource.id, entry.resource, entry.resource.resourceType);
         if (created === true) {
