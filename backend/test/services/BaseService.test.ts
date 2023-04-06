@@ -75,6 +75,19 @@ const INVALID_ENTRY_REQ = {
   ]
 };
 
+const INVALID_REQ = {
+  resourceType: 'Bundle',
+  type: 'transaction',
+  entry: [
+    {
+      invalid: {
+        resourceType: 'Invalid',
+        id: 'test-library'
+      }
+    }
+  ]
+};
+
 const VALID_PUT_REQ = {
   resourceType: 'Bundle',
   type: 'transaction',
@@ -167,6 +180,19 @@ describe('BaseService', () => {
         .then(response => {
           expect(response.body.issue[0].details.text).toEqual(
             `All entries must contain resources of resourceType 'Measure' or 'Library'.`
+          );
+        });
+    });
+
+    it('returns 400 when the transaction bundle contains an entry where entry.request is undefined', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/')
+        .send(INVALID_REQ)
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].details.text).toEqual(
+            'Each entry must contain request details that provide the HTTP details of the action.'
           );
         });
     });

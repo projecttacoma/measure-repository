@@ -42,8 +42,18 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
   const scrubbedEntries = replaceReferences(entries);
 
   const requestsArray = scrubbedEntries.map(async entry => {
-    const { method } = entry.request as fhir4.BundleEntryRequest;
-    return insertBundleResources(entry, method);
+    if (entry.request) {
+      const { method } = entry.request;
+      if (method !== 'PUT' && method !== 'POST') {
+        throw new BadRequestError(
+          `Expected requests of type PUT or POST, received ${method} for ${entry.resource?.resourceType}/${entry.resource?.id}`
+        );
+      } else {
+        return insertBundleResources(entry, method);
+      }
+    } else {
+      throw new BadRequestError('Each entry must contain request details that provide the HTTP details of the action.');
+    }
   });
   return Promise.all(requestsArray);
 }
@@ -74,10 +84,6 @@ async function insertBundleResources(entry: DetailedEntry, method: string) {
       } else {
         throw new BadRequestError('Requests of type PUT must have an id associated with the resource.');
       }
-    } else {
-      throw new BadRequestError(
-        `Expected requests of type PUT or POST, received ${method} for ${entry.resource?.resourceType}/${entry.resource?.id}`
-      );
     }
   } else {
     throw new BadRequestError(
