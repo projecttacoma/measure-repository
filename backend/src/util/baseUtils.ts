@@ -16,7 +16,7 @@ export type DetailedEntry = fhir4.BundleEntry & {
  * For entries in a transaction bundle whose IDs will be auto-generated, replace all instances of an existing reference
  * to the old id with a reference to the newly generated one.
  *
- * Modify the request type to PUT after forcing the IDs. This will not affect returns results, just internal representation
+ * Modify the request type to PUT after forcing the IDs. This will not affect return results, just internal representation
  */
 export function replaceReferences(entries: DetailedEntry[]) {
   entries.forEach(e => {
@@ -31,7 +31,7 @@ export function replaceReferences(entries: DetailedEntry[]) {
   let entriesStr = JSON.stringify(entries);
   const postEntries = entries.filter(e => e.isPost);
 
-  // For each POST entry, replace existing reference across all entries
+  // For each POST entry, replace existing references across all entries
   postEntries.forEach(e => {
     logger.debug(`Replacing referenceIds for entry: ${JSON.stringify(e)}`);
     // Checking full Url and id in separate replace loops will prevent invalid ResourceType/ResourceId -> urn:uuid references

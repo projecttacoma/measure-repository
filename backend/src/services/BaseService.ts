@@ -23,7 +23,7 @@ export async function uploadTransactionBundle(req: any, res: any) {
     throw new BadRequestError(`Expected 'resourceType: Bundle'. Received 'resourceType: ${req.body.resourceType}'.`);
   }
 
-  if (req.body.type.toLowerCase() != 'transaction') {
+  if (req.body.type.toLowerCase() !== 'transaction') {
     throw new BadRequestError(`Expected 'type: transaction'. Received 'type: ${req.body.type}'.`);
   }
 
@@ -59,14 +59,14 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
 }
 
 /**
- * Inserts bundle Library or Measure resources into the database through create or update.
+ * Inserts Library or Measure resources from Bundle into the database through create or update.
  */
 async function insertBundleResources(entry: DetailedEntry, method: string) {
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
     if (method === 'POST') {
       entry.resource.id = uuidv4();
       const { id } = await createResource(entry.resource, entry.resource.resourceType);
-      if (id !== null) {
+      if (id != null) {
         entry.status = 201;
         entry.statusText = 'Created';
       }
@@ -105,8 +105,8 @@ function makeTransactionResponseBundle(
 ) {
   logger.info('Compiling transaction-response bundle');
   const Bundle = resolveSchema(baseVersion, 'bundle');
-  const bundle = new Bundle({ type: 'transaction-response', id: uuidv4() });
-  bundle.link = {
+  const responseBundle = new Bundle({ type: 'transaction-response', id: uuidv4() });
+  responseBundle.link = {
     url: `${res.req.protocol}://${path.join(res.req.get('host'), res.req.baseUrl)}`,
     relation: 'self'
   };
@@ -120,7 +120,7 @@ function makeTransactionResponseBundle(
     entries.push(entry);
   });
 
-  bundle.entry = entries;
+  responseBundle.entry = entries;
   logger.info('Completed transaction response');
-  return bundle;
+  return responseBundle;
 }
