@@ -1,19 +1,70 @@
-import { Center } from '@mantine/core';
 import { GetServerSideProps } from 'next';
+import { Button, Grid, Divider } from '@mantine/core';
+import Link from 'next/link';
 
 export default function ResourceList({ ids, resourceType }: { ids: Array<string>; resourceType: string }) {
   console.log('ids', ids);
   console.log('resourceType', resourceType);
-  const idItems = ids.map(id => <li key={id}>{id}</li>);
-  return (
-    <>
-      <Center style={{ alignItems: 'center', paddingTop: '80px' }}>
+  const idItems = ids.map(id => {
+    return (
+      <Link href={`/${resourceType}/${id}`} key={id}>
         <div>
-          <h2>{`${resourceType} IDs`}</h2>
+          <Button
+            color="cyan"
+            radius="md"
+            size="md"
+            variant="subtle"
+            style={{
+              padding: '2px'
+            }}
+          >
+            <div>
+              {resourceType}/{id}
+            </div>
+          </Button>
+        </div>
+      </Link>
+    );
+  });
+  return (
+    <div
+      style={{
+        width: '78vw'
+      }}
+    >
+      <Grid columns={7}>
+        <Grid.Col offset={3} span={2} style={{ paddingTop: '5px' }}>
+          <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}>{`${resourceType} IDs`}</h2>
+        </Grid.Col>
+        <Grid.Col
+          span={2}
+          style={{
+            paddingTop: '5px'
+          }}
+        ></Grid.Col>
+      </Grid>
+      <Divider my="md" style={{ marginTop: '14px' }} />
+      <div>
+        <div
+          style={{
+            textAlign: 'left',
+            overflowWrap: 'break-word',
+            height: '500px',
+            padding: '10px',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid',
+            borderColor: '#DEE2E6',
+            borderRadius: '20px',
+            marginTop: '10px',
+            marginBottom: '20px',
+            marginLeft: '150px',
+            marginRight: '150px'
+          }}
+        >
           <ul>{idItems}</ul>
         </div>
-      </Center>
-    </>
+      </div>
+    </div>
   );
 }
 
