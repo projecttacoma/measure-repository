@@ -1,8 +1,7 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
-import express from 'express';
 import supertest from 'supertest';
+import { app } from '../../src/app';
 import { serverConfig } from '../../src/config/serverConfig';
-import { uploadTransactionBundle } from '../../src/services/BaseService';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 
 let server: Server;
@@ -113,14 +112,6 @@ const VALID_POST_REQ = {
 
 describe('BaseService', () => {
   beforeAll(async () => {
-    const app = express();
-    app.use(express.json({ limit: '50mb', type: 'application/json+fhir' }));
-    app.use(express.json({ limit: '50mb', type: 'application/fhir+json' }));
-    app.post('/:base_version/', (req, res, next) => {
-      return uploadTransactionBundle(req, res)
-        .then(result => res.status(200).json(result))
-        .catch(err => next(err));
-    });
     server = initialize(serverConfig, app);
     return setupTestDatabase([]);
   });
