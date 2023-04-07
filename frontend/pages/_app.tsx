@@ -21,6 +21,7 @@ export default function App({ Component, pageProps }: AppProps) {
       >
         <AppShell
           padding="md"
+          /** Consistent navbar shows available resources as regular content page changes to drill into details */
           navbar={
             <Navbar width={{ base: '18vw' }} height="90vh" p="xs">
               <Navbar.Section>

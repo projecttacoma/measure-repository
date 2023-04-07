@@ -2,9 +2,11 @@ import { GetServerSideProps } from 'next';
 import { Button, Grid, Divider } from '@mantine/core';
 import Link from 'next/link';
 
+/**
+ * Component which displays list of all resources of some type as passed in by (serverside) props
+ * @returns component with list of resource (by id) buttons that are links to that resource's details
+ */
 export default function ResourceList({ ids, resourceType }: { ids: Array<string>; resourceType: string }) {
-  console.log('ids', ids);
-  console.log('resourceType', resourceType);
   const idItems = ids.map(id => {
     return (
       <Link href={`/${resourceType}/${id}`} key={id}>
@@ -68,13 +70,17 @@ export default function ResourceList({ ids, resourceType }: { ids: Array<string>
   );
 }
 
+/**
+ * Serverside props pulls id data of a certain resourceType to pass to the page before it's sent to browser
+ * @returns props for the [resourceType] page that pass resourceType and ids of resources of that type
+ */
 export const getServerSideProps: GetServerSideProps = async context => {
   const { resourceType } = context.query;
-  // Fetch data from external API
+  // Fetch resource data
   const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}`);
   const bundle = (await res.json()) as fhir4.Bundle;
   const ids = bundle.entry?.map(entry => entry.resource?.id);
 
-  // Pass data to the page via props
+  // Pass ids and type to the page via props
   return { props: { ids: ids, resourceType: resourceType } };
 };

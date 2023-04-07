@@ -3,8 +3,7 @@ import { Badge, Button, Stack } from '@mantine/core';
 import Link from 'next/link';
 
 /**
- * Component which retrieves all resources and their counts, calls on helper functions to sort them by count, then
- * translates them into buttons
+ * Component which retrieves all resources and their counts and translates them into buttons
  * @returns array of JSX Buttons
  */
 const ResourceCounts = () => {
@@ -14,7 +13,7 @@ const ResourceCounts = () => {
     Library: 0
   });
   useEffect(() => {
-    // Note: count may not update without refresh if there ends up being a way to change it on the server
+    // Note: count may not update without refresh if there ends up being a way to change it on the server through the app
     Promise.all([
       fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Measure`),
       fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Library`)
@@ -30,7 +29,7 @@ const ResourceCounts = () => {
 
   /**
    * Returns the resource counts key:value pairs object as an array of buttons
-   * @returns array of JSX Buttons that are the sorted resources and their counts
+   * @returns array of JSX Buttons that are resources and their counts
    */
   const ResourceButtonsGroup = () => {
     const buttonArray = Object.keys(resources).map(resourceType => (
