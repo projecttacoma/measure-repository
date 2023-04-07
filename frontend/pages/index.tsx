@@ -1,11 +1,6 @@
-import { Center } from '@mantine/core';
+import React from 'react';
+import Homepage from './Homepage';
 
 export default function Home() {
-  return (
-    <>
-      <Center style={{ alignItems: 'center', paddingTop: '80px' }}>
-        <div>Coming soon!</div>
-      </Center>
-    </>
-  );
+  return <Homepage />;
 }
