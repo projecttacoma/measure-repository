@@ -24,8 +24,8 @@ export default function Homepage() {
       </Title>
       <Text>
         The backend Measure Repository Service server must be running on port 3000 in order for this application to pull
-        data from the server. To start the backend Measure Repository Service server on port 3000, run "npm run
-        start:all" or "npm run start:backend" from the root of the repository.
+        data from the server. To start the backend Measure Repository Service server on port 3000, run &quot;npm run
+        start:all&quot; or &quot;npm run start:backend&quot; from the root of the repository.
       </Text>
       <Text>More functionality coming soon!</Text>
       <Divider my="sm" variant="dotted" />
