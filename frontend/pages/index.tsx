@@ -29,11 +29,27 @@ export default function Home() {
       </Text>
       <Text>More functionality coming soon!</Text>
       <Divider my="sm" variant="dotted" />
-      <Title order={2} underline>
+      <Title order={2} underline style={{ marginBottom: '8px' }}>
+        Capabilities
+      </Title>
+      <Title order={3} underline>
+        Resource Read and Search
+      </Title>
+      <Text style={{ marginBottom: '8px' }}>
+        This application provides and interface for Measure Repository Service read and search operations. Users can
+        view the JSON content of resources on the server by clicking the desired resource resource type in the
+        navigation bar, then selecting the resource from the displayed list. Resources can also be searched for by any
+        of their{' '}
+        <Anchor href="https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#search">
+          core search
+        </Anchor>{' '}
+        parameters on the search page.
+      </Text>
+      <Title order={3} underline>
         Authoring Functionality:
       </Title>
       <Text>
-        This application will provide a FHIR Measure authoring environment as outlined in the{' '}
+        This application will provide a FHIR Measure and Library authoring environment as outlined in the{' '}
         <Anchor href="https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository">
           Authoring Measure Repository spec
         </Anchor>
