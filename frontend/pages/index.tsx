@@ -36,8 +36,8 @@ export default function Home() {
         Resource Read and Search
       </Title>
       <Text style={{ marginBottom: '8px' }}>
-        This application provides and interface for Measure Repository Service read and search operations. Users can
-        view the JSON content of resources on the server by clicking the desired resource resource type in the
+        This application provides an interface for Measure Repository Service read and search operations. Users can
+        view the JSON content of resources on the server by clicking the desired resource type in the
         navigation bar, then selecting the resource from the displayed list. Resources can also be searched for by any
         of their{' '}
         <Anchor href="https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#search">
