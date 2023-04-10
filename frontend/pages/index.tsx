@@ -63,12 +63,12 @@ export default function Home() {
         </List.Item>
         <List.Item>
           <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/frontend/README.md">
-            ProjectTacoma Measure Repository frontend README
+            ProjectTacoma Measure Repository Frontend README
           </Anchor>
         </List.Item>
         <List.Item>
           <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/backend/README.md">
-            ProjectTacoma Measure Repository backend README
+            ProjectTacoma Measure Repository Backend README
           </Anchor>
         </List.Item>
       </List>
