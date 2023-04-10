@@ -50,7 +50,7 @@ npm run db:reset
 
 Once MongoDB is running on your machine, run the `npm start` command in this directory to start up the Measure Repository Service server at `localhost:3000`.
 
-You can also start the Measure Repository Server server in the root directory by running the `npm run start:backend` command.
+You can also start the Measure Repository Service server in the root directory by running the `npm run start:backend` command.
 
 You can also run `npm run start:clean`, which will reset the database before starting up the Measure Repository Service server.
 

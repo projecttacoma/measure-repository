@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Measure Repository Service Frontend</title>
+        <title>Measure Repository</title>
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
       </Head>
       <MantineProvider
@@ -23,7 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
           header={
             <Header height={80} style={{ backgroundColor: '#bdebf0', color: '#4a4f4f' }}>
               <Center>
-                <h1 style={{ marginTop: '12px', cursor: 'pointer' }}>Measure Repository Service Frontend</h1>
+                <h1 style={{ marginTop: '12px', cursor: 'pointer' }}>Measure Repository</h1>
               </Center>
             </Header>
           }
