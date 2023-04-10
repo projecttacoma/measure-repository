@@ -1,13 +1,8 @@
-import { Anchor, Center, Divider, List, Text, Title } from '@mantine/core';
+import { Anchor, Divider, List, Text, Title } from '@mantine/core';
 
 export default function Home() {
   return (
     <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', padding: '4px 20px' }}>
-      <Center style={{ flexDirection: 'column', width: '100%' }}>
-        <Title order={1} underline>
-          Measure Repository Service
-        </Title>
-      </Center>
       <Title order={2} underline>
         Summary:
       </Title>
