@@ -18,9 +18,12 @@
     "@mantine/core": "^6.0.2",
     "@mantine/hooks": "^6.0.2",
     "@mantine/next": "^6.0.2",
+    "@mantine/notifications": "^6.0.6",
+    "@mantine/prism": "^6.0.7",
     "next": "13.2.4",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "tabler-icons-react": "^1.56.0"
   },
   "devDependencies": {
     "@types/node": "18.15.3",
@@ -29,8 +32,8 @@
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "eslint": "^8.28.0",
-    "eslint-config-prettier": "^8.5.0",
     "eslint-config-next": "13.2.4",
+    "eslint-config-prettier": "^8.5.0",
     "prettier": "^2.8.5",
     "typescript": "5.0.2"
   }
