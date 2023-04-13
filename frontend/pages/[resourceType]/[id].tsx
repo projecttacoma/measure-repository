@@ -9,7 +9,7 @@ import BackButton from '../../components/BackButton';
  * Mantine tabs
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
-export default function ResourceIDPage({ jsonData }: { jsonData: string }) {
+export default function ResourceIDPage({ jsonData }: { jsonData: fhir4.Measure | fhir4.Library }) {
   const router = useRouter();
   const { resourceType, id } = router.query;
   return (
@@ -50,7 +50,7 @@ export default function ResourceIDPage({ jsonData }: { jsonData: string }) {
                 colorScheme="light"
                 style={{ maxWidth: '78vw', height: '80vh', backgroundColor: '#FFFFFF' }}
               >
-                {jsonData}
+                {JSON.stringify(jsonData, null, 2)}
               </Prism>
             </ScrollArea>
           </Tabs.Panel>
@@ -69,7 +69,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
   // Fetch resource data
   const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}/${id}`);
   const resourceJson = await res.json();
-  const jsonString = JSON.stringify(resourceJson, null, 2);
   // pass JSON data to the page via props
-  return { props: { jsonData: jsonString } };
+  return { props: { jsonData: resourceJson as fhir4.Measure | fhir4.Library } };
 };

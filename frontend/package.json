@@ -20,6 +20,7 @@
     "@mantine/next": "^6.0.2",
     "@mantine/notifications": "^6.0.6",
     "@mantine/prism": "^6.0.7",
+    "@types/fhir": "^0.0.36",
     "next": "13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
