@@ -9,17 +9,7 @@ import { ArrowNarrowLeft } from 'tabler-icons-react';
 const BackButton = () => {
   const router = useRouter();
   return (
-    <Button
-      data-testid="back-button"
-      onClick={() => router.back()}
-      color="cyan"
-      radius="md"
-      size="sm"
-      variant="filled"
-      style={{
-        float: 'left'
-      }}
-    >
+    <Button data-testid="back-button" onClick={() => router.back()} color="cyan" radius="md" size="sm" variant="filled">
       <ArrowNarrowLeft size="30" />
     </Button>
   );

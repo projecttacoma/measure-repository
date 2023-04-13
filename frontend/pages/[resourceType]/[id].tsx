@@ -1,7 +1,7 @@
 import { Prism } from '@mantine/prism';
-import { Divider, Group, ScrollArea, Stack, Tabs, Text } from '@mantine/core';
-import { GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
+import { Divider, Group, Stack, Tabs, Text } from '@mantine/core';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { FhirArtifact } from '@/util/types/fhir';
 import BackButton from '../../components/BackButton';
 
 /**
@@ -9,25 +9,19 @@ import BackButton from '../../components/BackButton';
  * Mantine tabs
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
-export default function ResourceIDPage({ jsonData }: { jsonData: fhir4.Measure | fhir4.Library }) {
-  const router = useRouter();
-  const { resourceType, id } = router.query;
+export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <div>
       <Stack spacing="xs">
-        <div
-          style={{
-            float: 'left'
-          }}
-        >
+        <div>
           <Group>
             <BackButton />
             <Text size="xl" weight={700} color="gray">
-              {resourceType}/{id}
+              {jsonData.resourceType}/{jsonData.id}
             </Text>
           </Group>
         </div>
-        <Divider my="sm" style={{ paddingBottom: '5px' }} />
+        <Divider my="sm" style={{ paddingBottom: '6px' }} />
         <Tabs variant="outline" defaultValue="json">
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>
@@ -43,16 +37,9 @@ export default function ResourceIDPage({ jsonData }: { jsonData: fhir4.Measure |
           </Tabs.List>
 
           <Tabs.Panel value="json" pt="xs">
-            <ScrollArea>
-              <Prism
-                language="json"
-                data-testid="prism-page-content"
-                colorScheme="light"
-                style={{ maxWidth: '78vw', height: '80vh', backgroundColor: '#FFFFFF' }}
-              >
-                {JSON.stringify(jsonData, null, 2)}
-              </Prism>
-            </ScrollArea>
+            <Prism language="json" colorScheme="light">
+              {JSON.stringify(jsonData, null, 2)}
+            </Prism>
           </Tabs.Panel>
         </Tabs>
       </Stack>
@@ -64,11 +51,11 @@ export default function ResourceIDPage({ jsonData }: { jsonData: fhir4.Measure |
  * Serverside props pulls JSON data of a specified resource to pass to the page before it's sent to browser
  * @returns props for the [resourceType]/[id] page that pass JSON data of a specified resource
  */
-export const getServerSideProps: GetServerSideProps = async context => {
+export const getServerSideProps: GetServerSideProps<{ jsonData: FhirArtifact }> = async context => {
   const { resourceType, id } = context.query;
   // Fetch resource data
   const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}/${id}`);
-  const resourceJson = await res.json();
+  const resource = (await res.json()) as FhirArtifact;
   // pass JSON data to the page via props
-  return { props: { jsonData: resourceJson as fhir4.Measure | fhir4.Library } };
+  return { props: { jsonData: resource } };
 };
