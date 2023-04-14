@@ -12,6 +12,7 @@ const ResourceCounts = () => {
     Measure: 0,
     Library: 0
   });
+  const [errorMessage, setErrorMessage] = useState<string>('');
   useEffect(() => {
     // Note: count may not update without refresh if there ends up being a way to change it on the server through the app
     Promise.all([
@@ -24,6 +25,7 @@ const ResourceCounts = () => {
       })
       .catch(error => {
         console.log(error.message, '...start the server');
+        setErrorMessage(error.message);
       });
   }, []);
 
@@ -32,6 +34,15 @@ const ResourceCounts = () => {
    * @returns array of JSX Buttons that are resources and their counts
    */
   const ResourceButtonsGroup = () => {
+    if (errorMessage) {
+      // Note: Can show error message here if it would be helpful to the user.
+      return (
+        <div style={{ padding: '15px' }}>
+          {' '}
+          Resources could not be displayed due to an error retrieving them from the server.{' '}
+        </div>
+      );
+    }
     const buttonArray = Object.keys(resources).map(resourceType => (
       <Link href={`/${resourceType}`} key={resourceType}>
         <Button
@@ -42,9 +53,12 @@ const ResourceCounts = () => {
           size="md"
           variant="subtle"
           styles={{
+            root: {
+              padding: '2px'
+            },
             inner: {
               paddingLeft: '15px',
-              justifyContent: 'flex-start'
+              justifyContent: 'left'
             }
           }}
           rightIcon={<Badge color="cyan">{resources[resourceType]}</Badge>}
@@ -58,7 +72,14 @@ const ResourceCounts = () => {
   };
 
   return (
-    <Stack align="flex-start" spacing="xs" style={{ marginBottom: 30 }}>
+    <Stack
+      align="left"
+      spacing="xs"
+      style={{
+        marginBottom: 30,
+        marginLeft: 15
+      }}
+    >
       <ResourceButtonsGroup />
     </Stack>
   );

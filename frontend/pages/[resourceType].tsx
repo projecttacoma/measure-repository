@@ -10,21 +10,25 @@ export default function ResourceList({ ids, resourceType }: { ids: Array<string>
   const idItems = ids.map(id => {
     return (
       <Link href={`/${resourceType}/${id}`} key={id}>
-        <div>
-          <Button
-            color="cyan"
-            radius="md"
-            size="md"
-            variant="subtle"
-            style={{
+        <Button
+          fullWidth
+          color="cyan"
+          radius="md"
+          size="md"
+          variant="subtle"
+          styles={() => ({
+            root: {
               padding: '2px'
-            }}
-          >
-            <div>
-              {resourceType}/{id}
-            </div>
-          </Button>
-        </div>
+            },
+            inner: {
+              justifyContent: 'left'
+            }
+          })}
+        >
+          <div>
+            {resourceType}/{id}
+          </div>
+        </Button>
       </Link>
     );
   });
@@ -51,7 +55,6 @@ export default function ResourceList({ ids, resourceType }: { ids: Array<string>
           style={{
             textAlign: 'left',
             overflowWrap: 'break-word',
-            height: '500px',
             padding: '10px',
             backgroundColor: '#FFFFFF',
             border: '1px solid',
@@ -63,7 +66,13 @@ export default function ResourceList({ ids, resourceType }: { ids: Array<string>
             marginRight: '150px'
           }}
         >
-          <ul>{idItems}</ul>
+          {idItems.length > 0 ? ( //if items exist
+            <ul>{idItems}</ul>
+          ) : (
+            <text>
+              No <i>{`${resourceType}`}</i> resources available
+            </text>
+          )}
         </div>
       </div>
     </div>
