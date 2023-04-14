@@ -1,3 +1,7 @@
 node_modules
 .DS_Store
 .vscode
+cache
+dist
+ecqm-content-r4-2021
+*.env
