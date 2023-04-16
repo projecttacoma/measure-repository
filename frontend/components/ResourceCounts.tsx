@@ -37,7 +37,17 @@ const ResourceCounts = () => {
     if (errorMessage) {
       // Note: Can show error message here if it would be helpful to the user.
       return (
-        <div style={{ padding: '15px' }}>
+        <div
+          style={{
+            padding: '15px',
+            color: '#E00000',
+            border: '1px solid',
+            borderColor: '#DEE2E6',
+            borderRadius: '20px',
+            marginLeft: '15px',
+            marginRight: '15px'
+          }}
+        >
           {' '}
           Resources could not be displayed due to an error retrieving them from the server.{' '}
         </div>
