@@ -2,6 +2,7 @@ import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Button, Grid, Divider } from '@mantine/core';
 import Link from 'next/link';
 import BackButton from '../components/BackButton';
+import { ArtifactResourceType } from '@/util/types/fhir';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -39,19 +40,15 @@ export default function ResourceList({ ids, resourceType }: InferGetServerSidePr
         width: '78vw'
       }}
     >
-      <div>
-        <BackButton />
-      </div>
       <Grid columns={7}>
-        <Grid.Col offset={3} span={2} style={{ paddingTop: '6px' }}>
+        <Grid.Col offset={0} span={1}>
+          <div>
+            <BackButton />
+          </div>
+        </Grid.Col>
+        <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
           <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}>{`${resourceType} IDs`}</h2>
         </Grid.Col>
-        <Grid.Col
-          span={2}
-          style={{
-            paddingTop: '6px'
-          }}
-        ></Grid.Col>
       </Grid>
       <Divider my="md" style={{ marginTop: '14px' }} />
       <div>
@@ -89,7 +86,7 @@ export default function ResourceList({ ids, resourceType }: InferGetServerSidePr
  */
 export const getServerSideProps: GetServerSideProps<{
   ids: (string | undefined)[];
-  resourceType: string;
+  resourceType: ArtifactResourceType;
 }> = async context => {
   const { resourceType } = context.query;
   if (typeof resourceType != 'string') {
@@ -97,8 +94,11 @@ export const getServerSideProps: GetServerSideProps<{
     throw new Error(`Requested listing of resources for a non-string resourceType: ${resourceType}`);
   }
 
+  // Cast to ArtifactResourceType since we know the server should only support resourceType that matches
+  const checkedResourceType = resourceType as ArtifactResourceType;
+
   // Fetch resource data
-  const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${checkedResourceType}`);
   const bundle = (await res.json()) as fhir4.Bundle;
   if (!bundle.entry) {
     // Measure Repository should not provide a bundle without an entry
@@ -107,5 +107,5 @@ export const getServerSideProps: GetServerSideProps<{
   const ids = bundle.entry.map(entry => entry.resource?.id);
 
   // Pass ids and type to the page via props
-  return { props: { ids: ids, resourceType: resourceType } };
+  return { props: { ids: ids, resourceType: checkedResourceType } };
 };
