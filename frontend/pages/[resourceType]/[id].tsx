@@ -3,6 +3,8 @@ import { Divider, Group, Stack, Tabs, Text } from '@mantine/core';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import BackButton from '../../components/BackButton';
+import { useEffect, useState } from 'react';
+import PrismRenderer from '../../prismLanguages/prismCQL';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -10,6 +12,18 @@ import BackButton from '../../components/BackButton';
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [decodedCql, setDecodedCql] = useState<string | null>(null);
+
+  // Overwrite Prism with our custom Prism that includes CQL as a language
+  useEffect(() => {
+    (window as any).Prism = PrismRenderer;
+  }, []);
+
+  useEffect(() => {
+    const encodedCql = (jsonData.content as fhir4.Attachment[]).find(e => e.contentType === 'text/cql')?.data;
+    setDecodedCql(encodedCql ? Buffer.from(encodedCql, 'base64').toString() : null);
+  }, [jsonData]);
+
   return (
     <div>
       <Stack spacing="xs">
@@ -28,18 +42,24 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Tabs.Tab value="elm" disabled>
               ELM
             </Tabs.Tab>
-            <Tabs.Tab value="cql" disabled>
+            <Tabs.Tab value="cql" disabled={decodedCql == null}>
               CQL
             </Tabs.Tab>
             <Tabs.Tab value="narrative" disabled>
               Narrative
             </Tabs.Tab>
           </Tabs.List>
-
           <Tabs.Panel value="json" pt="xs">
             <Prism language="json" colorScheme="light">
               {JSON.stringify(jsonData, null, 2)}
             </Prism>
+          </Tabs.Panel>
+          <Tabs.Panel value="cql" pt="xs">
+            {decodedCql != null && (
+              <Prism language={'cql' as any} colorScheme="light">
+                {decodedCql}
+              </Prism>
+            )}
           </Tabs.Panel>
         </Tabs>
       </Stack>
