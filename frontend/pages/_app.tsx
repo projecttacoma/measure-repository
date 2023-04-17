@@ -2,6 +2,7 @@ import '@/styles/globals.css';
 import { AppShell, Center, Header, MantineProvider, Navbar, Text, Divider, Box, ScrollArea } from '@mantine/core';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import Link from 'next/link';
 import { ResourceCounts } from '../components/ResourceCounts';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -40,7 +41,7 @@ export default function App({ Component, pageProps }: AppProps) {
                   </Text>
                 </Box>
               </Navbar.Section>
-              <Divider my="sm" style={{ paddingBottom: '15px' }} />
+              <Divider my="sm" style={{ paddingBottom: '16px' }} />
               <Navbar.Section grow component={ScrollArea} mt="-xs" mb="-xs" ml="-xl" mr="-xs">
                 <ResourceCounts />
               </Navbar.Section>
@@ -49,7 +50,9 @@ export default function App({ Component, pageProps }: AppProps) {
           header={
             <Header height={80} style={{ backgroundColor: '#bdebf0', color: '#4a4f4f' }}>
               <Center>
-                <h1 style={{ marginTop: '12px', cursor: 'pointer' }}>Measure Repository</h1>
+                <h1 style={{ marginTop: '12px', cursor: 'pointer' }}>
+                  <Link href={`/`}>Measure Repository</Link>
+                </h1>
               </Center>
             </Header>
           }

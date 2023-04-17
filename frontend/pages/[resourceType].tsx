@@ -1,6 +1,7 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Button, Grid, Divider } from '@mantine/core';
 import Link from 'next/link';
+import BackButton from '../components/BackButton';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -38,14 +39,17 @@ export default function ResourceList({ ids, resourceType }: InferGetServerSidePr
         width: '78vw'
       }}
     >
+      <div>
+        <BackButton />
+      </div>
       <Grid columns={7}>
-        <Grid.Col offset={3} span={2} style={{ paddingTop: '5px' }}>
+        <Grid.Col offset={3} span={2} style={{ paddingTop: '6px' }}>
           <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}>{`${resourceType} IDs`}</h2>
         </Grid.Col>
         <Grid.Col
           span={2}
           style={{
-            paddingTop: '5px'
+            paddingTop: '6px'
           }}
         ></Grid.Col>
       </Grid>

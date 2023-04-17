@@ -7,10 +7,10 @@ import Link from 'next/link';
  * @returns array of JSX Buttons
  */
 const ResourceCounts = () => {
-  // set initial state to no resources
+  // set initial state to non-valid (counts will not be shown)
   const [resources, setResources] = useState<Record<string, number>>({
-    Measure: 0,
-    Library: 0
+    Measure: -1,
+    Library: -1
   });
   const [errorMessage, setErrorMessage] = useState<string>('');
   useEffect(() => {
@@ -39,45 +39,48 @@ const ResourceCounts = () => {
       return (
         <div
           style={{
-            padding: '15px',
+            padding: '16px',
             color: '#E00000',
             border: '1px solid',
             borderColor: '#DEE2E6',
             borderRadius: '20px',
-            marginLeft: '15px',
-            marginRight: '15px'
+            marginLeft: '16px',
+            marginRight: '16px'
           }}
         >
-          {' '}
-          Resources could not be displayed due to an error retrieving them from the server.{' '}
+          Resources could not be displayed due to an error retrieving them from the server.
         </div>
       );
     }
-    const buttonArray = Object.keys(resources).map(resourceType => (
-      <Link href={`/${resourceType}`} key={resourceType}>
-        <Button
-          fullWidth
-          compact
-          color="cyan"
-          radius="md"
-          size="md"
-          variant="subtle"
-          styles={{
-            root: {
-              padding: '2px'
-            },
-            inner: {
-              paddingLeft: '15px',
-              justifyContent: 'left'
-            }
-          }}
-          rightIcon={<Badge color="cyan">{resources[resourceType]}</Badge>}
-          key={resourceType}
-        >
-          {resourceType}
-        </Button>
-      </Link>
-    ));
+    const buttonArray = Object.keys(resources).map(resourceType =>
+      resources[resourceType] != -1 ? (
+        <Link href={`/${resourceType}`} key={resourceType}>
+          <Button
+            fullWidth
+            compact
+            color="cyan"
+            radius="md"
+            size="md"
+            variant="subtle"
+            styles={{
+              root: {
+                padding: '2px'
+              },
+              inner: {
+                paddingLeft: '16px',
+                justifyContent: 'left'
+              }
+            }}
+            rightIcon={<Badge color="cyan">{resources[resourceType]}</Badge>}
+            key={resourceType}
+          >
+            {resourceType}
+          </Button>
+        </Link>
+      ) : (
+        <div key={resourceType}></div>
+      )
+    );
     return <div> {buttonArray} </div>;
   };
 
@@ -87,7 +90,7 @@ const ResourceCounts = () => {
       spacing="xs"
       style={{
         marginBottom: 30,
-        marginLeft: 15
+        marginLeft: 16
       }}
     >
       <ResourceButtonsGroup />
