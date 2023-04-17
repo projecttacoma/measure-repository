@@ -20,8 +20,12 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   }, []);
 
   useEffect(() => {
-    const encodedCql = (jsonData.content as fhir4.Attachment[]).find(e => e.contentType === 'text/cql')?.data;
-    setDecodedCql(encodedCql ? Buffer.from(encodedCql, 'base64').toString() : null);
+    if (jsonData.resourceType === 'Measure') {
+      setDecodedCql(null);
+    } else {
+      const encodedCql = (jsonData.content as fhir4.Attachment[])?.find(e => e.contentType === 'text/cql')?.data;
+      setDecodedCql(encodedCql ? Buffer.from(encodedCql, 'base64').toString() : null);
+    }
   }, [jsonData]);
 
   return (
