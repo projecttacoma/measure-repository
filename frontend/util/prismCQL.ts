@@ -1,6 +1,4 @@
-import { Prism } from 'prism-react-renderer';
-
-(Prism.languages as any).cql = {
+const CQLRegex = {
   comment: {
     pattern: /(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:\/\/|#).*)/,
     lookbehind: true
@@ -21,4 +19,4 @@ import { Prism } from 'prism-react-renderer';
   operator: /[-+*\/=%^~]|&&?|\|\|?|!=?|<(?:=>?|<|>)?|>[>=]?\b/i
 };
 
-export default Prism;
+export default CQLRegex;
