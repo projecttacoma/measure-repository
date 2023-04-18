@@ -3,6 +3,9 @@ import { Divider, Group, Stack, Tabs, Text } from '@mantine/core';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import BackButton from '../../components/BackButton';
+import { useEffect, useMemo } from 'react';
+import CQLRegex from '../../util/prismCQL';
+import { Prism as PrismRenderer } from 'prism-react-renderer';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -10,6 +13,20 @@ import BackButton from '../../components/BackButton';
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  // Overwrite Prism with our custom Prism that includes CQL as a language
+  useEffect(() => {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    (PrismRenderer.languages as any).cql = CQLRegex;
+    (window as any).Prism = PrismRenderer;
+    /* eslint-enable  @typescript-eslint/no-explicit-any */
+  }, []);
+
+  const decodedCql = useMemo(() => {
+    if (jsonData.resourceType === 'Measure') return null;
+    const encodedCql = (jsonData as fhir4.Library).content?.find(e => e.contentType === 'text/cql')?.data;
+    return encodedCql ? Buffer.from(encodedCql, 'base64').toString() : null;
+  }, [jsonData]);
+
   return (
     <div>
       <Stack spacing="xs">
@@ -28,19 +45,25 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Tabs.Tab value="elm" disabled>
               ELM
             </Tabs.Tab>
-            <Tabs.Tab value="cql" disabled>
-              CQL
-            </Tabs.Tab>
+            {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
             <Tabs.Tab value="narrative" disabled>
               Narrative
             </Tabs.Tab>
           </Tabs.List>
-
           <Tabs.Panel value="json" pt="xs">
             <Prism language="json" colorScheme="light">
               {JSON.stringify(jsonData, null, 2)}
             </Prism>
           </Tabs.Panel>
+          {decodedCql != null && (
+            <Tabs.Panel value="cql" pt="xs">
+              {/* eslint-disable  @typescript-eslint/no-explicit-any */}
+              <Prism language={'cql' as any} colorScheme="light">
+                {/* eslint-enable  @typescript-eslint/no-explicit-any */}
+                {decodedCql}
+              </Prism>
+            </Tabs.Panel>
+          )}
         </Tabs>
       </Stack>
     </div>
