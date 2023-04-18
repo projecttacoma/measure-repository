@@ -15,8 +15,10 @@ import { Prism as PrismRenderer } from 'prism-react-renderer';
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Overwrite Prism with our custom Prism that includes CQL as a language
   useEffect(() => {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     (PrismRenderer.languages as any).cql = CQLRegex;
     (window as any).Prism = PrismRenderer;
+    /* eslint-enable  @typescript-eslint/no-explicit-any */
   }, []);
 
   const decodedCql = useMemo(() => {
@@ -55,7 +57,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           </Tabs.Panel>
           {decodedCql != null && (
             <Tabs.Panel value="cql" pt="xs">
+              {/* eslint-disable  @typescript-eslint/no-explicit-any */}
               <Prism language={'cql' as any} colorScheme="light">
+                {/* eslint-enable  @typescript-eslint/no-explicit-any */}
                 {decodedCql}
               </Prism>
             </Tabs.Panel>
