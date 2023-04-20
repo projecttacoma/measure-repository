@@ -1,11 +1,12 @@
 import { Prism } from '@mantine/prism';
-import { Divider, Group, Stack, Tabs, Text } from '@mantine/core';
+import { Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import BackButton from '../../components/BackButton';
 import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
+import parse from 'html-react-parser';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -46,9 +47,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               ELM
             </Tabs.Tab>
             {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
-            <Tabs.Tab value="narrative" disabled>
-              Narrative
-            </Tabs.Tab>
+            {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
           </Tabs.List>
           <Tabs.Panel value="json" pt="xs">
             <Prism language="json" colorScheme="light">
@@ -62,6 +61,12 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 {/* eslint-enable  @typescript-eslint/no-explicit-any */}
                 {decodedCql}
               </Prism>
+            </Tabs.Panel>
+          )}
+          {jsonData.text && (
+            <Tabs.Panel value="narrative">
+              <Space h="sm" />
+              {parse(jsonData.text.div)}
             </Tabs.Panel>
           )}
         </Tabs>

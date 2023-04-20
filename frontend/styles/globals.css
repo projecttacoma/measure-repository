@@ -19,3 +19,7 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+th {
+  text-align: left;
+}
