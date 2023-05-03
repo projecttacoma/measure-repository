@@ -83,7 +83,7 @@ export default function ResourceList({
  * @returns props for the [resourceType] page that pass resourceType and ids of resources of that type
  */
 export const getServerSideProps: GetServerSideProps<{
-  resourceInfo: (ResourceInfo | undefined)[];
+  resourceInfo: ResourceInfo[];
   resourceType: ArtifactResourceType;
 }> = async context => {
   const { resourceType } = context.query;
@@ -120,6 +120,6 @@ export const getServerSideProps: GetServerSideProps<{
     return acc;
   }, []);
 
-  // Pass ids and type to the page via props
+  // Pass resource info and type to the page via props
   return { props: { resourceInfo: resourceInfoArray, resourceType: checkedResourceType } };
 };

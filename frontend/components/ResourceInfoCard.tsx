@@ -38,29 +38,15 @@ export default function PatientInfoCard({ resourceInfo, selected }: ResourceInfo
           </div>
           {selected && (
             <div>
-              <Text size="sm" color="dimmed">
-                {`Name: ${resourceInfo.name}`}
-              </Text>
-              {resourceInfo.identifier && (
-                <Text size="sm" color="dimmed">
-                  {`Identifier: ${resourceInfo.identifier}`}
-                </Text>
-              )}
-              {resourceInfo.url && (
-                <Text size="sm" color="dimmed">
-                  {`URL: ${resourceInfo.url}`}
-                </Text>
-              )}
-              {resourceInfo.version && (
-                <Text size="sm" color="dimmed">
-                  {`Version: ${resourceInfo.version}`}
-                </Text>
-              )}
-              {resourceInfo.status && (
-                <Text size="sm" color="dimmed">
-                  {`Status: ${resourceInfo.status}`}
-                </Text>
-              )}
+              {Object.entries(resourceInfo).map(([key, val]) => {
+                return (
+                  val && (
+                    <Text size="sm" color="dimmed">
+                      {`${key.charAt(0).toUpperCase() + key.slice(1)}: ${val}`}
+                    </Text>
+                  )
+                );
+              })}
             </div>
           )}
         </Grid.Col>
