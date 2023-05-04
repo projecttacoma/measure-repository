@@ -29,7 +29,7 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
         <Grid.Col span={10}>
           <div>
             <Text size="lg" fw={700}>
-              {resourceInfo.name ? resourceInfo.name : resourceInfo.id}
+              {resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`}
             </Text>
           </div>
           {resourceInfo.version ? (
@@ -41,7 +41,8 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
           )}
           {resourceInfo.url && (
             <Text size="sm">
-              {resourceInfo.url} {resourceInfo.version && `|${resourceInfo.version}`}
+              {resourceInfo.url}
+              {resourceInfo.version && `|${resourceInfo.version}`}
             </Text>
           )}
           {resourceInfo.identifier && <Text size="sm">{`Identifier: ${resourceInfo.identifier}`}</Text>}
