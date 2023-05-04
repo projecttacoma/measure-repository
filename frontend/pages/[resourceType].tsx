@@ -1,9 +1,8 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Grid, Divider, Stack } from '@mantine/core';
+import { Grid, Divider, Stack, ScrollArea, Text } from '@mantine/core';
 import BackButton from '../components/BackButton';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
 import ResourceInfoCard from '../components/ResourceInfoCard';
-import { useState } from 'react';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -13,7 +12,6 @@ export default function ResourceList({
   resourceInfo,
   resourceType
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const [selectedResource, setSelectedResource] = useState<string | null>(null);
   return (
     <div
       style={{
@@ -34,7 +32,8 @@ export default function ResourceList({
       </Grid>
       <Divider my="md" style={{ marginTop: '14px' }} />
       <div>
-        <div
+        <ScrollArea
+          type="scroll"
           style={{
             textAlign: 'left',
             overflowWrap: 'break-word',
@@ -46,33 +45,26 @@ export default function ResourceList({
             marginTop: '10px',
             marginBottom: '20px',
             marginLeft: '150px',
-            marginRight: '150px'
+            marginRight: '150px',
+            height: 1000
           }}
         >
           {resourceInfo.length > 0 ? ( // if items exist
-            <div>
-              <Stack style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '50px', marginRight: '50px' }}>
-                {resourceInfo.map(res => {
-                  return (
-                    res && (
-                      <div
-                        onClick={() => {
-                          setSelectedResource(res.id);
-                        }}
-                      >
-                        <ResourceInfoCard resourceInfo={res} selected={selectedResource === res.id} />
-                      </div>
-                    )
-                  );
-                })}
-              </Stack>
-            </div>
+            <Stack style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '50px', marginRight: '50px' }}>
+              {resourceInfo.map(res => {
+                return (
+                  <div key={res.id}>
+                    <ResourceInfoCard resourceInfo={res} />
+                  </div>
+                );
+              })}
+            </Stack>
           ) : (
-            <text>
+            <Text>
               No <i>{`${resourceType}`}</i> resources available
-            </text>
+            </Text>
           )}
-        </div>
+        </ScrollArea>
       </div>
     </div>
   );
@@ -87,7 +79,7 @@ export const getServerSideProps: GetServerSideProps<{
   resourceType: ArtifactResourceType;
 }> = async context => {
   const { resourceType } = context.query;
-  if (typeof resourceType != 'string') {
+  if (typeof resourceType !== 'string') {
     // Should not be called with a non-string value
     throw new Error(`Requested listing of resources for a non-string resourceType: ${resourceType}`);
   }
@@ -97,12 +89,12 @@ export const getServerSideProps: GetServerSideProps<{
 
   // Fetch resource data
   const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${checkedResourceType}`);
-  const bundle = (await res.json()) as fhir4.Bundle;
+  const bundle = (await res.json()) as fhir4.Bundle<FhirArtifact>;
   if (!bundle.entry) {
     // Measure Repository should not provide a bundle without an entry
     throw new Error('Measure Repository bundle has no entry.');
   }
-  const resources = bundle.entry as fhir4.BundleEntry<FhirArtifact>[];
+  const resources = bundle.entry;
   const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
     if (entry.resource && entry.resource.id) {
       const identifier = entry.resource.identifier?.[0];
@@ -110,10 +102,10 @@ export const getServerSideProps: GetServerSideProps<{
         resourceType: checkedResourceType,
         id: entry.resource.id,
         identifier: identifier?.system && identifier?.value ? `${identifier.system}|${identifier.value}` : null,
-        name: entry.resource.name,
-        url: entry.resource.url,
-        version: entry.resource.version,
-        status: entry.resource.status
+        name: entry.resource.name ?? null,
+        url: entry.resource.url ?? null,
+        version: entry.resource.version ?? null,
+        status: entry.resource.status ?? null
       };
       acc.push(resourceInfo);
     }

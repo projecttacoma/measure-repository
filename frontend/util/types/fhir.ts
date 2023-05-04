@@ -9,9 +9,9 @@ export type ArtifactResourceType = FhirArtifact['resourceType'];
 export interface ResourceInfo {
   resourceType: string;
   id: string;
-  identifier?: string | null;
-  name?: string;
-  url?: string;
-  version?: string;
-  status: string;
+  identifier: string | null;
+  name: string | null;
+  url: string | null;
+  version: string | null;
+  status: string | null;
 }
