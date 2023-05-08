@@ -117,6 +117,7 @@ export function CapabilityRow(resource: fhir4.CapabilityStatementRestResource) {
           ?.map(o => {
             return o.name;
           })
+          .sort()
           .join(', ')}
       </td>
       <td>
@@ -124,6 +125,7 @@ export function CapabilityRow(resource: fhir4.CapabilityStatementRestResource) {
           ?.map(sp => {
             return sp.name;
           })
+          .sort()
           .join(', ')}
       </td>
     </tr>
