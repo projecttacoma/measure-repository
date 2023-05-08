@@ -133,10 +133,10 @@ export function CapabilityRow(resource: fhir4.CapabilityStatementRestResource) {
 export const getServerSideProps: GetServerSideProps<{
   capabilityStatement: fhir4.CapabilityStatement | null;
 }> = async () => {
-  // Fetch resource data
+  // Fetch CapabilityStatement
   const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`);
   const capabilityStatement = res.status === 200 ? ((await res.json()) as fhir4.CapabilityStatement) : null;
 
   // Pass to the page via props
-  return { props: { capabilityStatement: capabilityStatement } };
+  return { props: { capabilityStatement } };
 };
