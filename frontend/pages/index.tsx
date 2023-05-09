@@ -41,7 +41,13 @@ export default function Home({ capabilityStatement }: InferGetServerSidePropsTyp
                 <th>Search Parameters</th>
               </tr>
             </thead>
-            <tbody>{capabilityStatement.rest?.[0]?.resource?.map(r => CapabilityRow(r))}</tbody>
+            <tbody>
+              {capabilityStatement.rest?.[0]?.resource
+                ?.sort((a, b) => {
+                  return a.type > b.type ? 1 : -1; // sort alphabetical by resource type
+                })
+                .map(r => CapabilityRow(r))}
+            </tbody>
           </Table>
         ) : (
           <Text c="red.7" style={{ marginBottom: '8px' }}>
