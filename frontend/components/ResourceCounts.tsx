@@ -93,13 +93,11 @@ const ResourceCounts = () => {
         marginLeft: 16,
         marginRight: 2
       }}
-      h="72vh"
-      justify="space-between"
     >
-      <ResourceButtonsGroup />
       <Link href={'/search'}>
         <Button
           fullWidth
+          compact
           color="cyan"
           radius="md"
           size="md"
@@ -112,6 +110,7 @@ const ResourceCounts = () => {
           Search
         </Button>
       </Link>
+      <ResourceButtonsGroup />
     </Stack>
   );
 };
