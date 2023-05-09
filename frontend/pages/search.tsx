@@ -38,7 +38,7 @@ export default function SearchPage() {
       </Tabs.Panel>
     ));
     return (
-      <Tabs variant="outline">
+      <Tabs variant="outline" defaultValue="Measure">
         <ResourceTabGroup />
         {resourcePanels}
       </Tabs>
