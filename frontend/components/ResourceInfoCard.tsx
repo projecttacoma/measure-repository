@@ -15,10 +15,6 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
       p="md"
       sx={theme => {
         const style: Sx = {
-          ':hover': {
-            cursor: 'pointer',
-            backgroundColor: theme.colors.gray[0]
-          },
           borderRadius: 6,
           border: `${rem(1)} solid ${theme.colors.gray[3]}`
         };
@@ -45,10 +41,17 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
               {resourceInfo.version && `|${resourceInfo.version}`}
             </Text>
           )}
-          {resourceInfo.identifier && <Text size="sm">{`Identifier: ${resourceInfo.identifier}`}</Text>}
+          {resourceInfo.identifier && (
+            <Text size="sm">
+              {<i>Identifier: </i>}
+              {`${resourceInfo.identifier}`}
+            </Text>
+          )}
         </Grid.Col>
         <Link href={`/${resourceInfo.resourceType}/${resourceInfo.id}`} key={resourceInfo.id}>
-          <Button radius="md" size="md" variant="subtle" color="gray" rightIcon={<ExternalLink size="24" />} />
+          <Button radius="md" size="md" variant="subtle" color="gray">
+            {<ExternalLink size="24" />}
+          </Button>
         </Link>
       </Grid>
     </Paper>

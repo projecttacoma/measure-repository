@@ -3,6 +3,7 @@ import { Grid, Divider, Stack, ScrollArea, Text } from '@mantine/core';
 import BackButton from '../components/BackButton';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
 import ResourceInfoCard from '../components/ResourceInfoCard';
+import { useEffect, useState } from 'react';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -12,61 +13,73 @@ export default function ResourceList({
   resourceInfo,
   resourceType
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [height, setWindowHeight] = useState<number>(0);
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div
-      style={{
-        width: '78vw'
-      }}
-    >
-      <Grid columns={7}>
-        <Grid.Col offset={0} span={1}>
-          <div>
-            <BackButton />
-          </div>
-        </Grid.Col>
-        <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
-          <h2
-            style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}
-          >{`Available ${resourceType} Resources`}</h2>
-        </Grid.Col>
-      </Grid>
-      <Divider my="md" style={{ marginTop: '14px' }} />
-      <div>
-        <ScrollArea
-          type="scroll"
-          style={{
-            textAlign: 'left',
-            overflowWrap: 'break-word',
-            padding: '10px',
-            backgroundColor: '#FFFFFF',
-            border: '1px solid',
-            borderColor: '#DEE2E6',
-            borderRadius: '20px',
-            marginTop: '10px',
-            marginBottom: '20px',
-            marginLeft: '150px',
-            marginRight: '150px',
-            height: 1000
-          }}
-        >
-          {resourceInfo.length > 0 ? ( // if items exist
-            <Stack style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '50px', marginRight: '50px' }}>
-              {resourceInfo.map(res => {
-                return (
-                  <div key={res.id}>
-                    <ResourceInfoCard resourceInfo={res} />
-                  </div>
-                );
-              })}
-            </Stack>
-          ) : (
-            <Text>
-              No <i>{`${resourceType}`}</i> resources available
-            </Text>
-          )}
-        </ScrollArea>
+    <>
+      <div
+        style={{
+          width: '78vw'
+        }}
+      >
+        <Grid columns={7}>
+          <Grid.Col offset={0} span={1}>
+            <div>
+              <BackButton />
+            </div>
+          </Grid.Col>
+          <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
+            <h2
+              style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}
+            >{`Available ${resourceType} Resources`}</h2>
+          </Grid.Col>
+        </Grid>
+        <Divider my="md" style={{ marginTop: '14px' }} />
+        <div>
+          <ScrollArea.Autosize
+            mah={height * 0.8}
+            type="scroll"
+            style={{
+              textAlign: 'left',
+              overflowWrap: 'break-word',
+              padding: '10px',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid',
+              borderColor: '#DEE2E6',
+              borderRadius: '20px',
+              marginTop: '10px',
+              marginBottom: '20px',
+              marginLeft: '150px',
+              marginRight: '150px'
+            }}
+          >
+            {resourceInfo.length > 0 ? ( // if items exist
+              <Stack style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '50px', marginRight: '50px' }}>
+                {resourceInfo.map(res => {
+                  return (
+                    <div key={res.id}>
+                      <ResourceInfoCard resourceInfo={res} />
+                    </div>
+                  );
+                })}
+              </Stack>
+            ) : (
+              <Text>
+                No <i>{`${resourceType}`}</i> resources available
+              </Text>
+            )}
+          </ScrollArea.Autosize>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
