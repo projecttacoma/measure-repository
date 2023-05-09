@@ -172,6 +172,7 @@ export const CoreSearchArgs = z
     'derived-from': z.string(),
     description: z.string(),
     effective: z.string(),
+    id: z.string(),
     identifier: z.string(),
     jurisdiction: z.string(),
     name: z.string(),
