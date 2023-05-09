@@ -1,5 +1,5 @@
 import { ArtifactResourceType } from '@/util/types/fhir';
-import { Divider, Grid, TextInput, Text, Button, Space } from '@mantine/core';
+import { Divider, Grid, TextInput, Text, Button } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import Link from 'next/link';
 import { useState } from 'react';

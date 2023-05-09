@@ -1,11 +1,11 @@
 import BackButton from '@/components/BackButton';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Divider, Grid, Text } from '@mantine/core';
-import { ArtifactResourceType } from '@/util/types/fhir';
+import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceButtons from '@/components/ResourceButtons';
 
 export default function ResourceSearchResultsPage({
-  ids,
+  resourceInfo,
   resourceType,
   error
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
@@ -26,8 +26,8 @@ export default function ResourceSearchResultsPage({
         </Grid.Col>
       </Grid>
       <Divider my="md" style={{ marginTop: '14px' }} />
-      {ids ? (
-        <ResourceButtons resourceType={resourceType} ids={ids}></ResourceButtons>
+      {resourceInfo ? (
+        <ResourceButtons resourceType={resourceType} resourceInfo={resourceInfo}></ResourceButtons>
       ) : (
         <div
           style={{
@@ -54,7 +54,7 @@ export default function ResourceSearchResultsPage({
 }
 
 export const getServerSideProps: GetServerSideProps<{
-  ids?: (string | undefined)[];
+  resourceInfo?: ResourceInfo[];
   resourceType: ArtifactResourceType;
   error?: string;
 }> = async context => {
@@ -76,13 +76,29 @@ export const getServerSideProps: GetServerSideProps<{
     // Pass type and error to the page via props
     return { props: { resourceType: checkedResourceType, error: error } };
   } else {
-    const bundle = json as fhir4.Bundle;
+    const bundle = json as fhir4.Bundle<FhirArtifact>;
     if (!bundle.entry) {
       // Measure Repository should not provide a bundle without an entry
       throw new Error('Measure Repository search set bundle has no entry.');
     }
-    const ids = bundle.entry.map(entry => entry.resource?.id);
+    const resources = bundle.entry;
+    const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
+      if (entry.resource && entry.resource.id) {
+        const identifier = entry.resource.identifier?.[0];
+        const resourceInfo: ResourceInfo = {
+          resourceType: checkedResourceType,
+          id: entry.resource.id,
+          identifier: identifier?.system && identifier?.value ? `${identifier.system}|${identifier.value}` : null,
+          name: entry.resource.name ?? null,
+          url: entry.resource.url ?? null,
+          version: entry.resource.version ?? null,
+          status: entry.resource.status ?? null
+        };
+        acc.push(resourceInfo);
+      }
+      return acc;
+    }, []);
     // Pass ids and type to the page via props
-    return { props: { ids: ids, resourceType: checkedResourceType } };
+    return { props: { resourceInfo: resourceInfoArray, resourceType: checkedResourceType } };
   }
 };
