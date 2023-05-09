@@ -1,82 +1,85 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Button, Grid, Divider } from '@mantine/core';
-import Link from 'next/link';
+import { Grid, Divider, Stack, ScrollArea, Text } from '@mantine/core';
 import BackButton from '../components/BackButton';
-import { ArtifactResourceType } from '@/util/types/fhir';
+import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
+import ResourceInfoCard from '../components/ResourceInfoCard';
+import { useEffect, useState } from 'react';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
- * @returns component with list of resource (by id) buttons that are links to that resource's details
+ * @returns component with list of resource (by id) cards that contain buttons that are links to that resource's details
  */
-export default function ResourceList({ ids, resourceType }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const idItems = ids.map(id => {
-    return (
-      <Link href={`/${resourceType}/${id}`} key={id}>
-        <Button
-          fullWidth
-          color="cyan"
-          radius="md"
-          size="md"
-          variant="subtle"
-          styles={() => ({
-            root: {
-              padding: '2px'
-            },
-            inner: {
-              justifyContent: 'left'
-            }
-          })}
-        >
-          <div>
-            {resourceType}/{id}
-          </div>
-        </Button>
-      </Link>
-    );
-  });
+export default function ResourceList({
+  resourceInfo,
+  resourceType
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [height, setWindowHeight] = useState<number>(0);
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div
-      style={{
-        width: '78vw'
-      }}
-    >
-      <Grid columns={7}>
-        <Grid.Col offset={0} span={1}>
-          <div>
-            <BackButton />
-          </div>
-        </Grid.Col>
-        <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
-          <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}>{`${resourceType} IDs`}</h2>
-        </Grid.Col>
-      </Grid>
-      <Divider my="md" style={{ marginTop: '14px' }} />
-      <div>
-        <div
-          style={{
-            textAlign: 'left',
-            overflowWrap: 'break-word',
-            padding: '10px',
-            backgroundColor: '#FFFFFF',
-            border: '1px solid',
-            borderColor: '#DEE2E6',
-            borderRadius: '20px',
-            marginTop: '10px',
-            marginBottom: '20px',
-            marginLeft: '150px',
-            marginRight: '150px'
-          }}
-        >
-          {idItems.length > 0 ? ( //if items exist
-            <ul>{idItems}</ul>
-          ) : (
-            <text>
-              No <i>{`${resourceType}`}</i> resources available
-            </text>
-          )}
+    <>
+      <div
+        style={{
+          width: '78vw'
+        }}
+      >
+        <Grid columns={7}>
+          <Grid.Col offset={0} span={1}>
+            <div>
+              <BackButton />
+            </div>
+          </Grid.Col>
+          <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
+            <h2
+              style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}
+            >{`Available ${resourceType} Resources`}</h2>
+          </Grid.Col>
+        </Grid>
+        <Divider my="md" style={{ marginTop: '14px' }} />
+        <div>
+          <ScrollArea.Autosize
+            mah={height * 0.8}
+            type="scroll"
+            style={{
+              textAlign: 'left',
+              overflowWrap: 'break-word',
+              padding: '10px',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid',
+              borderColor: '#DEE2E6',
+              borderRadius: '20px',
+              marginTop: '10px',
+              marginBottom: '20px',
+              marginLeft: '150px',
+              marginRight: '150px'
+            }}
+          >
+            {resourceInfo.length > 0 ? ( // if items exist
+              <Stack style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '50px', marginRight: '50px' }}>
+                {resourceInfo.map(res => {
+                  return (
+                    <div key={res.id}>
+                      <ResourceInfoCard resourceInfo={res} />
+                    </div>
+                  );
+                })}
+              </Stack>
+            ) : (
+              <Text>
+                No <i>{`${resourceType}`}</i> resources available
+              </Text>
+            )}
+          </ScrollArea.Autosize>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -85,11 +88,11 @@ export default function ResourceList({ ids, resourceType }: InferGetServerSidePr
  * @returns props for the [resourceType] page that pass resourceType and ids of resources of that type
  */
 export const getServerSideProps: GetServerSideProps<{
-  ids: (string | undefined)[];
+  resourceInfo: ResourceInfo[];
   resourceType: ArtifactResourceType;
 }> = async context => {
   const { resourceType } = context.query;
-  if (typeof resourceType != 'string') {
+  if (typeof resourceType !== 'string') {
     // Should not be called with a non-string value
     throw new Error(`Requested listing of resources for a non-string resourceType: ${resourceType}`);
   }
@@ -99,13 +102,29 @@ export const getServerSideProps: GetServerSideProps<{
 
   // Fetch resource data
   const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${checkedResourceType}`);
-  const bundle = (await res.json()) as fhir4.Bundle;
+  const bundle = (await res.json()) as fhir4.Bundle<FhirArtifact>;
   if (!bundle.entry) {
     // Measure Repository should not provide a bundle without an entry
     throw new Error('Measure Repository bundle has no entry.');
   }
-  const ids = bundle.entry.map(entry => entry.resource?.id);
+  const resources = bundle.entry;
+  const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
+    if (entry.resource && entry.resource.id) {
+      const identifier = entry.resource.identifier?.[0];
+      const resourceInfo: ResourceInfo = {
+        resourceType: checkedResourceType,
+        id: entry.resource.id,
+        identifier: identifier?.system && identifier?.value ? `${identifier.system}|${identifier.value}` : null,
+        name: entry.resource.name ?? null,
+        url: entry.resource.url ?? null,
+        version: entry.resource.version ?? null,
+        status: entry.resource.status ?? null
+      };
+      acc.push(resourceInfo);
+    }
+    return acc;
+  }, []);
 
-  // Pass ids and type to the page via props
-  return { props: { ids: ids, resourceType: checkedResourceType } };
+  // Pass resource info and type to the page via props
+  return { props: { resourceInfo: resourceInfoArray, resourceType: checkedResourceType } };
 };
