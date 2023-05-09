@@ -82,7 +82,7 @@ export default function SearchInputs({ resourceType }: SearchComponentProps) {
       } else if (si.name === 'version') {
         if (urlAndVersion !== '') {
           si.value !== ''
-            ? requestParams.push({ name: 'url', value: urlAndVersion + '|' + si.value })
+            ? requestParams.push({ name: 'url', value: urlAndVersion }, { name: 'version', value: si.value })
             : requestParams.push({ name: 'url', value: urlAndVersion });
         }
       } else if (si.name === 'description' || si.name === 'title') {
