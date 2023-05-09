@@ -1,9 +1,10 @@
 import { ArtifactResourceType } from '@/util/types/fhir';
-import { Divider, Grid, TextInput, Text, Button } from '@mantine/core';
+import { Divider, Grid, TextInput, Text, Button, Space } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArtifactSearchParams } from '@/util/searchParams';
+import { Search, SquareX } from 'tabler-icons-react';
 
 interface SearchComponentProps {
   resourceType: ArtifactResourceType;
@@ -105,7 +106,7 @@ export default function SearchInputs({ resourceType }: SearchComponentProps) {
       <Grid>{searchInputDisplays}</Grid>
       <Divider my="sm" style={{ paddingBottom: '6px' }} />
       <Grid>
-        <Grid.Col span={2} offset={1}>
+        <Grid.Col span={4}>
           <div style={{ padding: '16px', textAlign: 'center' }}>
             <Text size="xl" color="gray" weight={700}>
               Request Preview:
@@ -113,18 +114,50 @@ export default function SearchInputs({ resourceType }: SearchComponentProps) {
           </div>
         </Grid.Col>
         <Grid.Col span={8}>
-          <div style={{ border: '1px solid', borderRadius: '4px', borderColor: 'gray', padding: '16px' }}>
-            <Text size="lg">{`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}` + requestPreview()}</Text>
+          <div style={{ padding: '16px' }}>
+            <Text size="xl" color="gray" weight={500}>
+              {`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}` + requestPreview()}
+            </Text>
           </div>
         </Grid.Col>
-        <Grid.Col span={1} offset={9}>
-          <Button color="red.8" fullWidth={true} onClick={() => setSearchInputs(emptyInputs)}>
-            Clear
-          </Button>
+        <Grid.Col offset={8} span={2}>
+          <div>
+            <Button
+              styles={{
+                root: {
+                  padding: '2px'
+                },
+                inner: {
+                  paddingLeft: '10px',
+                  justifyContent: 'left'
+                }
+              }}
+              variant="outline"
+              fullWidth
+              color="red.8"
+              onClick={() => setSearchInputs(emptyInputs)}
+            >
+              <SquareX />
+              Clear
+            </Button>
+          </div>
         </Grid.Col>
-        <Grid.Col span={1}>
+        <Grid.Col span={2}>
           <Link href={`/${resourceType}/search-result${requestPreview()}`}>
-            <Button color="green.8" fullWidth={true}>
+            <Button
+              styles={{
+                root: {
+                  padding: '2px'
+                },
+                inner: {
+                  paddingLeft: '10px',
+                  justifyContent: 'left'
+                }
+              }}
+              fullWidth
+              color="green.8"
+            >
+              <Search />
               Search
             </Button>
           </Link>
