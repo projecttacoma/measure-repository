@@ -18,9 +18,9 @@ interface Parameter {
 }
 
 /**
- * SearchInputs is a component for displaying a search inputs for a resource
+ * SearchComponent is a component for displaying search inputs for a resource
  */
-export default function SearchInputs({ resourceType }: SearchComponentProps) {
+export default function SearchComponent({ resourceType }: SearchComponentProps) {
   const emptyInputs = ArtifactSearchParams[resourceType].map(p => ({
     name: p.param,
     description: p.description,
