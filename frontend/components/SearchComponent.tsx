@@ -131,7 +131,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
           </div>
         </Grid.Col>
         <Grid.Col span={8}>
-          <div style={{ padding: '16px' }}>
+          <div style={{ padding: '16px', overflowWrap: 'anywhere' }}>
             <Text size="xl" color="gray" weight={500}>
               {`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}` + requestPreview()}
             </Text>
