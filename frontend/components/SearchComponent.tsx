@@ -91,28 +91,26 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
     let urlAndVersion: string;
     searchInputs.forEach(si => {
       if (si.name === 'url') {
-        urlAndVersion = si.value;
+        urlAndVersion = encodeURIComponent(si.value);
       } else if (si.name === 'version') {
         if (urlAndVersion !== '') {
           si.value !== ''
             ? requestParams.push(
-                { name: 'url', description: si.description, value: urlAndVersion },
-                { name: 'version', description: si.description, value: si.value }
+                { name: 'url', description: si.description, value: encodeURIComponent(urlAndVersion) },
+                { name: 'version', description: si.description, value: encodeURIComponent(si.value) }
               )
             : requestParams.push({ name: 'url', description: si.description, value: urlAndVersion });
         }
-      } else if (si.name === 'description' || si.name === 'title') {
-        requestParams.push({
-          name: si.name,
-          description: si.description,
-          value: si.value.trim().split(' ').join('%20')
-        });
       } else if (si.name === 'date') {
         if (si.date !== null && si.date !== undefined) {
           requestParams.push({ name: 'date', description: si.description, value: si.date.toISOString() });
         }
       } else {
-        requestParams.push(si);
+        requestParams.push({
+          name: si.name,
+          description: si.description,
+          value: encodeURIComponent(si.value)
+        });
       }
     });
     const query = requestParams.filter(si => si.value !== '').map(si => si.name + '=' + si.value);
