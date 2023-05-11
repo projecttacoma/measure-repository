@@ -96,7 +96,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
         if (urlAndVersion !== '') {
           si.value !== ''
             ? requestParams.push(
-                { name: 'url', description: si.description, value: encodeURIComponent(urlAndVersion) },
+                { name: 'url', description: si.description, value: urlAndVersion },
                 { name: 'version', description: si.description, value: encodeURIComponent(si.value) }
               )
             : requestParams.push({ name: 'url', description: si.description, value: urlAndVersion });
@@ -137,29 +137,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
             </Text>
           </div>
         </Grid.Col>
-        <Grid.Col offset={8} span={2}>
-          <div>
-            <Button
-              styles={{
-                root: {
-                  padding: '2px'
-                },
-                inner: {
-                  paddingLeft: '10px',
-                  justifyContent: 'left'
-                }
-              }}
-              variant="outline"
-              fullWidth
-              color="red.8"
-              onClick={() => setSearchInputs(emptyInputs)}
-            >
-              <SquareX />
-              Clear
-            </Button>
-          </div>
-        </Grid.Col>
-        <Grid.Col span={2}>
+        <Grid.Col offset={10} span={2}>
           <Link href={`/${resourceType}/search-result${requestPreview()}`}>
             <Button
               styles={{
@@ -172,7 +150,8 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
                 }
               }}
               fullWidth
-              color="green.8"
+              color="cyan"
+              radius="md"
             >
               <Search />
               Search

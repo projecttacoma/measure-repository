@@ -2,7 +2,7 @@ import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import { Divider, Group, Stack, Text } from '@mantine/core';
 import BackButton from '@/components/BackButton';
-import SearchInputs from '@/components/SearchComponent';
+import SearchComponent from '@/components/SearchComponent';
 
 export default function ResourceSearchPage({ resourceType }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
@@ -17,7 +17,7 @@ export default function ResourceSearchPage({ resourceType }: InferGetServerSideP
           </Group>
         </div>
         <Divider my="sm" style={{ paddingBottom: '6px' }} />
-        <SearchInputs resourceType={resourceType} />
+        <SearchComponent resourceType={resourceType} />
       </Stack>
     </div>
   );
