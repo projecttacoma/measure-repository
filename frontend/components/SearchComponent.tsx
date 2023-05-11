@@ -12,7 +12,7 @@ interface SearchComponentProps {
 
 interface Parameter {
   name: string;
-  description: string;
+  description?: string;
   value: string;
   date?: Date | null;
 }
@@ -88,19 +88,13 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
   const requestPreview = () => {
     let requestPreview = '';
     const requestParams: Parameter[] = [];
-    let urlAndVersion: string;
+    let url = '';
+    let version = '';
     searchInputs.forEach(si => {
       if (si.name === 'url') {
-        urlAndVersion = encodeURIComponent(si.value);
+        url = encodeURIComponent(si.value);
       } else if (si.name === 'version') {
-        if (urlAndVersion !== '') {
-          si.value !== ''
-            ? requestParams.push(
-                { name: 'url', description: si.description, value: urlAndVersion },
-                { name: 'version', description: si.description, value: encodeURIComponent(si.value) }
-              )
-            : requestParams.push({ name: 'url', description: si.description, value: urlAndVersion });
-        }
+        version = encodeURIComponent(si.value);
       } else if (si.name === 'date') {
         if (si.date !== null && si.date !== undefined) {
           requestParams.push({ name: 'date', description: si.description, value: si.date.toISOString() });
@@ -113,6 +107,10 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
         });
       }
     });
+    if (url !== '') {
+      requestParams.push({ name: 'url', value: url });
+      requestParams.push({ name: 'version', value: version });
+    }
     const query = requestParams.filter(si => si.value !== '').map(si => si.name + '=' + si.value);
     query.length !== 0 ? (requestPreview += '?' + query.join('&')) : '';
     return requestPreview;
