@@ -43,43 +43,45 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
    * Returns each of the given resource type's search parameters as a Text input or
    * a date input
    */
-  const searchInputDisplays = searchInputs.map(si => {
-    if (si.name === 'version') {
-      return (
-        <Grid.Col span={6} key={si.name}>
-          <TextInput
-            label={si.name}
-            value={si.value}
-            description={si.description}
-            disabled={searchInputs.find(si => si.name === 'url')?.value === ''}
-            onChange={event => changeSearchInputs(si.name, event.currentTarget.value)}
-          />
-        </Grid.Col>
-      );
-    } else if (si.name !== 'date') {
-      return (
-        <Grid.Col span={6} key={si.name}>
-          <TextInput
-            label={si.name}
-            value={si.value}
-            description={si.description}
-            onChange={event => changeSearchInputs(si.name, event.currentTarget.value)}
-          />
-        </Grid.Col>
-      );
-    } else {
-      return (
-        <Grid.Col span={6} key={si.name}>
-          <DateInput
-            label={si.name}
-            value={si.date}
-            description={si.description}
-            onChange={date => changeSearchInputs(si.name, si.value, date)}
-          />
-        </Grid.Col>
-      );
-    }
-  });
+  const getSearchInputDisplays = () => {
+    return searchInputs.map(si => {
+      if (si.name === 'version') {
+        return (
+          <Grid.Col span={6} key={si.name}>
+            <TextInput
+              label={si.name}
+              value={si.value}
+              description={si.description}
+              disabled={searchInputs.find(si => si.name === 'url')?.value === ''}
+              onChange={event => changeSearchInputs(si.name, event.currentTarget.value)}
+            />
+          </Grid.Col>
+        );
+      } else if (si.name !== 'date') {
+        return (
+          <Grid.Col span={6} key={si.name}>
+            <TextInput
+              label={si.name}
+              value={si.value}
+              description={si.description}
+              onChange={event => changeSearchInputs(si.name, event.currentTarget.value)}
+            />
+          </Grid.Col>
+        );
+      } else {
+        return (
+          <Grid.Col span={6} key={si.name}>
+            <DateInput
+              label={si.name}
+              value={si.date}
+              description={si.description}
+              onChange={date => changeSearchInputs(si.name, si.value, date)}
+            />
+          </Grid.Col>
+        );
+      }
+    });
+  };
 
   /**
    * Returns the requestPreview string based on the search inputs
@@ -115,7 +117,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
 
   return (
     <>
-      <Grid>{searchInputDisplays}</Grid>
+      <Grid>{getSearchInputDisplays()}</Grid>
       <Divider my="sm" style={{ paddingBottom: '6px' }} />
       <Grid>
         <Grid.Col span={4}>
