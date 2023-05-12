@@ -1,5 +1,5 @@
 import { ArtifactResourceType } from '@/util/types/fhir';
-import { Divider, Grid, TextInput, Text, Button } from '@mantine/core';
+import { Divider, Grid, TextInput, Text, Button, Stack } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -119,29 +119,19 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
     <>
       <Grid>{getSearchInputDisplays()}</Grid>
       <Divider my="sm" style={{ paddingBottom: '6px' }} />
-      <Grid>
-        <Grid.Col span={4}>
-          <div style={{ padding: '16px', textAlign: 'center' }}>
-            <Text size="xl" color="gray" weight={700}>
-              Request Preview:
-            </Text>
-          </div>
-        </Grid.Col>
-        <Grid.Col span={8}>
-          <div style={{ padding: '16px', overflowWrap: 'anywhere' }}>
-            <Text size="xl" color="gray" weight={500}>
-              {`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}` + requestPreview()}
-            </Text>
-          </div>
-        </Grid.Col>
-        <Grid.Col>
-          <Link href={`/${resourceType}/search-result${requestPreview()}`}>
-            <Button size="sm" color="cyan" radius="md" style={{ float: 'right' }}>
-              Search
-            </Button>
-          </Link>
-        </Grid.Col>
-      </Grid>
+      <Stack>
+        <Text>Request Preview</Text>
+        <div style={{ overflowWrap: 'anywhere' }}>
+          <Text size="xl" color="gray" weight={700}>
+            {`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}` + requestPreview()}{' '}
+          </Text>
+        </div>
+        <Link href={`/${resourceType}/search-result${requestPreview()}`}>
+          <Button size="sm" color="cyan" radius="md" style={{ float: 'right' }}>
+            Search
+          </Button>
+        </Link>
+      </Stack>
     </>
   );
 }
