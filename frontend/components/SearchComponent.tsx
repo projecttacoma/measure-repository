@@ -86,7 +86,6 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
    * Returns the requestPreview string based on the search inputs
    */
   const requestPreview = () => {
-    let requestPreview = '';
     const requestParams: Parameter[] = [];
     let url = '';
     let version = '';
@@ -96,7 +95,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
       } else if (si.name === 'version') {
         version = encodeURIComponent(si.value);
       } else if (si.name === 'date') {
-        if (si.date !== null && si.date !== undefined) {
+        if (si.date != null) {
           requestParams.push({ name: 'date', description: si.description, value: si.date.toISOString() });
         }
       } else {
@@ -112,8 +111,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
       requestParams.push({ name: 'version', value: version });
     }
     const query = requestParams.filter(si => si.value !== '').map(si => si.name + '=' + si.value);
-    query.length !== 0 ? (requestPreview += '?' + query.join('&')) : '';
-    return requestPreview;
+    return query.length !== 0 ? `?${query.join('&')}` : '';
   };
 
   return (
