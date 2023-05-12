@@ -31,8 +31,7 @@ export const ArtifactSearchParams: Record<ArtifactResourceType, ParamDescription
     { param: 'id', description: 'Returning any artifact matching the id' },
     {
       param: 'description',
-      description:
-        'Returning any artifact matching the search description, according to string-matching semantics in FHIR'
+      description: 'Returning any artifact matching the description, according to string-matching semantics in FHIR'
     },
     { param: 'identifier', description: 'Returning any artifact matching the identifier' },
     {

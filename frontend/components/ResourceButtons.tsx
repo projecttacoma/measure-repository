@@ -13,7 +13,7 @@ interface ResourceButtonsProps {
  * as buttons that link to that resource's page
  */
 export default function ResourceButtons({ resourceInfo, resourceType }: ResourceButtonsProps) {
-  const [height, setWindowHeight] = useState<number>(0);
+  const [height, setWindowHeight] = useState(0);
   useEffect(() => {
     const handleResize = () => {
       setWindowHeight(window.innerHeight);

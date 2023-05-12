@@ -4,7 +4,7 @@ import { DateInput } from '@mantine/dates';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArtifactSearchParams } from '@/util/searchParams';
-import { Search, SquareX } from 'tabler-icons-react';
+import { Search } from 'tabler-icons-react';
 
 interface SearchComponentProps {
   resourceType: ArtifactResourceType;
@@ -75,7 +75,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
             label={si.name}
             value={si.date}
             description={si.description}
-            onChange={event => changeSearchInputs(si.name, si.value, event)}
+            onChange={date => changeSearchInputs(si.name, si.value, date)}
           />
         </Grid.Col>
       );
