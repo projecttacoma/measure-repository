@@ -4,7 +4,6 @@ import { DateInput } from '@mantine/dates';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArtifactSearchParams } from '@/util/searchParams';
-import { Search } from 'tabler-icons-react';
 
 interface SearchComponentProps {
   resourceType: ArtifactResourceType;
@@ -133,23 +132,9 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
             </Text>
           </div>
         </Grid.Col>
-        <Grid.Col offset={10} span={2}>
+        <Grid.Col>
           <Link href={`/${resourceType}/search-result${requestPreview()}`}>
-            <Button
-              styles={{
-                root: {
-                  padding: '2px'
-                },
-                inner: {
-                  paddingLeft: '10px',
-                  justifyContent: 'left'
-                }
-              }}
-              fullWidth
-              color="cyan"
-              radius="md"
-            >
-              <Search />
+            <Button size="sm" color="cyan" radius="md" style={{ float: 'right' }}>
               Search
             </Button>
           </Link>

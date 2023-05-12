@@ -32,7 +32,7 @@ export default function ResourceList({
             >{`Available ${resourceType} Resources`}</h2>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Link href={`/${resourceType}/search`}>
+            <Link href={`/search?resourceType=${resourceType}`}>
               <Button color="cyan" radius="md" size="sm">
                 Search
               </Button>
