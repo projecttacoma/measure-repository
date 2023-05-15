@@ -36,4 +36,4 @@ jobs:
         run: npm run prettier:all
 
       - name: Unit Test
-        run: npm run test:backend
+        run: npm run test:service

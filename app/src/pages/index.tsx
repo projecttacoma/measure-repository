@@ -100,12 +100,12 @@ export default function Home({ capabilityStatement }: InferGetServerSidePropsTyp
           </Anchor>
         </List.Item>
         <List.Item>
-          <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/frontend/README.md">
+          <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/app/README.md">
             ProjectTacoma Measure Repository Frontend README
           </Anchor>
         </List.Item>
         <List.Item>
-          <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/backend/README.md">
+          <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/service/README.md">
             ProjectTacoma Measure Repository Backend README
           </Anchor>
         </List.Item>

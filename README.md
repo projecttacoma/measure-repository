@@ -18,17 +18,17 @@ This repository uses [`npm workspaces`](https://docs.npmjs.com/cli/v7/using-npm/
 npm install
 ```
 
-If you want to install a dependency in only the frontend or the backend directory, run the following:
+If you want to install a dependency in only the `app` or the `service` directory, run the following:
 
 ```bash
-npm install --workspace=<frontend-or-backend> <package-name>
+npm install --workspace=<app-or-service> <package-name>
 ```
 
 ## Usage
 
 Once you have the necessary dependencies installed, you can run the following in the root directory:
 
-To start the the frontend application and backend server in parallel:
+To start the app and repository service in parallel:
 
 ```bash
 npm run start:all
@@ -39,13 +39,13 @@ This starts up the Measure Repository service at `localhost:3000` and you can op
 To start only the frontend:
 
 ```bash
-npm run start:frontend
+npm run start:app
 ```
 
 To start only the backend:
 
 ```bash
-npm run start:backend
+npm run start:service
 ```
 
 To run `lint` and `prettier` in both the frontend and backend and unit tests in the backend:

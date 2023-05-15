@@ -25,7 +25,7 @@ npm install
 This repository uses [`npm workspaces`](https://docs.npmjs.com/cli/v7/using-npm/workspaces), so if you want to install a dependency in this directory, you have to run the following from the root directory:
 
 ```bash
-npm install --workspace=frontend <package-name>
+npm install --workspace=app <package-name>
 ```
 
 ### Usage
@@ -33,7 +33,7 @@ npm install --workspace=frontend <package-name>
 To run just the frontend from the root directory:
 
 ```bash
-npm run start:frontend
+npm run start:app
 ```
 
 You can open the Measure Repository Service frontend application by navigating to [http://localhost:3001](http://localhost:3001) in your browser.
