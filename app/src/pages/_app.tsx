@@ -4,8 +4,9 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import Link from 'next/link';
 import { ResourceCounts } from '../components/ResourceCounts';
+import { trpc } from '@/util/trpc';
 
-export default function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
@@ -63,3 +64,5 @@ export default function App({ Component, pageProps }: AppProps) {
     </>
   );
 }
+
+export default trpc.withTRPC(App);
