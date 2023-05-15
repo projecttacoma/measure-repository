@@ -2,20 +2,20 @@
   "name": "measure-repository",
   "version": "0.0.1",
   "workspaces": [
-    "frontend",
-    "backend"
+    "app",
+    "service"
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
-    "check:all": "npm run test:backend && npm run lint:all && npm run prettier:all",
+    "check:all": "npm run test:service && npm run lint:all && npm run prettier:all",
     "lint:all": "npm run lint --workspaces",
     "lint:all:fix": "npm run lint:fix --workspaces",
     "prettier:all": "npm run prettier --workspaces",
     "prettier:all:fix": "npm run prettier:fix --workspaces",
-    "start:all": "concurrently \"npm run start --workspace=backend\" \"npm run dev --workspace=frontend -- -p 3001\"",
-    "start:backend": "npm run start --workspace=backend",
-    "start:frontend": "npm run dev --workspace=frontend",
-    "test:backend": "npm run test --workspace=backend"
+    "start:all": "concurrently \"npm run start --workspace=service\" \"npm run dev --workspace=app -- -p 3001\"",
+    "start:service": "npm run start --workspace=service",
+    "start:app": "npm run dev --workspace=app",
+    "test:service": "npm run test --workspace=service"
   },
   "devDependencies": {
     "concurrently": "^7.6.0"
