@@ -3,8 +3,8 @@ import { Badge, Button, Stack } from '@mantine/core';
 import Link from 'next/link';
 
 /**
- * Component which retrieves all resources and their counts and translates them into buttons
- * @returns array of JSX Buttons
+ * Component which retrieves all resources and their counts and translates them into buttons and adds
+ * a search button that links to the overall search page
  */
 const ResourceCounts = () => {
   // set initial state to non-valid (counts will not be shown)
@@ -90,9 +90,26 @@ const ResourceCounts = () => {
       spacing="xs"
       style={{
         marginBottom: 30,
-        marginLeft: 16
+        marginLeft: 16,
+        marginRight: 2
       }}
     >
+      <Link href={'/search?resourceType=Measure'}>
+        <Button
+          fullWidth
+          compact
+          color="cyan"
+          radius="md"
+          size="md"
+          styles={{
+            root: {
+              padding: '2px'
+            }
+          }}
+        >
+          Search
+        </Button>
+      </Link>
       <ResourceButtonsGroup />
     </Stack>
   );
