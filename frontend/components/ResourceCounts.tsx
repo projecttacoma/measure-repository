@@ -94,7 +94,7 @@ const ResourceCounts = () => {
         marginRight: 2
       }}
     >
-      <Link href={'/search'}>
+      <Link href={'/search?resourceType=Measure'}>
         <Button
           fullWidth
           compact

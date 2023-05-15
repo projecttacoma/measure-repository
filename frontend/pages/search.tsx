@@ -4,13 +4,9 @@ import { ArtifactSearchParams } from '@/util/searchParams';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import { Divider, Group, Stack, Tabs, Text } from '@mantine/core';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 export default function SearchPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string | null>(
-    router.query.resourceType ? (router.query.resourceType as string) : 'Measure'
-  );
 
   const ResourceTabGroup = () => {
     const resourceTabs = Object.keys(ArtifactSearchParams).map(resource => (
@@ -45,7 +41,11 @@ export default function SearchPage() {
       </Tabs.Panel>
     ));
     return (
-      <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
+      <Tabs
+        variant="outline"
+        value={router.query.resourceType as string}
+        onTabChange={value => router.push(`search?resourceType=${value}`)}
+      >
         <ResourceTabGroup />
         {resourcePanels}
       </Tabs>
