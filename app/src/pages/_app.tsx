@@ -1,5 +1,16 @@
 import '@/styles/globals.css';
-import { AppShell, Center, Header, MantineProvider, Navbar, Text, Divider, Button } from '@mantine/core';
+import {
+  AppShell,
+  Button,
+  Center,
+  Header,
+  MantineProvider,
+  Navbar,
+  Text,
+  Divider,
+  Box,
+  ScrollArea
+} from '@mantine/core';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -48,6 +59,11 @@ function App({ Component, pageProps }: AppProps) {
               <Navbar.Section grow pt={18}>
                 <ResourceCounts />
               </Navbar.Section>
+              <div style={{ alignSelf: 'flex-end', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <Link href={`/authoring`} style={{ width: '100%' }}>
+                  <Button fullWidth>Authoring</Button>
+                </Link>
+              </div>
             </Navbar>
           }
           header={
