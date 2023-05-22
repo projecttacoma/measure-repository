@@ -127,9 +127,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
           </Text>
         </div>
         <Link href={`/${resourceType}/search-result${requestPreview()}`}>
-          <Button size="sm" color="cyan" radius="md" style={{ float: 'right' }}>
-            Search
-          </Button>
+          <Button style={{ float: 'right' }}>Search</Button>
         </Link>
       </Stack>
     </>

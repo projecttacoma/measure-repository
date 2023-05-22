@@ -1,4 +1,4 @@
-import { Button, Grid, Paper, Sx, Text, rem } from '@mantine/core';
+import { Button, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem } from '@mantine/core';
 import Link from 'next/link';
 import React from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
@@ -8,19 +8,21 @@ export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
 }
 
+const useStyles = createStyles(theme => ({
+  card: {
+    borderRadius: 6,
+    border: `${rem(1)} solid ${theme.colors.gray[3]}`,
+    width: '800px',
+    [`@media (max-width: ${em(getBreakpointValue(theme.breakpoints.lg) - 1)})`]: {
+      width: '100%'
+    }
+  }
+}));
+
 export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps) {
+  const { classes } = useStyles();
   return (
-    <Paper
-      shadow="sm"
-      p="md"
-      sx={theme => {
-        const style: Sx = {
-          borderRadius: 6,
-          border: `${rem(1)} solid ${theme.colors.gray[3]}`
-        };
-        return style;
-      }}
-    >
+    <Paper className={classes.card} shadow="sm" p="md">
       <Grid align="center">
         <Grid.Col span={10}>
           <div>

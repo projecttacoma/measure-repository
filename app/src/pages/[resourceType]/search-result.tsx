@@ -1,4 +1,3 @@
-import BackButton from '@/components/BackButton';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Divider, Grid, Text } from '@mantine/core';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
@@ -16,11 +15,6 @@ export default function ResourceSearchResultsPage({
       }}
     >
       <Grid columns={7}>
-        <Grid.Col offset={0} span={1}>
-          <div>
-            <BackButton />
-          </div>
-        </Grid.Col>
         <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
           <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}>Search Results</h2>
         </Grid.Col>

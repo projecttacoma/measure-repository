@@ -1,6 +1,5 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Grid, Divider, Button } from '@mantine/core';
-import BackButton from '../components/BackButton';
+import { Text, Divider, Button, Center } from '@mantine/core';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
 import ResourceButtons from '@/components/ResourceButtons';
 import Link from 'next/link';
@@ -15,32 +14,19 @@ export default function ResourceList({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <>
-      <div
-        style={{
-          width: '78vw'
-        }}
-      >
-        <Grid columns={7}>
-          <Grid.Col offset={0} span={1}>
-            <div>
-              <BackButton />
-            </div>
-          </Grid.Col>
-          <Grid.Col span={5} style={{ paddingTop: '6px' }}>
-            <h2
-              style={{ color: 'gray', marginTop: '0px', marginBottom: '8px', textAlign: 'center' }}
-            >{`Available ${resourceType} Resources`}</h2>
-          </Grid.Col>
-          <Grid.Col span={1}>
-            <Link href={`/search?resourceType=${resourceType}`}>
-              <Button color="cyan" radius="md" size="sm">
-                Search
-              </Button>
-            </Link>
-          </Grid.Col>
-        </Grid>
-        <Divider my="md" style={{ marginTop: '14px' }} />
-        <ResourceButtons resourceInfo={resourceInfo} resourceType={resourceType} />
+      <div>
+        <Center>
+          <Text c="gray" fz="xl">{`Available ${resourceType} Resources`}</Text>
+        </Center>
+        <Divider my="md" />
+        <Center>
+          <Link href={`/search?resourceType=${resourceType}`}>
+            <Button>Search</Button>
+          </Link>
+        </Center>
+        <div style={{ paddingTop: '18px' }}>
+          <ResourceButtons resourceInfo={resourceInfo} resourceType={resourceType} />
+        </div>
       </div>
     </>
   );

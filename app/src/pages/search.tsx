@@ -1,4 +1,3 @@
-import BackButton from '@/components/BackButton';
 import SearchComponent from '@/components/SearchComponent';
 import { ArtifactSearchParams } from '@/util/searchParams';
 import { ArtifactResourceType } from '@/util/types/fhir';
@@ -19,7 +18,6 @@ export default function SearchPage() {
         <Stack spacing="xs">
           <div>
             <Group>
-              <BackButton />
               <Text size="xl" weight={700} color="gray">
                 Search
               </Text>
