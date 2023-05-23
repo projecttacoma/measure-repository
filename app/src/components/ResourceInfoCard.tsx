@@ -45,8 +45,8 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
           )}
           {resourceInfo.identifier && (
             <Text size="sm">
-              {<i>Identifier: </i>}
-              {`${resourceInfo.identifier}`}
+              <i>Identifier: </i>
+              {resourceInfo.identifier}
             </Text>
           )}
         </Grid.Col>

@@ -16,7 +16,9 @@ export default function ResourceList({
     <>
       <div>
         <Center>
-          <Text c="gray" fz="xl">{`Available ${resourceType} Resources`}</Text>
+          <Text c="gray" fz="xl">
+            Available {resourceType} Resources
+          </Text>
         </Center>
         <Divider my="md" />
         <Center>

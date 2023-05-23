@@ -35,11 +35,10 @@ const ResourceCounts = () => {
    */
   const ResourceButtonsGroup = () => {
     if (errorMessage) {
-      // Note: Can show error message here if it would be helpful to the user.
       return (
         <div
           style={{
-            padding: '24px 24px 24px 24px'
+            padding: '24px'
           }}
         >
           <Paper p="xl" radius="md" withBorder>

@@ -16,7 +16,10 @@ export default function ResourceSearchResultsPage({
     >
       <Center>
         <Text c="gray" fz="xl">
-          Search Results
+          Search Returned{' '}
+          <Text display="inline" fw="bold">
+            {resourceInfo?.length ?? 0} Results
+          </Text>
         </Text>
       </Center>
       <Divider my="md" />

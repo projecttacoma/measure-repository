@@ -1,5 +1,5 @@
 import { ArtifactResourceType, ResourceInfo } from '@/util/types/fhir';
-import { ScrollArea, Stack, Text } from '@mantine/core';
+import { Center, ScrollArea, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import ResourceInfoCard from './ResourceInfoCard';
 
@@ -42,9 +42,11 @@ export default function ResourceButtons({ resourceInfo, resourceType }: Resource
             })}
           </Stack>
         ) : (
-          <Text>
-            No <i>{`${resourceType}`}</i> resources available
-          </Text>
+          <Center>
+            <Text>
+              No <i>{resourceType}</i> resources available
+            </Text>
+          </Center>
         )}
       </ScrollArea.Autosize>
     </div>
