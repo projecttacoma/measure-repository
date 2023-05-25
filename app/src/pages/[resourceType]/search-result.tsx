@@ -1,6 +1,5 @@
-import BackButton from '@/components/BackButton';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Divider, Grid, Text } from '@mantine/core';
+import { Center, Divider, Paper, Text } from '@mantine/core';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceButtons from '@/components/ResourceButtons';
 
@@ -15,38 +14,30 @@ export default function ResourceSearchResultsPage({
         width: '78vw'
       }}
     >
-      <Grid columns={7}>
-        <Grid.Col offset={0} span={1}>
-          <div>
-            <BackButton />
-          </div>
-        </Grid.Col>
-        <Grid.Col offset={2} span={2} style={{ paddingTop: '6px' }}>
-          <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px' }}>Search Results</h2>
-        </Grid.Col>
-      </Grid>
-      <Divider my="md" style={{ marginTop: '14px' }} />
+      <Center>
+        <Text c="gray" fz="xl">
+          Search Returned{' '}
+          <Text display="inline" fw="bold">
+            {resourceInfo?.length ?? 0} Results
+          </Text>
+        </Text>
+      </Center>
+      <Divider my="md" />
       {resourceInfo ? (
-        <ResourceButtons resourceType={resourceType} resourceInfo={resourceInfo}></ResourceButtons>
+        <div style={{ paddingTop: '18px' }}>
+          <ResourceButtons resourceInfo={resourceInfo} resourceType={resourceType} />
+        </div>
       ) : (
         <div
           style={{
-            textAlign: 'left',
-            overflowWrap: 'break-word',
-            padding: '10px',
-            backgroundColor: '#FFFFFF',
-            border: '1px solid',
-            borderColor: '#DEE2E6',
-            borderRadius: '20px',
-            marginTop: '10px',
-            marginBottom: '20px',
-            marginLeft: '150px',
-            marginRight: '150px'
+            padding: '48px'
           }}
         >
-          <Text color="red">
-            {resourceType} Search Error: {error}
-          </Text>
+          <Paper p="lg" radius="md" withBorder>
+            <Text color="red">
+              {resourceType} Search Error: {error}
+            </Text>
+          </Paper>
         </div>
       )}
     </div>

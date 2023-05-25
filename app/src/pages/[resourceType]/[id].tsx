@@ -2,7 +2,6 @@ import { Prism } from '@mantine/prism';
 import { Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
-import BackButton from '../../components/BackButton';
 import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
@@ -16,10 +15,10 @@ import parse from 'html-react-parser';
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Overwrite Prism with our custom Prism that includes CQL as a language
   useEffect(() => {
-    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     (PrismRenderer.languages as any).cql = CQLRegex;
     (window as any).Prism = PrismRenderer;
-    /* eslint-enable  @typescript-eslint/no-explicit-any */
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
 
   const decodedCql = useMemo(() => {
@@ -33,13 +32,12 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       <Stack spacing="xs">
         <div>
           <Group>
-            <BackButton />
-            <Text size="xl" weight={700} color="gray">
+            <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
           </Group>
         </div>
-        <Divider my="sm" style={{ paddingBottom: '6px' }} />
+        <Divider my="sm" pb={6} />
         <Tabs variant="outline" defaultValue="json">
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>

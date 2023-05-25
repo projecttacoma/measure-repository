@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Badge, Button, Stack } from '@mantine/core';
+import { Text, Badge, Button, Paper, Stack } from '@mantine/core';
 import Link from 'next/link';
 
 /**
@@ -35,43 +35,34 @@ const ResourceCounts = () => {
    */
   const ResourceButtonsGroup = () => {
     if (errorMessage) {
-      // Note: Can show error message here if it would be helpful to the user.
       return (
         <div
           style={{
-            padding: '16px',
-            color: '#E00000',
-            border: '1px solid',
-            borderColor: '#DEE2E6',
-            borderRadius: '20px',
-            marginLeft: '16px',
-            marginRight: '16px'
+            padding: '24px'
           }}
         >
-          Resources could not be displayed due to an error retrieving them from the server.
+          <Paper p="xl" radius="md" withBorder>
+            <Text c="red">Resources could not be displayed due to an error retrieving them from the server.</Text>
+          </Paper>
         </div>
       );
     }
+
     const buttonArray = Object.keys(resources).map(resourceType =>
-      resources[resourceType] != -1 ? (
+      resources[resourceType] !== -1 ? (
         <Link href={`/${resourceType}`} key={resourceType}>
           <Button
             fullWidth
-            compact
-            color="cyan"
-            radius="md"
-            size="md"
             variant="subtle"
             styles={{
               root: {
                 padding: '2px'
               },
               inner: {
-                paddingLeft: '16px',
-                justifyContent: 'left'
+                paddingLeft: '16px'
               }
             }}
-            rightIcon={<Badge color="cyan">{resources[resourceType]}</Badge>}
+            rightIcon={<Badge>{resources[resourceType]}</Badge>}
             key={resourceType}
           >
             {resourceType}
@@ -81,35 +72,12 @@ const ResourceCounts = () => {
         <div key={resourceType}></div>
       )
     );
-    return <div> {buttonArray} </div>;
+
+    return <div>{buttonArray}</div>;
   };
 
   return (
-    <Stack
-      align="left"
-      spacing="xs"
-      style={{
-        marginBottom: 30,
-        marginLeft: 16,
-        marginRight: 2
-      }}
-    >
-      <Link href={'/search?resourceType=Measure'}>
-        <Button
-          fullWidth
-          compact
-          color="cyan"
-          radius="md"
-          size="md"
-          styles={{
-            root: {
-              padding: '2px'
-            }
-          }}
-        >
-          Search
-        </Button>
-      </Link>
+    <Stack spacing="xs">
       <ResourceButtonsGroup />
     </Stack>
   );
