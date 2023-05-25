@@ -24,6 +24,8 @@ If you want to install a dependency in only the `app` or the `service` directory
 npm install --workspace=<app-or-service> <package-name>
 ```
 
+Copy `app/.env.example` to `app/.env.local` and `service/.env.example` to `service/.env`. Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API.
+
 ## Usage
 
 Once you have the necessary dependencies installed, you can run the following in the root directory:
