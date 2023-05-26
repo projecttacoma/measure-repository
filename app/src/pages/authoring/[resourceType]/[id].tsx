@@ -1,6 +1,5 @@
-import BackButton from '@/components/BackButton';
 import { trpc } from '@/util/trpc';
-import { Button, Divider, Grid, Stack, TextInput } from '@mantine/core';
+import { Button, Center, Divider, Grid, Stack, Text, TextInput } from '@mantine/core';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
@@ -49,22 +48,14 @@ export default function ResourceAuthoringPage() {
         height: '100%'
       }}
     >
-      <Grid columns={7}>
-        <Grid.Col offset={0} span={1}>
-          <div>
-            <BackButton />
-          </div>
-        </Grid.Col>
-        <Grid.Col span={5} style={{ paddingTop: '6px' }}>
-          <h2 style={{ color: 'gray', marginTop: '0px', marginBottom: '8px', textAlign: 'center' }}>
-            {`Editing ${resourceType}/${id}`}
-          </h2>
-        </Grid.Col>
-        <Grid.Col span={1}></Grid.Col>
-      </Grid>
+      <Center>
+        <Text c="gray" fz="xl">
+          {`Editing ${resourceType}/${id}`}
+        </Text>
+      </Center>
       <Divider my="md" style={{ marginTop: '14px' }} />
-      <Grid columns={2} style={{ flexGrow: 1, justifyContent: 'center', width: '100%' }}>
-        <Grid.Col span={1} style={{ height: '100%' }}>
+      <Grid style={{ flexGrow: 1, justifyContent: 'center', width: '100%' }}>
+        <Grid.Col span={6} style={{ height: '100%' }}>
           <Stack spacing="md">
             <TextInput label="url" value={url ?? ''} onChange={e => setUrl(e.target.value)} />
             <TextInput label="identifier" value={identifier ?? ''} onChange={e => setIdentifier(e.target.value)} />
@@ -85,7 +76,7 @@ export default function ResourceAuthoringPage() {
             </Button>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={1}>
+        <Grid.Col span={6}>
           <Prism language="json" colorScheme="light">
             {resourceQuery.data ? JSON.stringify(resourceQuery.data, null, 2) : ''}
           </Prism>

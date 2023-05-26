@@ -61,24 +61,13 @@ function App({ Component, pageProps }: AppProps) {
               <Navbar.Section grow pt={18}>
                 <ResourceCounts />
               </Navbar.Section>
-              <div style={{ alignSelf: 'flex-end', width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <Navbar.Section px={18} style={{ paddingBottom: 16 }}>
                 <Link href={`/authoring`} style={{ width: '100%' }}>
-                  <Button
-                    fullWidth
-                    compact
-                    color="cyan"
-                    radius="md"
-                    size="md"
-                    styles={{
-                      root: {
-                        padding: '2px'
-                      }
-                    }}
-                  >
+                  <Button variant="default" fullWidth>
                     Authoring
                   </Button>
                 </Link>
-              </div>
+              </Navbar.Section>
             </Navbar>
           }
           header={
