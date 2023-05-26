@@ -39,6 +39,23 @@ export default function ResourceAuthoringPage() {
     }
   });
 
+  function parseUpdate(url: string | null, identifier: string | null) {
+    const update: { url?: string; identifier?: fhir4.Identifier } = {};
+    if (url != null) {
+      update['url'] = url;
+    }
+    if (identifier != null) {
+      const splitIden = identifier.split('|');
+      console.log(splitIden);
+      if (splitIden.length > 1) {
+        update['identifier'] = { system: splitIden[0], value: splitIden[1] };
+      } else {
+        update['identifier'] = { value: splitIden[0] };
+      }
+    }
+    return update;
+  }
+
   return (
     <div
       style={{
@@ -64,10 +81,7 @@ export default function ResourceAuthoringPage() {
                 resourceUpdate.mutate({
                   resourceType: resourceType as 'Measure' | 'Library',
                   id: id as string,
-                  draft: {
-                    ...(url != null ? { url } : undefined),
-                    ...(identifier != null ? { identifier } : undefined)
-                  }
+                  draft: parseUpdate(url, identifier)
                 })
               }
               style={{ alignSelf: 'flex-end', width: 120 }}
