@@ -11,6 +11,7 @@ import {
   Box,
   ScrollArea
 } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -37,6 +38,7 @@ function App({ Component, pageProps }: AppProps) {
           fontFamily: openSans.style.fontFamily
         }}
       >
+        <Notifications position="top-center" />
         <AppShell
           padding="md"
           /** Consistent navbar shows available resources as regular content page changes to drill into details */
@@ -61,7 +63,20 @@ function App({ Component, pageProps }: AppProps) {
               </Navbar.Section>
               <div style={{ alignSelf: 'flex-end', width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <Link href={`/authoring`} style={{ width: '100%' }}>
-                  <Button fullWidth>Authoring</Button>
+                  <Button
+                    fullWidth
+                    compact
+                    color="cyan"
+                    radius="md"
+                    size="md"
+                    styles={{
+                      root: {
+                        padding: '2px'
+                      }
+                    }}
+                  >
+                    Authoring
+                  </Button>
                 </Link>
               </div>
             </Navbar>

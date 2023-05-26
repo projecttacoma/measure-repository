@@ -1,8 +1,8 @@
-import { router } from '../trpc';
-import { exampleRouter } from './example';
+import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import { draftRouter } from './routers';
 
-export const appRouter = router({
-  example: exampleRouter
-});
+export const appRouter = draftRouter;
 
 export type AppRouter = typeof appRouter;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
+export type RouterInputs = inferRouterInputs<AppRouter>;
