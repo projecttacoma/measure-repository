@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
 import { notifications } from '@mantine/notifications';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { ArtifactResourceType } from '@/util/types/fhir';
 
 export default function ResourceAuthoringPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function ResourceAuthoringPage() {
 
   const resourceQuery = trpc.getDraftById.useQuery({
     id: id as string,
-    resourceType: resourceType as 'Measure' | 'Library'
+    resourceType: resourceType as ArtifactResourceType
   });
 
   const resourceUpdate = trpc.updateDraft.useMutation({
@@ -79,7 +80,7 @@ export default function ResourceAuthoringPage() {
             <Button
               onClick={() =>
                 resourceUpdate.mutate({
-                  resourceType: resourceType as 'Measure' | 'Library',
+                  resourceType: resourceType as ArtifactResourceType,
                   id: id as string,
                   draft: parseUpdate(url, identifier)
                 })

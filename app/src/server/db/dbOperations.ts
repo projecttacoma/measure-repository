@@ -1,9 +1,10 @@
+import { ArtifactResourceType, FhirArtifact } from '@/util/types/fhir';
 import clientPromise from './mongodb';
 
 /**
  * Retrieves all draft resources of the given type
  */
-export async function getAllDraftsByType<T extends fhir4.Measure | fhir4.Library>(resourceType: 'Measure' | 'Library') {
+export async function getAllDraftsByType<T extends FhirArtifact>(resourceType: ArtifactResourceType) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
   return collection.find<T>({}, { projection: { _id: 0 } }).toArray();
@@ -12,10 +13,7 @@ export async function getAllDraftsByType<T extends fhir4.Measure | fhir4.Library
 /**
  * Retrieves the draft resource of the given type with the given id
  */
-export async function getDraftById<T extends fhir4.Measure | fhir4.Library>(
-  id: string,
-  resourceType: 'Measure' | 'Library'
-) {
+export async function getDraftById<T extends FhirArtifact>(id: string, resourceType: ArtifactResourceType) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
   return collection.findOne<T>({ id }, { projection: { _id: 0 } });
@@ -24,7 +22,7 @@ export async function getDraftById<T extends fhir4.Measure | fhir4.Library>(
 /**
  * Creates a new draft resource of the given type
  */
-export async function createDraft(resourceType: 'Measure' | 'Library', draft: any) {
+export async function createDraft(resourceType: ArtifactResourceType, draft: any) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
   return collection.insertOne(draft);
@@ -33,7 +31,7 @@ export async function createDraft(resourceType: 'Measure' | 'Library', draft: an
 /**
  * Updates the resource of the given type with the given id
  */
-export async function updateDraft(resourceType: 'Measure' | 'Library', id: string, update: any) {
+export async function updateDraft(resourceType: ArtifactResourceType, id: string, update: any) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
   return collection.updateOne({ id }, { $set: update });

@@ -1,3 +1,4 @@
+import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { createDraft, getAllDraftsByType, getDraftById, updateDraft } from '../../db/dbOperations';
 import { publicProcedure, router } from '../trpc';
@@ -6,11 +7,11 @@ import { publicProcedure, router } from '../trpc';
 export const draftRouter = router({
   getDrafts: publicProcedure
     .input(z.enum(['Measure', 'Library']))
-    .query(async opts => getAllDraftsByType<fhir4.Measure | fhir4.Library>(opts.input)),
+    .query(async opts => getAllDraftsByType<FhirArtifact>(opts.input)),
 
   getDraftById: publicProcedure
     .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
-    .query(async opts => getDraftById<fhir4.Measure | fhir4.Library>(opts.input.id, opts.input.resourceType)),
+    .query(async opts => getDraftById<FhirArtifact>(opts.input.id, opts.input.resourceType)),
 
   createDraft: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), draft: z.any() }))

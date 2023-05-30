@@ -6,9 +6,10 @@ import { MeasureSkeleton, LibrarySkeleton } from '@/util/authoringFixtures';
 import { useRouter } from 'next/router';
 import { notifications } from '@mantine/notifications';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { ArtifactResourceType } from '@/util/types/fhir';
 
 export default function AuthoringPage() {
-  const [resourceType, setResourceType] = useState<'Measure' | 'Library'>('Measure');
+  const [resourceType, setResourceType] = useState<ArtifactResourceType>('Measure');
   const draftMutation = trpc.createDraft.useMutation({
     onSuccess: data => {
       notifications.show({
@@ -51,7 +52,7 @@ export default function AuthoringPage() {
       <Radio.Group
         label="Resource Type"
         value={resourceType}
-        onChange={val => setResourceType(val as 'Measure' | 'Library')}
+        onChange={val => setResourceType(val as ArtifactResourceType)}
       >
         <Group>
           <Radio label="Measure" value="Measure" />
