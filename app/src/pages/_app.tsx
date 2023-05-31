@@ -1,16 +1,5 @@
 import '@/styles/globals.css';
-import {
-  AppShell,
-  Button,
-  Center,
-  Header,
-  MantineProvider,
-  Navbar,
-  Text,
-  Divider,
-  Box,
-  ScrollArea
-} from '@mantine/core';
+import { AppShell, Button, Center, Header, MantineProvider, Navbar, Text, Divider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -18,12 +7,15 @@ import Link from 'next/link';
 import { ResourceCounts } from '../components/ResourceCounts';
 import { trpc } from '@/util/trpc';
 import { Open_Sans } from 'next/font/google';
+import { useRouter } from 'next/dist/client/router';
 
 const openSans = Open_Sans({
   subsets: ['latin']
 });
 
 function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  console.log(router);
   return (
     <>
       <Head>
@@ -61,19 +53,13 @@ function App({ Component, pageProps }: AppProps) {
               <Navbar.Section grow pt={18}>
                 <ResourceCounts />
               </Navbar.Section>
-              <Navbar.Section px={18} style={{ paddingBottom: 16 }}>
-                <Link href={`/authoring`} style={{ width: '100%' }}>
-                  <Button variant="default" fullWidth>
-                    Authoring
-                  </Button>
-                </Link>
-              </Navbar.Section>
             </Navbar>
           }
           header={
             <Header
               color="blue"
               height={48}
+              px={18}
               sx={theme => {
                 const shade =
                   typeof theme.primaryShade === 'number' ? theme.primaryShade : theme.primaryShade[theme.colorScheme];
@@ -82,15 +68,31 @@ function App({ Component, pageProps }: AppProps) {
                   backgroundColor: theme.colors[theme.primaryColor][shade],
                   display: 'flex',
                   alignItems: 'center',
-                  paddingLeft: '18px'
+                  justifyContent: 'space-between'
                 };
               }}
             >
-              <Link href="/">
-                <Text c="white" weight="bold">
-                  Measure Repository
-                </Text>
-              </Link>
+              <div>
+                <Link href="/">
+                  <Text c="white" weight="bold">
+                    Measure Repository
+                  </Text>
+                </Link>
+              </div>
+              <div>
+                <Link href={`/authoring`} style={{ width: '100%' }}>
+                  <div
+                    style={{
+                      padding: 18,
+                      backgroundColor: router.route.split('/')[1] === 'authoring' ? 'yellow' : 'blue'
+                    }}
+                  >
+                    <Text c="white" weight="bold">
+                      Authoring
+                    </Text>
+                  </div>
+                </Link>
+              </div>
             </Header>
           }
           styles={theme => ({

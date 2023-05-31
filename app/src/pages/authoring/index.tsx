@@ -1,4 +1,4 @@
-import { Button, Group, Radio, Title } from '@mantine/core';
+import { Button, Center, Divider, Group, SegmentedControl, Text, Title } from '@mantine/core';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
@@ -39,30 +39,36 @@ export default function AuthoringPage() {
   };
 
   return (
-    <Group
-      spacing="lg"
-      position="left"
-      style={{
-        flexDirection: 'column',
-        width: '100%',
-        alignItems: 'flex-start',
-        justifyContent: 'flex-start'
-      }}
-    >
-      <Radio.Group
-        label="Resource Type"
-        value={resourceType}
-        onChange={val => setResourceType(val as ArtifactResourceType)}
+    <div>
+      <Center>
+        <Text c="gray" fz="xl">
+          {`Authoring`}
+        </Text>
+      </Center>
+      <Divider my="md" style={{ marginTop: '14px' }} />
+      <Group
+        spacing="lg"
+        position="left"
+        style={{
+          flexDirection: 'column',
+          width: '100%',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-start'
+        }}
       >
-        <Group>
-          <Radio label="Measure" value="Measure" />
-          <Radio label="Library" value="Library" />
-        </Group>
-      </Radio.Group>
-      <Title order={3}>Start From Scratch:</Title>
-      <Button loading={draftMutation.isLoading} onClick={createResource}>
-        {`Create New Draft ${resourceType}`}
-      </Button>
-    </Group>
+        <SegmentedControl
+          value={resourceType}
+          onChange={val => setResourceType(val as ArtifactResourceType)}
+          data={[
+            { label: 'Measure', value: 'Measure' },
+            { label: 'Library', value: 'Library' }
+          ]}
+        ></SegmentedControl>
+        <Title order={3}>Start From Scratch:</Title>
+        <Button loading={draftMutation.isLoading} onClick={createResource}>
+          {`Create New Draft ${resourceType}`}
+        </Button>
+      </Group>
+    </div>
   );
 }
