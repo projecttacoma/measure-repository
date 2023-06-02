@@ -1,7 +1,7 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Text, Divider, Button, Center } from '@mantine/core';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
-import ResourceButtons from '@/components/ResourceButtons';
+import ResourceCards from '@/components/ResourceCards';
 import Link from 'next/link';
 
 /**
@@ -27,7 +27,7 @@ export default function ResourceList({
           </Link>
         </Center>
         <div style={{ paddingTop: '18px' }}>
-          <ResourceButtons resourceInfo={resourceInfo} resourceType={resourceType} />
+          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
         </div>
       </div>
     </>

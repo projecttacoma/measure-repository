@@ -36,3 +36,9 @@ export async function updateDraft(resourceType: ArtifactResourceType, id: string
   const collection = client.db().collection(resourceType);
   return collection.updateOne({ id }, { $set: update });
 }
+
+export async function getDraftCount(resourceType: ArtifactResourceType) {
+  const client = await clientPromise;
+  const collection = client.db().collection(resourceType);
+  return collection.countDocuments();
+}

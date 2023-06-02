@@ -1,4 +1,4 @@
-import { Button, Center, Divider, Group, SegmentedControl, Text, Title } from '@mantine/core';
+import { Button, Center, Paper, SegmentedControl, Stack, Title, createStyles } from '@mantine/core';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
@@ -8,9 +8,19 @@ import { notifications } from '@mantine/notifications';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 
+const useStyles = createStyles(theme => ({
+  centeredContainer: {
+    height: '100%'
+  }
+}));
+
 export default function AuthoringPage() {
   const [resourceType, setResourceType] = useState<ArtifactResourceType>('Measure');
-  const draftMutation = trpc.createDraft.useMutation({
+
+  const ctx = trpc.useContext();
+  const { classes } = useStyles();
+
+  const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
       notifications.show({
         title: `${resourceType} Created!`,
@@ -19,6 +29,7 @@ export default function AuthoringPage() {
         color: 'green'
       });
       router.push(`authoring/${resourceType}/${data.draftId}`);
+      ctx.draft.getDraftCounts.invalidate();
     },
     onError: e => {
       notifications.show({
@@ -39,36 +50,23 @@ export default function AuthoringPage() {
   };
 
   return (
-    <div>
-      <Center>
-        <Text c="gray" fz="xl">
-          {`Authoring`}
-        </Text>
-      </Center>
-      <Divider my="md" style={{ marginTop: '14px' }} />
-      <Group
-        spacing="lg"
-        position="left"
-        style={{
-          flexDirection: 'column',
-          width: '100%',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start'
-        }}
-      >
-        <SegmentedControl
-          value={resourceType}
-          onChange={val => setResourceType(val as ArtifactResourceType)}
-          data={[
-            { label: 'Measure', value: 'Measure' },
-            { label: 'Library', value: 'Library' }
-          ]}
-        ></SegmentedControl>
-        <Title order={3}>Start From Scratch:</Title>
-        <Button loading={draftMutation.isLoading} onClick={createResource}>
-          {`Create New Draft ${resourceType}`}
-        </Button>
-      </Group>
-    </div>
+    <Center className={classes.centeredContainer}>
+      <Paper h={500} w={500} p={48} withBorder shadow="lg">
+        <Stack>
+          <SegmentedControl
+            value={resourceType}
+            onChange={val => setResourceType(val as ArtifactResourceType)}
+            data={[
+              { label: 'Measure', value: 'Measure' },
+              { label: 'Library', value: 'Library' }
+            ]}
+          />
+          <Title order={3}>Start From Scratch:</Title>
+          <Button w={240} loading={draftMutation.isLoading} onClick={createResource}>
+            {`Create New Draft ${resourceType}`}
+          </Button>
+        </Stack>
+      </Paper>
+    </Center>
   );
 }
