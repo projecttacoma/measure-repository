@@ -19,7 +19,7 @@
     "@mantine/dates": "^6.0.9",
     "@mantine/hooks": "^6.0.9",
     "@mantine/next": "^6.0.9",
-    "@mantine/notifications": "^6.0.9",
+    "@mantine/notifications": "^6.0.11",
     "@mantine/prism": "^6.0.9",
     "@tanstack/react-query": "^4.29.7",
     "@trpc/client": "^10.26.0",

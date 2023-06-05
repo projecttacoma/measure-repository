@@ -1,17 +1,47 @@
 import '@/styles/globals.css';
-import { AppShell, Center, Header, MantineProvider, Navbar, Text, Divider, Button } from '@mantine/core';
+import {
+  AppShell,
+  Button,
+  Center,
+  Header,
+  MantineProvider,
+  Navbar,
+  Text,
+  Divider,
+  Group,
+  createStyles
+} from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import Link from 'next/link';
-import { ResourceCounts } from '../components/ResourceCounts';
+import ServiceResourceButtons from '../components/ServiceResourceButtons';
 import { trpc } from '@/util/trpc';
 import { Open_Sans } from 'next/font/google';
+import { useRouter } from 'next/dist/client/router';
+import { Database } from 'tabler-icons-react';
+import DraftResourceButtons from '@/components/DraftResourceButtons';
 
 const openSans = Open_Sans({
   subsets: ['latin']
 });
 
+const useStyles = createStyles(theme => ({
+  brandContainer: {
+    position: 'absolute'
+  },
+  dbIcon: {
+    color: theme.colors.orange[3]
+  },
+  navGroup: {
+    width: '100%'
+  }
+}));
+
 function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  const { classes } = useStyles();
+
   return (
     <>
       <Head>
@@ -26,34 +56,52 @@ function App({ Component, pageProps }: AppProps) {
           fontFamily: openSans.style.fontFamily
         }}
       >
+        <Notifications position="top-center" />
         <AppShell
           padding="md"
           /** Consistent navbar shows available resources as regular content page changes to drill into details */
           navbar={
             <Navbar width={{ base: '320px' }}>
-              <Navbar.Section pt={18}>
-                <Center>
-                  <Text c="gray">Browse Measure Repository</Text>
-                </Center>
-              </Navbar.Section>
-              <Divider my="md" />
-              <Navbar.Section px={18}>
-                <Link href={'/search?resourceType=Measure'}>
-                  <Button variant="default" fullWidth>
-                    Search
-                  </Button>
-                </Link>
-              </Navbar.Section>
+              {router.pathname.startsWith('/authoring') ? (
+                <>
+                  <Navbar.Section pt={18}>
+                    <Center>
+                      <Text c="gray">Draft Artifacts</Text>
+                    </Center>
+                  </Navbar.Section>
+                  <Divider my="md" />
+                  <Navbar.Section grow pt={18}>
+                    <DraftResourceButtons />
+                  </Navbar.Section>
+                </>
+              ) : (
+                <>
+                  <Navbar.Section pt={18}>
+                    <Center>
+                      <Text c="gray">Browse Measure Repository</Text>
+                    </Center>
+                  </Navbar.Section>
+                  <Divider my="md" />
+                  <Navbar.Section px={18}>
+                    <Link href={'/search?resourceType=Measure'}>
+                      <Button variant="default" fullWidth>
+                        Search
+                      </Button>
+                    </Link>
+                  </Navbar.Section>
 
-              <Navbar.Section grow pt={18}>
-                <ResourceCounts />
-              </Navbar.Section>
+                  <Navbar.Section grow pt={18}>
+                    <ServiceResourceButtons />
+                  </Navbar.Section>
+                </>
+              )}
             </Navbar>
           }
           header={
             <Header
               color="blue"
               height={48}
+              px={18}
               sx={theme => {
                 const shade =
                   typeof theme.primaryShade === 'number' ? theme.primaryShade : theme.primaryShade[theme.colorScheme];
@@ -62,15 +110,30 @@ function App({ Component, pageProps }: AppProps) {
                   backgroundColor: theme.colors[theme.primaryColor][shade],
                   display: 'flex',
                   alignItems: 'center',
-                  paddingLeft: '18px'
+                  justifyContent: 'space-between'
                 };
               }}
             >
-              <Link href="/">
-                <Text c="white" weight="bold">
-                  Measure Repository
-                </Text>
-              </Link>
+              <div className={classes.brandContainer}>
+                <Link href="/">
+                  <Group align="center" spacing="xs">
+                    <Center>
+                      <Database className={classes.dbIcon} />
+                    </Center>
+                    <Text c="white" weight="bold">
+                      Measure Repository
+                    </Text>
+                  </Group>
+                </Link>
+              </div>
+              <Group position="center" className={classes.navGroup} spacing="xl">
+                <Link href="/">
+                  <Text c={!router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Repository</Text>
+                </Link>
+                <Link href="/authoring">
+                  <Text c={router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Authoring</Text>
+                </Link>
+              </Group>
             </Header>
           }
           styles={theme => ({

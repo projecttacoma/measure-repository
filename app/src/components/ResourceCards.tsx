@@ -12,7 +12,7 @@ interface ResourceButtonsProps {
  * Component which displays all resources of a specified type and their ids
  * as buttons that link to that resource's page
  */
-export default function ResourceButtons({ resourceInfo, resourceType }: ResourceButtonsProps) {
+export default function ResourceCards({ resourceInfo, resourceType }: ResourceButtonsProps) {
   const [height, setWindowHeight] = useState(0);
   useEffect(() => {
     const handleResize = () => {
