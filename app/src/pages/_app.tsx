@@ -128,7 +128,7 @@ function App({ Component, pageProps }: AppProps) {
               </div>
               <Group position="center" className={classes.navGroup} spacing="xl">
                 <Link href="/">
-                  <Text c={router.pathname === '/' ? 'orange.3' : 'gray.4'}>Repository</Text>
+                  <Text c={!router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Repository</Text>
                 </Link>
                 <Link href="/authoring">
                   <Text c={router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Authoring</Text>
