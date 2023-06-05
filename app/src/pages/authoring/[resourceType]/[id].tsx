@@ -1,6 +1,6 @@
 import { trpc } from '@/util/trpc';
 import { Button, Center, Divider, Grid, Paper, Stack, Text, TextInput } from '@mantine/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
 import { notifications } from '@mantine/notifications';
@@ -16,10 +16,27 @@ export default function ResourceAuthoringPage() {
 
   const ctx = trpc.useContext();
 
-  const resourceQuery = trpc.draft.getDraftById.useQuery({
+  const { data: resource } = trpc.draft.getDraftById.useQuery({
     id: id as string,
     resourceType: resourceType as ArtifactResourceType
   });
+
+  // useEffect to check if it has an identifier and url
+  useEffect(() => {
+    if (resource?.url) {
+      setUrl(resource.url);
+    }
+    if (resource?.identifier) {
+      const cmsIdentifier = resource.identifier.find(
+        identifier => identifier.system === 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms'
+      );
+      if (cmsIdentifier?.value) {
+        setIdentifier(cmsIdentifier.value);
+      } else if (resource.identifier[0].value) {
+        setIdentifier(resource.identifier[0].value);
+      }
+    }
+  }, [resource?.url, resource?.identifier]);
 
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
     onSuccess: () => {
@@ -89,7 +106,7 @@ export default function ResourceAuthoringPage() {
         <Grid.Col span={6}>
           <Paper withBorder>
             <Prism language="json" colorScheme="light">
-              {resourceQuery.data ? JSON.stringify(resourceQuery.data, null, 2) : ''}
+              {resource ? JSON.stringify(resource, null, 2) : ''}
             </Prism>
           </Paper>
         </Grid.Col>
