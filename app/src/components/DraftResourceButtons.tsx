@@ -3,8 +3,8 @@ import { trpc } from '@/util/trpc';
 import SidebarButtonList from './SidebarButtonList';
 
 /**
- * Component which retrieves all resources and their counts and translates them into buttons and adds
- * a search button that links to the overall search page
+ * Component which retrieves all _draft_ resources and their counts and translates them into buttons
+ * Used in the context of the sidebar in the app shell
  */
 function DraftResourceButtons() {
   const {
@@ -31,7 +31,7 @@ function DraftResourceButtons() {
         >
           <Paper p="xl" radius="md" withBorder>
             <Text c="red">
-              Resources could not be displayed due to an error retrieving them from the server: &quot;
+              Local draft resources could not be displayed due to an error: &quot;
               {artifactCountError.message}&quot;
             </Text>
           </Paper>

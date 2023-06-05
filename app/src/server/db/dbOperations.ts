@@ -37,6 +37,9 @@ export async function updateDraft(resourceType: ArtifactResourceType, id: string
   return collection.updateOne({ id }, { $set: update });
 }
 
+/*
+ * Counts the number of artifact resources present for a given resource type
+ */
 export async function getDraftCount(resourceType: ArtifactResourceType) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);

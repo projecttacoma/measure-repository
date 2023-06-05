@@ -8,7 +8,7 @@ import { notifications } from '@mantine/notifications';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 
-const useStyles = createStyles(theme => ({
+const useStyles = createStyles(() => ({
   centeredContainer: {
     height: '100%'
   }
