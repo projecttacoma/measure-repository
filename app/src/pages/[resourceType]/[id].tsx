@@ -27,6 +27,12 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     return encodedCql ? Buffer.from(encodedCql, 'base64').toString() : null;
   }, [jsonData]);
 
+  const decodedELM = useMemo(() => {
+    if (jsonData.resourceType === 'Measure') return null;
+    const encodedELM = (jsonData as fhir4.Library).content?.find(e => e.contentType === 'application/elm+json')?.data;
+    return encodedELM ? Buffer.from(encodedELM, 'base64').toString() : null;
+  }, [jsonData]);
+
   return (
     <div>
       <Stack spacing="xs">
@@ -41,9 +47,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
         <Tabs variant="outline" defaultValue="json">
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>
-            <Tabs.Tab value="elm" disabled>
-              ELM
-            </Tabs.Tab>
+            {decodedELM != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
             {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
             {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
           </Tabs.List>
@@ -58,6 +62,15 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               <Prism language={'cql' as any} colorScheme="light">
                 {/* eslint-enable  @typescript-eslint/no-explicit-any */}
                 {decodedCql}
+              </Prism>
+            </Tabs.Panel>
+          )}
+          {decodedELM != null && (
+            <Tabs.Panel value="elm" pt="xs">
+              {/* eslint-disable  @typescript-eslint/no-explicit-any */}
+              <Prism language={'elm' as any} colorScheme="light">
+                {/* eslint-enable  @typescript-eslint/no-explicit-any */}
+                {decodedELM}
               </Prism>
             </Tabs.Panel>
           )}
