@@ -1,5 +1,8 @@
 import { Prism } from '@mantine/prism';
 import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
+import { IconAbacus, IconAbacusOff, IconCheck } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import React from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import { useEffect, useMemo } from 'react';
@@ -7,10 +10,12 @@ import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
-import { notifications } from '@mantine/notifications';
 import { trpc } from '../../util/trpc';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
+import { useState } from 'react';
+import { DataRequirement } from 'fhir/r3';
+import { teal } from '@mui/material/colors';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -27,6 +32,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     (window as any).Prism = PrismRenderer;
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
+
+  const [requirementTabVisible, setTabVisible] = useState(false);
+  const [load, setLoading] = useState(false);
+  const [dataRequirementsVisible, setDataReqsVisible] = useState<DataRequirement[] | undefined>(undefined);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -79,41 +88,104 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           </Group>
         </div>
         <Divider my="sm" pb={6} />
-        <Tabs variant="outline" defaultValue="json">
-          <Tabs.List>
-            <Tabs.Tab value="json">JSON</Tabs.Tab>
-            {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
-            {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
-            {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-          </Tabs.List>
-          <Tabs.Panel value="json" pt="xs">
-            <Prism language="json" colorScheme="light">
-              {JSON.stringify(jsonData, null, 2)}
-            </Prism>
-          </Tabs.Panel>
-          {decodedCql != null && (
-            <Tabs.Panel value="cql" pt="xs">
-              {/* eslint-disable  @typescript-eslint/no-explicit-any */}
-              <Prism language={'cql' as any} colorScheme="light">
-                {/* eslint-enable  @typescript-eslint/no-explicit-any */}
-                {decodedCql}
-              </Prism>
-            </Tabs.Panel>
-          )}
-          {decodedElm != null && (
-            <Tabs.Panel value="elm" pt="xs">
+        <div>
+          <Tabs variant="outline" defaultValue="json">
+            <Tabs.List>
+              <Tabs.Tab value="json">JSON</Tabs.Tab>
+              {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
+              {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
+              {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
+              {requirementTabVisible != false && dataRequirementsVisible != null && (
+                <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>
+              )}
+            </Tabs.List>
+            <Tabs.Panel value="json" pt="xs">
               <Prism language="json" colorScheme="light">
-                {decodedElm}
+                {JSON.stringify(jsonData, null, 2)}
               </Prism>
             </Tabs.Panel>
-          )}
-          {jsonData.text && (
-            <Tabs.Panel value="narrative">
-              <Space h="sm" />
-              {parse(jsonData.text.div)}
-            </Tabs.Panel>
-          )}
-        </Tabs>
+            {decodedCql != null && (
+              <Tabs.Panel value="cql" pt="xs">
+                {/* eslint-disable  @typescript-eslint/no-explicit-any */}
+                <Prism language={'cql' as any} colorScheme="light">
+                  {/* eslint-enable  @typescript-eslint/no-explicit-any */}
+                  {decodedCql}
+                </Prism>
+              </Tabs.Panel>
+            )}
+            {decodedElm != null && (
+              <Tabs.Panel value="elm" pt="xs">
+                <Prism language="json" colorScheme="light">
+                  {decodedElm}
+                </Prism>
+              </Tabs.Panel>
+            )}
+            {jsonData.text && (
+              <Tabs.Panel value="narrative">
+                <Space h="sm" />
+                {parse(jsonData.text.div)}
+              </Tabs.Panel>
+            )}
+            {requirementTabVisible && dataRequirementsVisible != null && (
+              <Tabs.Panel value="datarequirements">
+                <Prism language="json" colorScheme="light">
+                  {JSON.stringify(dataRequirementsVisible, null, 2)}
+                </Prism>
+              </Tabs.Panel>
+            )}
+          </Tabs>
+        </div>
+        <div style={{ position: 'absolute', left: '85vw', top: '16vh' }}>
+          <Button
+            id="btn"
+            loading={load}
+            loaderPosition="center"
+            style={{ display: 'flex', float: 'right', justifyContent: 'space-between' }}
+            onClick={event => {
+              setLoading(true);
+              setTimeout(() => {
+                if ((jsonData as fhir4.Library).dataRequirement != undefined) {
+                  const dr = (jsonData as fhir4.Library).dataRequirement;
+                  setDataReqsVisible(dr);
+                  notifications.show({
+                    id: 'requirements',
+                    withCloseButton: true,
+                    onClose: () => console.log('unmounted'),
+                    onOpen: () => console.log('mounted'),
+                    autoClose: 3000,
+                    title: 'Successful Fetch',
+                    message: 'Data Requirements successfully fetched for this package',
+                    color: 'teal',
+                    icon: <IconCheck />,
+                    // color: teal,
+                    className: 'my-notification-class',
+                    style: { backgroundColor: 'white' },
+                    loading: false
+                  });
+                } else {
+                  notifications.show({
+                    id: 'no-requirements',
+                    withCloseButton: true,
+                    onClose: () => console.log('unmounted'),
+                    onOpen: () => console.log('mounted'),
+                    autoClose: 5000,
+                    title: 'No Data Requirements found',
+                    message: 'No data requirements were found for this package',
+                    color: 'white',
+                    icon: <IconAbacusOff />,
+                    className: 'my-notification-class',
+                    style: { backgroundColor: 'white' },
+                    loading: false
+                  });
+                }
+                setLoading(false);
+                setTabVisible(true);
+              }, 1000);
+            }}
+          >
+            Get Data Requirements
+          </Button>
+        </div>
       </Stack>
     </div>
   );
