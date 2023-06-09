@@ -3,6 +3,7 @@ import { Text, Divider, Button, Center } from '@mantine/core';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
 import Link from 'next/link';
+import { ExternalLink } from 'tabler-icons-react';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -27,7 +28,7 @@ export default function ResourceList({
           </Link>
         </Center>
         <div style={{ paddingTop: '18px' }}>
-          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
+          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
         </div>
       </div>
     </>

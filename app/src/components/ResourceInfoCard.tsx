@@ -1,11 +1,11 @@
-import { Button, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem } from '@mantine/core';
+import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem } from '@mantine/core';
 import Link from 'next/link';
 import React from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { ExternalLink } from 'tabler-icons-react';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
+  icon: JSX.Element;
 }
 
 const useStyles = createStyles(theme => ({
@@ -19,7 +19,7 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps) {
+export default function ResourceInfoCard({ resourceInfo, icon }: ResourceInfoCardProps) {
   const { classes } = useStyles();
   return (
     <Paper className={classes.card} shadow="sm" p="md">
@@ -51,9 +51,9 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
           )}
         </Grid.Col>
         <Link href={`/${resourceInfo.resourceType}/${resourceInfo.id}`} key={resourceInfo.id}>
-          <Button radius="md" size="md" variant="subtle" color="gray">
-            {<ExternalLink size="24" />}
-          </Button>
+          <ActionIcon radius="md" size="md" variant="subtle" color="gray">
+            {icon}
+          </ActionIcon>
         </Link>
       </Grid>
     </Paper>

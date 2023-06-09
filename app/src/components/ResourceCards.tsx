@@ -3,16 +3,17 @@ import { Center, ScrollArea, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import ResourceInfoCard from './ResourceInfoCard';
 
-interface ResourceButtonsProps {
+interface ResourceCardsProps {
   resourceInfo: ResourceInfo[];
   resourceType: ArtifactResourceType;
+  icon: JSX.Element;
 }
 
 /**
  * Component which displays all resources of a specified type and their ids
  * as buttons that link to that resource's page
  */
-export default function ResourceCards({ resourceInfo, resourceType }: ResourceButtonsProps) {
+export default function ResourceCards({ resourceInfo, resourceType, icon }: ResourceCardsProps) {
   const [height, setWindowHeight] = useState(0);
   useEffect(() => {
     const handleResize = () => {
@@ -26,7 +27,7 @@ export default function ResourceCards({ resourceInfo, resourceType }: ResourceBu
   return (
     <div>
       <ScrollArea.Autosize mah={height * 0.8} type="scroll">
-        {resourceInfo.length > 0 ? (
+        {resourceInfo?.length > 0 ? (
           <Stack
             style={{
               alignItems: 'center',
@@ -36,7 +37,7 @@ export default function ResourceCards({ resourceInfo, resourceType }: ResourceBu
             {resourceInfo.map(res => {
               return (
                 <div key={res.id}>
-                  <ResourceInfoCard resourceInfo={res} />
+                  <ResourceInfoCard resourceInfo={res} icon={icon} />
                 </div>
               );
             })}
