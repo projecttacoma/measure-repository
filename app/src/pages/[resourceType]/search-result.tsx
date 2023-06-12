@@ -2,6 +2,7 @@ import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Center, Divider, Paper, Text } from '@mantine/core';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
+import { ExternalLink } from 'tabler-icons-react';
 
 export default function ResourceSearchResultsPage({
   resourceInfo,
@@ -24,9 +25,11 @@ export default function ResourceSearchResultsPage({
       </Center>
       <Divider my="md" />
       {resourceInfo ? (
-        <div style={{ paddingTop: '18px' }}>
-          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
-        </div>
+        <Center>
+          <div style={{ paddingTop: '18px' }}>
+            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
+          </div>
+        </Center>
       ) : (
         <div
           style={{

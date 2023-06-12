@@ -34,12 +34,14 @@ export default function ResourceAuthoringPage() {
       </Center>
       <Divider my="md" />
       <div style={{ paddingTop: '18px' }}>
-        <ResourceCards
-          resourceInfo={resourceCardContent}
-          resourceType={resourceType as ArtifactResourceType}
-          icon={<Edit size="24" />}
-          authoring={true}
-        />
+        <Center>
+          <ResourceCards
+            resourceInfo={resourceCardContent}
+            resourceType={resourceType as ArtifactResourceType}
+            icon={<Edit size="24" />}
+            authoring={true}
+          />
+        </Center>
       </div>
     </div>
   );

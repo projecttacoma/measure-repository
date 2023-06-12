@@ -29,12 +29,7 @@ export default function ResourceCards({ resourceInfo, resourceType, icon, author
     <div>
       <ScrollArea.Autosize mah={height * 0.8} type="scroll">
         {resourceInfo?.length > 0 ? (
-          <Stack
-            style={{
-              alignItems: 'center',
-              paddingBottom: '12px'
-            }}
-          >
+          <Stack align="stretch">
             {resourceInfo.map(res => {
               return (
                 <div key={res.id}>

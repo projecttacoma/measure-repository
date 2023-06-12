@@ -27,9 +27,11 @@ export default function ResourceList({
             <Button>Search</Button>
           </Link>
         </Center>
-        <div style={{ paddingTop: '18px' }}>
-          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
-        </div>
+        <Center>
+          <div style={{ paddingTop: '18px' }}>
+            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
+          </div>
+        </Center>
       </div>
     </>
   );
