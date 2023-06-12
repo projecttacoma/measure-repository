@@ -68,7 +68,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           {decodedELM != null && (
             <Tabs.Panel value="elm" pt="xs">
               {/* eslint-disable  @typescript-eslint/no-explicit-any */}
-              <Prism language={'elm' as any} colorScheme="light">
+              <Prism language="json" colorScheme="light">
                 {/* eslint-enable  @typescript-eslint/no-explicit-any */}
                 {decodedELM}
               </Prism>
