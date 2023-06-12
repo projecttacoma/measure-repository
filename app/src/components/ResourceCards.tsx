@@ -7,13 +7,14 @@ interface ResourceCardsProps {
   resourceInfo: ResourceInfo[];
   resourceType: ArtifactResourceType;
   icon: JSX.Element;
+  authoring?: boolean;
 }
 
 /**
  * Component which displays all resources of a specified type and their ids
  * as buttons that link to that resource's page
  */
-export default function ResourceCards({ resourceInfo, resourceType, icon }: ResourceCardsProps) {
+export default function ResourceCards({ resourceInfo, resourceType, icon, authoring }: ResourceCardsProps) {
   const [height, setWindowHeight] = useState(0);
   useEffect(() => {
     const handleResize = () => {
@@ -37,7 +38,7 @@ export default function ResourceCards({ resourceInfo, resourceType, icon }: Reso
             {resourceInfo.map(res => {
               return (
                 <div key={res.id}>
-                  <ResourceInfoCard resourceInfo={res} icon={icon} />
+                  <ResourceInfoCard resourceInfo={res} icon={icon} authoring={authoring} />
                 </div>
               );
             })}

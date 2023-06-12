@@ -38,6 +38,7 @@ export default function ResourceAuthoringPage() {
           resourceInfo={resourceCardContent}
           resourceType={resourceType as ArtifactResourceType}
           icon={<Edit size="24" />}
+          authoring={true}
         />
       </div>
     </div>

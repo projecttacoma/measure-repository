@@ -6,6 +6,7 @@ import { ResourceInfo } from '@/util/types/fhir';
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
   icon: JSX.Element;
+  authoring?: boolean;
 }
 
 const useStyles = createStyles(theme => ({
@@ -19,7 +20,7 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export default function ResourceInfoCard({ resourceInfo, icon }: ResourceInfoCardProps) {
+export default function ResourceInfoCard({ resourceInfo, icon, authoring }: ResourceInfoCardProps) {
   const { classes } = useStyles();
   return (
     <Paper className={classes.card} shadow="sm" p="md">
@@ -50,7 +51,14 @@ export default function ResourceInfoCard({ resourceInfo, icon }: ResourceInfoCar
             </Text>
           )}
         </Grid.Col>
-        <Link href={`/${resourceInfo.resourceType}/${resourceInfo.id}`} key={resourceInfo.id}>
+        <Link
+          href={
+            authoring
+              ? `/authoring/${resourceInfo.resourceType}/${resourceInfo.id}`
+              : `/${resourceInfo.resourceType}/${resourceInfo.id}`
+          }
+          key={resourceInfo.id}
+        >
           <ActionIcon radius="md" size="md" variant="subtle" color="gray">
             {icon}
           </ActionIcon>
