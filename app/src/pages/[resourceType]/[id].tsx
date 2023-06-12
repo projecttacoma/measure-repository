@@ -1,6 +1,6 @@
 import { Prism } from '@mantine/prism';
-import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
-import { IconAbacus, IconAbacusOff, IconCheck } from '@tabler/icons-react';
+import { Divider, Group, Space, Stack, Tabs, Text, Button } from '@mantine/core';
+import { IconAbacusOff, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import React from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
@@ -14,8 +14,7 @@ import { trpc } from '../../util/trpc';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { useState } from 'react';
-import { DataRequirement } from 'fhir/r3';
-import { teal } from '@mui/material/colors';
+import { DataRequirement } from 'fhir/r4';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -33,9 +32,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
 
-  const [requirementTabVisible, setTabVisible] = useState(false);
-  const [load, setLoading] = useState(false);
-  const [dataRequirementsVisible, setDataReqsVisible] = useState<DataRequirement[] | undefined>(undefined);
+  const [loadingVisible, setLoading] = useState(false);
+  const [dataReqsVisible, setDataReqsVisible] = useState<DataRequirement[] | undefined>(undefined);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -95,9 +93,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
               {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
               {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-              {requirementTabVisible != false && dataRequirementsVisible != null && (
-                <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>
-              )}
+              {dataReqsVisible != null && <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>}
             </Tabs.List>
             <Tabs.Panel value="json" pt="xs">
               <Prism language="json" colorScheme="light">
@@ -126,10 +122,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 {parse(jsonData.text.div)}
               </Tabs.Panel>
             )}
-            {requirementTabVisible && dataRequirementsVisible != null && (
+            {dataReqsVisible != null && (
               <Tabs.Panel value="datarequirements">
                 <Prism language="json" colorScheme="light">
-                  {JSON.stringify(dataRequirementsVisible, null, 2)}
+                  {JSON.stringify(dataReqsVisible, null, 2)}
                 </Prism>
               </Tabs.Panel>
             )}
@@ -138,27 +134,22 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
         <div style={{ position: 'absolute', left: '85vw', top: '16vh' }}>
           <Button
             id="btn"
-            loading={load}
+            loading={loadingVisible}
             loaderPosition="center"
-            style={{ display: 'flex', float: 'right', justifyContent: 'space-between' }}
             onClick={event => {
               setLoading(true);
               setTimeout(() => {
                 if ((jsonData as fhir4.Library).dataRequirement != undefined) {
-                  const dr = (jsonData as fhir4.Library).dataRequirement;
-                  setDataReqsVisible(dr);
+                  const dataReqs = (jsonData as fhir4.Library).dataRequirement;
+                  setDataReqsVisible(dataReqs);
                   notifications.show({
                     id: 'requirements',
                     withCloseButton: true,
-                    onClose: () => console.log('unmounted'),
-                    onOpen: () => console.log('mounted'),
                     autoClose: 3000,
                     title: 'Successful Fetch',
-                    message: 'Data Requirements successfully fetched for this package',
+                    message: 'Data Requirements successfully fetched',
                     color: 'teal',
                     icon: <IconCheck />,
-                    // color: teal,
-                    className: 'my-notification-class',
                     style: { backgroundColor: 'white' },
                     loading: false
                   });
@@ -166,20 +157,16 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                   notifications.show({
                     id: 'no-requirements',
                     withCloseButton: true,
-                    onClose: () => console.log('unmounted'),
-                    onOpen: () => console.log('mounted'),
                     autoClose: 5000,
                     title: 'No Data Requirements found',
                     message: 'No data requirements were found for this package',
                     color: 'white',
                     icon: <IconAbacusOff />,
-                    className: 'my-notification-class',
                     style: { backgroundColor: 'white' },
                     loading: false
                   });
                 }
                 setLoading(false);
-                setTabVisible(true);
               }, 1000);
             }}
           >
