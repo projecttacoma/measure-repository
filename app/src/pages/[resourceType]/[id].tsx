@@ -33,7 +33,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   }, []);
 
   const [loadingVisible, setLoading] = useState(false);
-  const [dataReqsVisible, setDataReqsVisible] = useState<DataRequirement[] | undefined>(undefined);
+  const [dataRequirements, setDataRequirements] = useState<DataRequirement[] | undefined>(undefined);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -93,7 +93,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
               {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
               {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-              {dataReqsVisible != null && <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>}
+              {dataRequirements != null && <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>}
             </Tabs.List>
             <Tabs.Panel value="json" pt="xs">
               <Prism language="json" colorScheme="light">
@@ -122,10 +122,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 {parse(jsonData.text.div)}
               </Tabs.Panel>
             )}
-            {dataReqsVisible != null && (
+            {dataRequirements != null && (
               <Tabs.Panel value="datarequirements">
                 <Prism language="json" colorScheme="light">
-                  {JSON.stringify(dataReqsVisible, null, 2)}
+                  {JSON.stringify(dataRequirements, null, 2)}
                 </Prism>
               </Tabs.Panel>
             )}
@@ -136,18 +136,18 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             id="btn"
             loading={loadingVisible}
             loaderPosition="center"
-            onClick={event => {
+            onClick={() => {
               setLoading(true);
               setTimeout(() => {
                 if ((jsonData as fhir4.Library).dataRequirement != undefined) {
                   const dataReqs = (jsonData as fhir4.Library).dataRequirement;
-                  setDataReqsVisible(dataReqs);
+                  setDataRequirements(dataReqs);
                   notifications.show({
                     id: 'requirements',
                     withCloseButton: true,
                     autoClose: 3000,
                     title: 'Successful Fetch',
-                    message: 'Data Requirements successfully fetched',
+                    message: 'Data requirements successfully fetched',
                     color: 'teal',
                     icon: <IconCheck />,
                     style: { backgroundColor: 'white' },
@@ -157,8 +157,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                   notifications.show({
                     id: 'no-requirements',
                     withCloseButton: true,
-                    autoClose: 5000,
-                    title: 'No Data Requirements found',
+                    autoClose: 3000,
+                    title: 'No Data Requirements Found',
                     message: 'No data requirements were found for this package',
                     color: 'white',
                     icon: <IconAbacusOff />,
