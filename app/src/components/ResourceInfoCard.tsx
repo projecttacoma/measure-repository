@@ -1,4 +1,4 @@
-import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem } from '@mantine/core';
+import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem, Tooltip } from '@mantine/core';
 import Link from 'next/link';
 import React from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
@@ -59,9 +59,11 @@ export default function ResourceInfoCard({ resourceInfo, icon, authoring }: Reso
           }
           key={resourceInfo.id}
         >
-          <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-            {icon}
-          </ActionIcon>
+          <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
+            <ActionIcon radius="md" size="md" variant="subtle" color="gray">
+              {icon}
+            </ActionIcon>
+          </Tooltip>
         </Link>
       </Grid>
     </Paper>
