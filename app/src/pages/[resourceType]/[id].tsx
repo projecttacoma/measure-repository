@@ -63,6 +63,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   const cloneResource = () => {
     const newClonedResource = jsonData;
     newClonedResource.id = uuidv4();
+    newClonedResource.status = 'draft';
     draftMutation.mutate({ resourceType, draft: newClonedResource });
   };
 
