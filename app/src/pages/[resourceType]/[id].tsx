@@ -21,8 +21,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
 
-  const decodedCql = decode('text/cql', jsonData);
-  const decodedElm = decode('application/elm+json', jsonData);
+  const decodedCql = Decode('text/cql', jsonData);
+  const decodedElm = Decode('application/elm+json', jsonData);
 
   return (
     <div>
@@ -76,17 +76,16 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 }
 
 /**
- *
- * Function which extracts a specific language from the fhir artifact and then returns the decoded
- * version of that language
+ * Function which extracts specified content from JSON data and then returns the decoded
+ * version of that content (in this case the ELM/CQL)
  * @returns The decoded version of the ELM/CQL content
  */
-function decode(link: String, jsonData: FhirArtifact) {
+function Decode(link: string, jsonData: FhirArtifact) {
   const decodedLanguage = useMemo(() => {
     if (jsonData.resourceType === 'Measure') return null;
     const encodedLanguage = (jsonData as fhir4.Library).content?.find(e => e.contentType === link)?.data;
     return encodedLanguage ? Buffer.from(encodedLanguage, 'base64').toString() : null;
-  }, [jsonData]);
+  }, [jsonData, link]);
   return decodedLanguage;
 }
 
