@@ -149,6 +149,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     message: 'Data requirements successfully fetched',
                     color: 'teal',
                     style: { backgroundColor: 'white' },
+                    icon: <CircleCheck />,
                     loading: false
                   });
                 } else {
@@ -160,6 +161,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     message: 'No data requirements were found for this package',
                     color: 'red',
                     style: { backgroundColor: 'white' },
+                    icon: <AlertCircle />,
                     loading: false
                   });
                 }
