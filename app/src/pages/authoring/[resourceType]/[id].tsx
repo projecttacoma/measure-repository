@@ -13,6 +13,10 @@ export default function ResourceAuthoringPage() {
 
   const [url, setUrl] = useState('');
   const [identifier, setIdentifier] = useState('');
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
+  const [version, setVersion] = useState('');
+  const [description, setDescription] = useState('');
 
   const ctx = trpc.useContext();
 
@@ -58,8 +62,23 @@ export default function ResourceAuthoringPage() {
     }
   });
 
-  function parseUpdate(url: string, identifier: string) {
-    const update: { url?: string; identifier?: fhir4.Identifier[] } = {};
+  function parseUpdate(
+    url: string,
+    identifier: string,
+    name: string,
+    title: string,
+    version: string,
+    description: string
+  ) {
+    const update: {
+      url?: string;
+      identifier?: fhir4.Identifier[];
+      name?: string;
+      title?: string;
+      version?: string;
+      description?: string;
+    } = {};
+
     if (url !== '') {
       update['url'] = url;
     }
@@ -70,6 +89,18 @@ export default function ResourceAuthoringPage() {
       } else {
         update['identifier'] = [{ value: splitIden[0] }];
       }
+    }
+    if (name !== '') {
+      update['name'] = name;
+    }
+    if (title !== '') {
+      update['title'] = title;
+    }
+    if (version !== '') {
+      update['version'] = version;
+    }
+    if (description !== '') {
+      update['description'] = description;
     }
 
     return update;
@@ -88,16 +119,22 @@ export default function ResourceAuthoringPage() {
           <Stack spacing="md">
             <TextInput label="url" value={url} onChange={e => setUrl(e.target.value)} />
             <TextInput label="identifier" value={identifier} onChange={e => setIdentifier(e.target.value)} />
+            <TextInput label="name" value={name} onChange={e => setName(e.target.value)} />
+            <TextInput label="title" value={title} onChange={e => setTitle(e.target.value)} />
+            <TextInput label="version" value={version} onChange={e => setVersion(e.target.value)} />
+            <TextInput label="description" value={description} onChange={e => setDescription(e.target.value)} />
             <Button
               w={120}
               onClick={() =>
                 resourceUpdate.mutate({
                   resourceType: resourceType as ArtifactResourceType,
                   id: id as string,
-                  draft: parseUpdate(url, identifier)
+                  draft: parseUpdate(url, identifier, name, title, version, description)
                 })
               }
-              disabled={identifier === '' && url === ''}
+              disabled={
+                identifier === '' && url === '' && name === '' && title === '' && version === '' && description === ''
+              }
             >
               Submit
             </Button>
