@@ -8,6 +8,7 @@ import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
+import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { useState } from 'react';
 import { DataRequirement } from 'fhir/r4';
 
@@ -104,6 +105,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     message: 'Data requirements successfully fetched',
                     color: 'teal',
                     style: { backgroundColor: 'white' },
+                    icon: <CircleCheck />,
                     loading: false
                   });
                 } else {
@@ -115,6 +117,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     message: 'No data requirements were found for this package',
                     color: 'red',
                     style: { backgroundColor: 'white' },
+                    icon: <AlertCircle />,
                     loading: false
                   });
                 }
