@@ -12,7 +12,7 @@ interface ResourceCardsProps {
 
 /**
  * Component which displays all resources of a specified type and their ids
- * as buttons that link to that resource's page
+ * as resource cards that link to that resource's page
  */
 export default function ResourceCards({ resourceInfo, resourceType, icon, authoring }: ResourceCardsProps) {
   const [height, setWindowHeight] = useState(0);
@@ -29,15 +29,17 @@ export default function ResourceCards({ resourceInfo, resourceType, icon, author
     <div>
       <ScrollArea.Autosize mah={height * 0.8} type="scroll">
         {resourceInfo?.length > 0 ? (
-          <Stack align="stretch">
-            {resourceInfo.map(res => {
-              return (
-                <div key={res.id}>
-                  <ResourceInfoCard resourceInfo={res} icon={icon} authoring={authoring} />
-                </div>
-              );
-            })}
-          </Stack>
+          <Center>
+            <Stack align="stretch">
+              {resourceInfo.map(res => {
+                return (
+                  <div key={res.id}>
+                    <ResourceInfoCard resourceInfo={res} icon={icon} authoring={authoring} />
+                  </div>
+                );
+              })}
+            </Stack>
+          </Center>
         ) : (
           <Center>
             <Text>
