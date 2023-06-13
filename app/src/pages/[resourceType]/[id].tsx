@@ -1,6 +1,5 @@
 import { Prism } from '@mantine/prism';
 import { Divider, Group, Space, Stack, Tabs, Text, Button } from '@mantine/core';
-import { IconAbacusOff, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import React from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
@@ -104,7 +103,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     title: 'Successful Fetch',
                     message: 'Data requirements successfully fetched',
                     color: 'teal',
-                    icon: <IconCheck />,
                     style: { backgroundColor: 'white' },
                     loading: false
                   });
@@ -115,8 +113,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     autoClose: 3000,
                     title: 'No Data Requirements Found',
                     message: 'No data requirements were found for this package',
-                    color: 'white',
-                    icon: <IconAbacusOff />,
+                    color: 'red',
                     style: { backgroundColor: 'white' },
                     loading: false
                   });
