@@ -2,7 +2,7 @@ import { FhirArtifact, ResourceInfo } from './types/fhir';
 
 /**
  * Extracts fields from the resource to be rendered onto the resource's card.
- * @param resource Measure of Library resource
+ * @param resource Measure or Library resource
  * @returns object containing extracted info from resource
  */
 export function extractResourceInfo(resource: FhirArtifact) {

@@ -26,11 +26,9 @@ export default function ResourceSearchResultsPage({
       </Center>
       <Divider my="md" />
       {resourceInfo ? (
-        <Center>
-          <div style={{ paddingTop: '18px' }}>
+        <Stack align="center" pt={18}>
             <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
-          </div>
-        </Center>
+        </Stack>
       ) : (
         <div
           style={{
