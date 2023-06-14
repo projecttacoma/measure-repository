@@ -23,11 +23,12 @@ export default function AuthoringPage() {
   const ctx = trpc.useContext();
   const { classes } = useStyles();
 
-  const successNotification = (data: { draftId: string }, cloned: boolean) => {
-    const title = cloned ? `${resourceType} Cloned!` : `${resourceType} Created!`;
-    const message = cloned ? `${resourceType} successfully cloned` : `${resourceType} successfully created`;
+  const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
+    const message = createdFromArtifact
+      ? `${resourceType} successfully created from ${resourceType}/${selectedArtifact}`
+      : `${resourceType} successfully created`;
     notifications.show({
-      title: title,
+      title: `${resourceType} Created!`,
       message: message,
       icon: <CircleCheck />,
       color: 'green'
@@ -36,13 +37,12 @@ export default function AuthoringPage() {
     ctx.draft.getDraftCounts.invalidate();
   };
 
-  const errorNotification = (errorMessage: string, cloned: boolean) => {
-    const title = cloned ? `${resourceType} Clone Failed!` : `${resourceType} Creation Failed!`;
-    const message = cloned
-      ? `Attempt to clone ${resourceType} failed with message: ${errorMessage}`
+  const errorNotification = (errorMessage: string, createdFromArtifact: boolean) => {
+    const message = createdFromArtifact
+      ? `Attempt to create ${resourceType} from ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
       : `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
     notifications.show({
-      title: title,
+      title: `${resourceType} Creation Failed!`,
       message: message,
       icon: <AlertCircle />,
       color: 'red'
@@ -58,7 +58,7 @@ export default function AuthoringPage() {
     }
   });
 
-  const draftCloneMutation = trpc.service.convertArtifactById.useMutation({
+  const draftFromArtifactMutation = trpc.service.convertArtifactById.useMutation({
     onSuccess: data => {
       successNotification(data, true);
     },
@@ -75,9 +75,9 @@ export default function AuthoringPage() {
     draftMutation.mutate({ resourceType, draft: newResource });
   };
 
-  const cloneResource = () => {
+  const createDraftArtifactOf = () => {
     if (selectedArtifact !== null) {
-      draftCloneMutation.mutate({ resourceType, id: selectedArtifact });
+      draftFromArtifactMutation.mutate({ resourceType, id: selectedArtifact });
     }
   };
 
@@ -100,7 +100,7 @@ export default function AuthoringPage() {
           <Title order={3}>{`Start From an Existing ${resourceType}:`}</Title>
           {artifacts ? (
             <Select
-              label={`Select an existing ${resourceType} to clone`}
+              label={`Select an existing ${resourceType} to create a draft from`}
               data={artifacts}
               value={selectedArtifact}
               onChange={setSelectedArtifact}
@@ -110,10 +110,12 @@ export default function AuthoringPage() {
           )}
           <Button
             w={240}
-            loading={draftCloneMutation.isLoading}
-            onClick={cloneResource}
+            loading={draftFromArtifactMutation.isLoading}
+            onClick={createDraftArtifactOf}
             disabled={!selectedArtifact}
-          >{`Clone Draft ${resourceType}`}</Button>
+          >
+            Create Draft of {resourceType}
+          </Button>
         </Stack>
       </Paper>
     </Center>

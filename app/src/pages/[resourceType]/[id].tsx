@@ -11,6 +11,7 @@ import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
 import { trpc } from '../../util/trpc';
 import { useRouter } from 'next/router';
+
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
  * Mantine tabs
@@ -40,8 +41,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
       notifications.show({
-        title: `${jsonData.resourceType} Cloned!`,
-        message: `${jsonData.resourceType} successfully cloned`,
+        title: `${jsonData.resourceType} Created!`,
+        message: `${jsonData.resourceType} successfully created from ${jsonData.resourceType}/${jsonData.id}`,
         icon: <CircleCheck />,
         color: 'green'
       });
@@ -50,8 +51,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     },
     onError: e => {
       notifications.show({
-        title: `${jsonData.resourceType} Clone Failed!`,
-        message: `Attempt to clone ${jsonData.resourceType} failed with message: ${e.message}`,
+        title: `${jsonData.resourceType} Creation Failed!`,
+        message: `Attempt to create ${jsonData.resourceType} from ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
@@ -60,11 +61,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 
   const router = useRouter();
 
-  const cloneResource = () => {
-    const newClonedResource = jsonData;
-    newClonedResource.id = uuidv4();
-    newClonedResource.status = 'draft';
-    draftMutation.mutate({ resourceType, draft: newClonedResource });
+  const createDraftOfArtifact = () => {
+    const draftOfArtifact = jsonData;
+    draftOfArtifact.id = uuidv4();
+    draftOfArtifact.status = 'draft';
+    draftMutation.mutate({ resourceType, draft: draftOfArtifact });
   };
 
   return (
@@ -75,8 +76,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button w={240} loading={draftMutation.isLoading} onClick={cloneResource}>
-              Clone to Draft Artifact
+            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+              Create Draft of {jsonData.resourceType}
             </Button>
           </Group>
         </div>
