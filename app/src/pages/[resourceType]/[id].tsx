@@ -22,9 +22,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   }, []);
 
   const decodedCql = useMemo(() => {
-    if (jsonData.resourceType === 'Measure') return null;
-    const encodedCql = (jsonData as fhir4.Library).content?.find(e => e.contentType === 'text/cql')?.data;
-    return encodedCql ? Buffer.from(encodedCql, 'base64').toString() : null;
+    return decode('text/cql', jsonData);
+  }, [jsonData]);
+
+  const decodedElm = useMemo(() => {
+    return decode('application/elm+json', jsonData);
   }, [jsonData]);
 
   return (
@@ -41,9 +43,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
         <Tabs variant="outline" defaultValue="json">
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>
-            <Tabs.Tab value="elm" disabled>
-              ELM
-            </Tabs.Tab>
+            {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
             {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
             {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
           </Tabs.List>
@@ -61,6 +61,13 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               </Prism>
             </Tabs.Panel>
           )}
+          {decodedElm != null && (
+            <Tabs.Panel value="elm" pt="xs">
+              <Prism language="json" colorScheme="light">
+                {decodedElm}
+              </Prism>
+            </Tabs.Panel>
+          )}
           {jsonData.text && (
             <Tabs.Panel value="narrative">
               <Space h="sm" />
@@ -71,6 +78,17 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       </Stack>
     </div>
   );
+}
+
+/**
+ * Function which extracts specified content from JSON data and then returns the decoded
+ * version of that content (in this case the ELM/CQL)
+ * @returns The decoded version of the ELM/CQL content
+ */
+function decode(link: string, jsonData: FhirArtifact) {
+  if (jsonData.resourceType === 'Measure') return null;
+  const encodedLanguage = (jsonData as fhir4.Library).content?.find(e => e.contentType === link)?.data;
+  return encodedLanguage ? Buffer.from(encodedLanguage, 'base64').toString() : null;
 }
 
 /**
