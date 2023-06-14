@@ -29,7 +29,7 @@ export default function ResourceCards({ resourceInfo, resourceType, authoring }:
       <ScrollArea.Autosize mah={height * 0.8} type="scroll">
         {resourceInfo?.length > 0 ? (
           <Center>
-            <Stack align="stretch">
+            <Stack align="stretch" pb={2}>
               {resourceInfo.map(res => {
                 return (
                   <div key={res.id}>
