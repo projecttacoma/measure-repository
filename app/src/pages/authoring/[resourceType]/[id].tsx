@@ -1,5 +1,5 @@
 import { trpc } from '@/util/trpc';
-import { Button, Center, Divider, Grid, Paper, ScrollArea, Stack, Text, TextInput, createStyles } from '@mantine/core';
+import { Button, Center, Divider, Grid, Paper, Stack, Text, TextInput, createStyles } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
