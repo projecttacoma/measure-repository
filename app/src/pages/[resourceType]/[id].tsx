@@ -9,11 +9,12 @@ import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
-import { trpc } from '../../util/trpc';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { AbacusOff } from 'tabler-icons-react';
 import { useState } from 'react';
+import { trpc } from '@/util/trpc';
+import { json } from 'stream/consumers';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -33,6 +34,19 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 
   const [loadingVisible, setLoading] = useState(false);
   const [dataRequirements, setDataRequirements] = useState<FhirArtifact | undefined>(undefined);
+
+  const {
+    data: resourceCounts,
+    error: artifactCountError,
+    isLoading: artifactCountLoading
+  } = trpc.service.testArtifact.useQuery({
+    resourceType: jsonData.resourceType,
+    id: 'MATGlobalCommonFunctionsFHIR4'
+  });
+
+  console.log(resourceCounts?.Library + `  ${jsonData.resourceType} !!!`);
+  console.log('');
+  console.log('');
 
   const clickHandler = async () => {
     const res = await fetch(
