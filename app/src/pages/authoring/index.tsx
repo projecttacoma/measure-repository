@@ -1,4 +1,15 @@
-import { Button, Center, Paper, SegmentedControl, Select, Stack, Title, Text, createStyles } from '@mantine/core';
+import {
+  Button,
+  Center,
+  Paper,
+  SegmentedControl,
+  Select,
+  Stack,
+  Title,
+  Text,
+  createStyles,
+  Loader
+} from '@mantine/core';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
@@ -106,7 +117,7 @@ export default function AuthoringPage() {
               onChange={setSelectedArtifact}
             />
           ) : (
-            <Text>No artifacts</Text>
+            <Loader />
           )}
           <Button
             w={240}

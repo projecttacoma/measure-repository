@@ -36,7 +36,7 @@ export default function ResourceAuthoringPage() {
         setIdentifier(resource.identifier[0].value);
       }
     }
-  }, [resource?.url, resource?.identifier]);
+  }, [resource]);
 
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
     onSuccess: () => {
