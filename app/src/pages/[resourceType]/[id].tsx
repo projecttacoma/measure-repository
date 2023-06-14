@@ -12,8 +12,8 @@ import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { trpc } from '../../util/trpc';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
+import { AbacusOff } from 'tabler-icons-react';
 import { useState } from 'react';
-import { DataRequirement } from 'fhir/r4';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -32,7 +32,44 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   }, []);
 
   const [loadingVisible, setLoading] = useState(false);
-  const [dataRequirements, setDataRequirements] = useState<DataRequirement[] | undefined>(undefined);
+  const [dataRequirements, setDataRequirements] = useState<FhirArtifact | undefined>(undefined);
+
+  const clickHandler = async () => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_MRS_SERVER}/${jsonData.resourceType}/${jsonData.id}/$data-requirements`
+    );
+    const resource = (await res.json()) as FhirArtifact;
+    setLoading(true);
+    setTimeout(() => {
+      if (res.statusText === 'Internal Server Error') {
+        notifications.show({
+          id: 'no-requirements',
+          withCloseButton: true,
+          autoClose: 3000,
+          title: 'No Data Requirements Found',
+          message: 'No data requirements were found for this package',
+          color: 'red',
+          style: { backgroundColor: 'white' },
+          icon: <AbacusOff />,
+          loading: false
+        });
+      } else {
+        setDataRequirements(resource);
+        notifications.show({
+          id: 'requirements',
+          withCloseButton: true,
+          autoClose: 3000,
+          title: 'Successful Fetch',
+          message: 'Data requirements successfully fetched',
+          color: 'teal',
+          style: { backgroundColor: 'white' },
+          icon: <CircleCheck />,
+          loading: false
+        });
+      }
+      setLoading(false);
+    }, 1000);
+  };
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -136,37 +173,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             loading={loadingVisible}
             loaderPosition="center"
             onClick={() => {
-              setLoading(true);
-              setTimeout(() => {
-                if ((jsonData as fhir4.Library).dataRequirement != undefined) {
-                  const dataReqs = (jsonData as fhir4.Library).dataRequirement;
-                  setDataRequirements(dataReqs);
-                  notifications.show({
-                    id: 'requirements',
-                    withCloseButton: true,
-                    autoClose: 3000,
-                    title: 'Successful Fetch',
-                    message: 'Data requirements successfully fetched',
-                    color: 'teal',
-                    style: { backgroundColor: 'white' },
-                    icon: <CircleCheck />,
-                    loading: false
-                  });
-                } else {
-                  notifications.show({
-                    id: 'no-requirements',
-                    withCloseButton: true,
-                    autoClose: 3000,
-                    title: 'No Data Requirements Found',
-                    message: 'No data requirements were found for this package',
-                    color: 'red',
-                    style: { backgroundColor: 'white' },
-                    icon: <AlertCircle />,
-                    loading: false
-                  });
-                }
-                setLoading(false);
-              }, 1000);
+              clickHandler();
             }}
           >
             Get Data Requirements
