@@ -1,15 +1,4 @@
-import {
-  Button,
-  Center,
-  Paper,
-  SegmentedControl,
-  Select,
-  Stack,
-  Title,
-  Text,
-  createStyles,
-  Loader
-} from '@mantine/core';
+import { Button, Center, Paper, SegmentedControl, Select, Stack, Title, createStyles, Loader } from '@mantine/core';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
