@@ -3,7 +3,6 @@ import { Text, Divider, Button, Center, Stack } from '@mantine/core';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
 import Link from 'next/link';
-import { ExternalLink } from 'tabler-icons-react';
 import { extractResourceInfo } from '@/util/resourceCardUtils';
 
 /**
@@ -28,7 +27,7 @@ export default function ResourceList({
             <Button>Search</Button>
           </Link>
           <div style={{ paddingTop: '18px' }}>
-            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
+            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
           </div>
         </Stack>
       </div>

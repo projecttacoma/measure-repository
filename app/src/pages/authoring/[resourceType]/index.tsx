@@ -3,7 +3,6 @@ import { Center, Text, Divider } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
-import { Edit } from 'tabler-icons-react';
 import { extractResourceInfo } from '@/util/resourceCardUtils';
 
 export default function ResourceAuthoringPage() {
@@ -28,7 +27,6 @@ export default function ResourceAuthoringPage() {
         <ResourceCards
           resourceInfo={resourceCardContent}
           resourceType={resourceType as ArtifactResourceType}
-          icon={<Edit size="24" />}
           authoring={true}
         />
       </div>

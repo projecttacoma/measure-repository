@@ -6,7 +6,6 @@ import ResourceInfoCard from './ResourceInfoCard';
 interface ResourceCardsProps {
   resourceInfo: ResourceInfo[];
   resourceType: ArtifactResourceType;
-  icon: JSX.Element;
   authoring?: boolean;
 }
 
@@ -14,7 +13,7 @@ interface ResourceCardsProps {
  * Component which displays all resources of a specified type and their ids
  * as resource cards that link to that resource's page
  */
-export default function ResourceCards({ resourceInfo, resourceType, icon, authoring }: ResourceCardsProps) {
+export default function ResourceCards({ resourceInfo, resourceType, authoring }: ResourceCardsProps) {
   const [height, setWindowHeight] = useState(0);
   useEffect(() => {
     const handleResize = () => {
@@ -34,7 +33,7 @@ export default function ResourceCards({ resourceInfo, resourceType, icon, author
               {resourceInfo.map(res => {
                 return (
                   <div key={res.id}>
-                    <ResourceInfoCard resourceInfo={res} icon={icon} authoring={authoring} />
+                    <ResourceInfoCard resourceInfo={res} authoring={authoring} />
                   </div>
                 );
               })}

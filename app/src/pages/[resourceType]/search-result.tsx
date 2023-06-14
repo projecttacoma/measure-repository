@@ -1,8 +1,7 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Center, Divider, Paper, Text } from '@mantine/core';
+import { Center, Divider, Paper, Text, Stack } from '@mantine/core';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
-import { ExternalLink } from 'tabler-icons-react';
 import { extractResourceInfo } from '@/util/resourceCardUtils';
 
 export default function ResourceSearchResultsPage({
@@ -27,7 +26,7 @@ export default function ResourceSearchResultsPage({
       <Divider my="md" />
       {resourceInfo ? (
         <Stack align="center" pt={18}>
-            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} icon={<ExternalLink size="24" />} />
+          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
         </Stack>
       ) : (
         <div
