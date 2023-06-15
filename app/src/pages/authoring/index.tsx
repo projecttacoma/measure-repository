@@ -33,14 +33,14 @@ export default function AuthoringPage() {
     data: artifacts,
     isLoading: artifactsLoading,
     error: artifactError
-  } = trpc.service.getArtifactsByResource.useQuery({ resourceType });
+  } = trpc.service.getArtifactsByType.useQuery({ resourceType });
 
   const ctx = trpc.useContext();
   const { classes } = useStyles();
 
   const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
     const message = createdFromArtifact
-      ? `${resourceType} successfully created from ${resourceType}/${selectedArtifact}`
+      ? `Draft ${resourceType} successfully created from ${resourceType}/${selectedArtifact}`
       : `${resourceType} successfully created`;
     notifications.show({
       title: `${resourceType} Created!`,
@@ -54,7 +54,7 @@ export default function AuthoringPage() {
 
   const errorNotification = (errorMessage: string, createdFromArtifact: boolean) => {
     const message = createdFromArtifact
-      ? `Attempt to create ${resourceType} from ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
+      ? `Attempt to create draft ${resourceType} from ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
       : `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
     notifications.show({
       title: `${resourceType} Creation Failed!`,

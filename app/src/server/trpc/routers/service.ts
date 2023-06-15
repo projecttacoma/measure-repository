@@ -22,7 +22,7 @@ export const serviceRouter = router({
     } as const;
   }),
 
-  getArtifactsByResource: publicProcedure
+  getArtifactsByType: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']) }))
     .query(async ({ input }) => {
       const artifactBundle = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}`).then(

@@ -41,8 +41,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
       notifications.show({
-        title: `${jsonData.resourceType} Created!`,
-        message: `${jsonData.resourceType} successfully created from ${jsonData.resourceType}/${jsonData.id}`,
+        title: `Draft ${jsonData.resourceType} Created!`,
+        message: `Draft ${jsonData.resourceType} successfully created from ${jsonData.resourceType}/${jsonData.id}`,
         icon: <CircleCheck />,
         color: 'green'
       });
@@ -51,8 +51,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     },
     onError: e => {
       notifications.show({
-        title: `${jsonData.resourceType} Creation Failed!`,
-        message: `Attempt to create ${jsonData.resourceType} from ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
+        title: `Draft ${jsonData.resourceType} Creation Failed!`,
+        message: `Attempt to create draft ${jsonData.resourceType} from ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
