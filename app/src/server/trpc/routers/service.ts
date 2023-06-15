@@ -1,8 +1,8 @@
 import { FhirArtifact } from '@/util/types/fhir';
 import { publicProcedure, router } from '../trpc';
 import { z } from 'zod';
-import { draftRouter } from './draft';
 import { v4 as uuidv4 } from 'uuid';
+import { createDraft } from '@/server/db/dbOperations';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
@@ -44,9 +44,9 @@ export const serviceRouter = router({
       const draftArtifact = (await draftRes.json()) as FhirArtifact;
       draftArtifact.id = uuidv4();
       draftArtifact.status = 'draft';
+      delete draftArtifact.version;
 
-      const draftCaller = draftRouter.createCaller({});
-      const res = await draftCaller.createDraft({ resourceType: input.resourceType, draft: draftArtifact });
-      return res;
+      const res = await createDraft(input.resourceType, draftArtifact);
+      return { draftId: draftArtifact.id, ...res };
     })
 });

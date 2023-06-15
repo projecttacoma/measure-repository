@@ -37,6 +37,7 @@ export default function AuthoringPage() {
 
   const ctx = trpc.useContext();
   const { classes } = useStyles();
+  const router = useRouter();
 
   const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
     const message = createdFromArtifact
@@ -81,8 +82,6 @@ export default function AuthoringPage() {
       errorNotification(e.message, true);
     }
   });
-
-  const router = useRouter();
 
   const createResource = () => {
     const newResource = resourceType === 'Measure' ? { ...MeasureSkeleton } : { ...LibrarySkeleton };

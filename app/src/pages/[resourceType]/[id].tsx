@@ -64,6 +64,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     const draftOfArtifact = jsonData;
     draftOfArtifact.id = uuidv4();
     draftOfArtifact.status = 'draft';
+    delete draftOfArtifact.version;
     draftMutation.mutate({ resourceType, draft: draftOfArtifact });
   };
 
