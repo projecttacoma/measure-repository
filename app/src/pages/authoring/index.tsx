@@ -1,4 +1,15 @@
-import { Button, Center, Paper, SegmentedControl, Select, Stack, Title, createStyles, Loader } from '@mantine/core';
+import {
+  Button,
+  Center,
+  Paper,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+  Title,
+  createStyles,
+  Loader
+} from '@mantine/core';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
@@ -18,7 +29,11 @@ export default function AuthoringPage() {
   const [resourceType, setResourceType] = useState<ArtifactResourceType>('Measure');
   const [selectedArtifact, setSelectedArtifact] = useState<string | null>(null);
 
-  const { data: artifacts } = trpc.service.getArtifactsByResource.useQuery({ resourceType });
+  const {
+    data: artifacts,
+    isLoading: artifactsLoading,
+    error: artifactError
+  } = trpc.service.getArtifactsByResource.useQuery({ resourceType });
 
   const ctx = trpc.useContext();
   const { classes } = useStyles();
@@ -97,8 +112,14 @@ export default function AuthoringPage() {
           <Button w={240} loading={draftMutation.isLoading} onClick={createResource}>
             {`Create New Draft ${resourceType}`}
           </Button>
-          <Title order={3}>Start From an Existing ${resourceType}:</Title>
-          {artifacts ? (
+          <Title order={3}>Start From an Existing {resourceType}:</Title>
+          {artifactsLoading ? (
+            <Loader />
+          ) : artifactError ? (
+            <Text c="red">Artifacts could not be displayed due to an error: {artifactError.message}</Text>
+          ) : artifacts?.length === 0 ? (
+            <Text c="red">There are no {resourceType} artifacts in the repository at this time</Text>
+          ) : artifacts ? (
             <Select
               label={`Select an existing ${resourceType} to create a draft from`}
               data={artifacts}
@@ -106,7 +127,7 @@ export default function AuthoringPage() {
               onChange={setSelectedArtifact}
             />
           ) : (
-            <Loader />
+            <Text c="red">An unknown error occurred fetching artifacts</Text>
           )}
           <Button
             w={240}
