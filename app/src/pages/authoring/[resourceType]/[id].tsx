@@ -1,5 +1,5 @@
 import { trpc } from '@/util/trpc';
-import { Button, Center, Divider, Grid, Paper, Stack, Text, TextInput, createStyles } from '@mantine/core';
+import { Button, Center, Divider, Grid, Paper, Stack, Text, TextInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
@@ -7,15 +7,7 @@ import { notifications } from '@mantine/notifications';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 
-const useStyles = createStyles(() => ({
-  json: {
-    maxHeight: 'calc(100vh - 150px)',
-    overflowY: 'scroll'
-  }
-}));
-
 export default function ResourceAuthoringPage() {
-  const { classes } = useStyles();
   const router = useRouter();
   const { resourceType, id } = router.query;
 
@@ -113,11 +105,9 @@ export default function ResourceAuthoringPage() {
         </Grid.Col>
         <Grid.Col span={6}>
           <Paper withBorder>
-            <div className={classes.json}>
-              <Prism language="json" colorScheme="light">
-                {resource ? JSON.stringify(resource, null, 2) : ''}
-              </Prism>
-            </div>
+            <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
+              {resource ? JSON.stringify(resource, null, 2) : ''}
+            </Prism>
           </Paper>
         </Grid.Col>
       </Grid>

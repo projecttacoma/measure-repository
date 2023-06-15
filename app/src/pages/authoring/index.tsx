@@ -97,7 +97,7 @@ export default function AuthoringPage() {
           <Button w={240} loading={draftMutation.isLoading} onClick={createResource}>
             {`Create New Draft ${resourceType}`}
           </Button>
-          <Title order={3}>{`Start From an Existing ${resourceType}:`}</Title>
+          <Title order={3}>Start From an Existing ${resourceType}:</Title>
           {artifacts ? (
             <Select
               label={`Select an existing ${resourceType} to create a draft from`}
