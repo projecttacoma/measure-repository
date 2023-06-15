@@ -40,7 +40,7 @@ export default function AuthoringPage() {
 
   const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
     const message = createdFromArtifact
-      ? `Draft ${resourceType} successfully created from ${resourceType}/${selectedArtifact}`
+      ? `Draft of ${resourceType}/${selectedArtifact} successfully created`
       : `${resourceType} successfully created`;
     notifications.show({
       title: `${resourceType} Created!`,
@@ -54,7 +54,7 @@ export default function AuthoringPage() {
 
   const errorNotification = (errorMessage: string, createdFromArtifact: boolean) => {
     const message = createdFromArtifact
-      ? `Attempt to create draft ${resourceType} from ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
+      ? `Attempt to create draft of ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
       : `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
     notifications.show({
       title: `${resourceType} Creation Failed!`,

@@ -42,7 +42,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     onSuccess: data => {
       notifications.show({
         title: `Draft ${jsonData.resourceType} Created!`,
-        message: `Draft ${jsonData.resourceType} successfully created from ${jsonData.resourceType}/${jsonData.id}`,
+        message: `Draft ${jsonData.resourceType}/${jsonData.id} successfully created`,
         icon: <CircleCheck />,
         color: 'green'
       });
@@ -52,7 +52,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     onError: e => {
       notifications.show({
         title: `Draft ${jsonData.resourceType} Creation Failed!`,
-        message: `Attempt to create draft ${jsonData.resourceType} from ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
+        message: `Attempt to create draft of ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
