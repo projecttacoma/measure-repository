@@ -37,19 +37,16 @@ export const serviceRouter = router({
       return artifactList;
     }),
 
-  getArtifactsByResource: publicProcedure
-    .input(z.object({ resourceType: z.enum(['Measure', 'Library']) }))
+  getDataRequirements: publicProcedure
+    .input(z.object({ resourceType: z.string(), id: z.string() }))
     .query(async ({ input }) => {
-      const artifactBundle = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}`).then(
-        resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
       );
-
-      const artifactList = artifactBundle.entry?.map(entry => ({
-        label: entry.resource?.name || entry.resource?.id || '',
-        value: entry.resource?.id || `${entry.resource?.resourceType}` || ''
-      }));
-
-      return artifactList;
+      const resource = (await res.json()) as FhirArtifact;
+      return {
+        Library: resource
+      } as const;
     }),
 
   convertArtifactById: publicProcedure
@@ -60,22 +57,5 @@ export const serviceRouter = router({
 
       const res = await createDraft(input.resourceType, draftArtifact);
       return { draftId: draftArtifact.id, ...res };
-    }),
-
-  testArtifact: publicProcedure
-    .input(
-      z.object({
-        resourceType: z.string(),
-        id: z.string()
-      })
-    )
-    .query(async ({ input }) => {
-      const [bundle] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/MATGlobalCommonFunctionsFHIR4`)
-      ]).then(([res]) => Promise.all([res.json() as Promise<fhir4.Bundle>]));
-
-      return {
-        Library: bundle.id
-      } as const;
     })
 });

@@ -39,23 +39,15 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     data: resourceCounts,
     error: artifactCountError,
     isLoading: artifactCountLoading
-  } = trpc.service.testArtifact.useQuery({
+  } = trpc.service.getDataRequirements.useQuery({
     resourceType: jsonData.resourceType,
-    id: 'MATGlobalCommonFunctionsFHIR4'
+    id: jsonData.id as string
   });
 
-  console.log(resourceCounts?.Library + `  ${jsonData.resourceType} !!!`);
-  console.log('');
-  console.log('');
-
   const clickHandler = async () => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_MRS_SERVER}/${jsonData.resourceType}/${jsonData.id}/$data-requirements`
-    );
-    const resource = (await res.json()) as FhirArtifact;
     setLoading(true);
     setTimeout(() => {
-      if (res.statusText === 'Internal Server Error') {
+      if (resourceCounts?.Library.status === undefined) {
         notifications.show({
           id: 'no-requirements',
           withCloseButton: true,
@@ -68,7 +60,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           loading: false
         });
       } else {
-        setDataRequirements(resource);
+        setDataRequirements(resourceCounts?.Library);
         notifications.show({
           id: 'requirements',
           withCloseButton: true,
