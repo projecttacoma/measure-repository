@@ -21,7 +21,7 @@ export default function ResourceAuthoringPage() {
     resourceType: resourceType as ArtifactResourceType
   });
 
-  // useEffect to check if it has an identifier and url
+  // useEffect to check if the resource has an identifier and url defined
   useEffect(() => {
     if (resource?.url) {
       setUrl(resource.url);

@@ -37,6 +37,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   }, [jsonData]);
 
   const ctx = trpc.useContext();
+  const router = useRouter();
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -58,8 +59,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       });
     }
   });
-
-  const router = useRouter();
 
   const createDraftOfArtifact = () => {
     const draftOfArtifact = jsonData;
