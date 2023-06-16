@@ -15,7 +15,6 @@ export const serviceRouter = router({
     ]).then(([resMeasure, resLibrary]) =>
       Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
     );
-
     return {
       Measure: measureBundle.total ?? 0,
       Library: libraryBundle.total ?? 0

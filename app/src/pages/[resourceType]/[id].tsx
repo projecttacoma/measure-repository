@@ -14,7 +14,6 @@ import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { AbacusOff } from 'tabler-icons-react';
 import { useState } from 'react';
 import { trpc } from '@/util/trpc';
-import { json } from 'stream/consumers';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -32,50 +31,45 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
 
-  const [loadingVisible, setLoading] = useState(false);
-  const [dataRequirements, setDataRequirements] = useState<FhirArtifact | undefined>(undefined);
+  const [loadingIconVisible, setLoadingIconVisible] = useState(false);
 
-  const {
-    data: resourceCounts,
-    error: artifactCountError,
-    isLoading: artifactCountLoading
-  } = trpc.service.getDataRequirements.useQuery({
-    resourceType: jsonData.resourceType,
-    id: jsonData.id as string
-  });
+  const { data: dataRequirements, refetch } = trpc.service.getDataRequirements.useQuery(
+    { resourceType: jsonData.resourceType, id: jsonData.id as string },
+    { enabled: false }
+  );
 
-  const clickHandler = async () => {
-    setLoading(true);
-    setTimeout(() => {
-      if (resourceCounts?.Library.status === undefined) {
-        notifications.show({
-          id: 'no-requirements',
-          withCloseButton: true,
-          autoClose: 3000,
-          title: 'No Data Requirements Found',
-          message: 'No data requirements were found for this package',
-          color: 'red',
-          style: { backgroundColor: 'white' },
-          icon: <AbacusOff />,
-          loading: false
-        });
-      } else {
-        setDataRequirements(resourceCounts?.Library);
-        notifications.show({
-          id: 'requirements',
-          withCloseButton: true,
-          autoClose: 3000,
-          title: 'Successful Fetch',
-          message: 'Data requirements successfully fetched',
-          color: 'teal',
-          style: { backgroundColor: 'white' },
-          icon: <CircleCheck />,
-          loading: false
-        });
-      }
-      setLoading(false);
-    }, 1000);
-  };
+  useEffect(() => {
+    if (dataRequirements && loadingIconVisible) {
+      setTimeout(() => {
+        if (dataRequirements?.Library?.resourceType == 'Library') {
+          notifications.show({
+            id: 'requirements',
+            withCloseButton: true,
+            autoClose: 2000,
+            title: 'Successful Fetch',
+            message: 'Data requirements successfully fetched',
+            color: 'teal',
+            style: { backgroundColor: 'white' },
+            icon: <CircleCheck />,
+            loading: false
+          });
+        } else {
+          notifications.show({
+            id: 'no-requirements',
+            withCloseButton: true,
+            autoClose: 3000,
+            title: 'No Data Requirements Found',
+            message: 'No data requirements were found for this resource',
+            color: 'red',
+            style: { backgroundColor: 'white' },
+            icon: <AbacusOff />,
+            loading: false
+          });
+        }
+        setLoadingIconVisible(false);
+      }, 250);
+    }
+  }, [dataRequirements, loadingIconVisible]);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -135,7 +129,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
               {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
               {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-              {dataRequirements != null && <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>}
+              {dataRequirements?.Library.resourceType == 'Library' && (
+                <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>
+              )}
             </Tabs.List>
             <Tabs.Panel value="json" pt="xs">
               <Prism language="json" colorScheme="light">
@@ -164,7 +160,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 {parse(jsonData.text.div)}
               </Tabs.Panel>
             )}
-            {dataRequirements != null && (
+            {dataRequirements?.Library.resourceType == 'Library' && (
               <Tabs.Panel value="datarequirements">
                 <Prism language="json" colorScheme="light">
                   {JSON.stringify(dataRequirements, null, 2)}
@@ -176,10 +172,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
         <div style={{ position: 'absolute', left: '85vw', top: '16vh' }}>
           <Button
             id="btn"
-            loading={loadingVisible}
+            loading={loadingIconVisible}
             loaderPosition="center"
             onClick={() => {
-              clickHandler();
+              refetch();
+              setLoadingIconVisible(true);
             }}
           >
             Get Data Requirements
