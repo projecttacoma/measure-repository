@@ -89,7 +89,7 @@ export default function AuthoringPage() {
     draftMutation.mutate({ resourceType, draft: newResource });
   };
 
-  const createDraftArtifactOf = () => {
+  const createDraftArtifact = () => {
     if (selectedArtifact !== null) {
       draftFromArtifactMutation.mutate({ resourceType, id: selectedArtifact });
     }
@@ -101,7 +101,10 @@ export default function AuthoringPage() {
         <Stack>
           <SegmentedControl
             value={resourceType}
-            onChange={val => setResourceType(val as ArtifactResourceType)}
+            onChange={val => {
+              setResourceType(val as ArtifactResourceType);
+              setSelectedArtifact(null);
+            }}
             data={[
               { label: 'Measure', value: 'Measure' },
               { label: 'Library', value: 'Library' }
@@ -131,8 +134,8 @@ export default function AuthoringPage() {
           <Button
             w={240}
             loading={draftFromArtifactMutation.isLoading}
-            onClick={createDraftArtifactOf}
-            disabled={!selectedArtifact}
+            onClick={createDraftArtifact}
+            disabled={!artifacts || !selectedArtifact}
           >
             Create Draft of {resourceType}
           </Button>
