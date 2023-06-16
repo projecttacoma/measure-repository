@@ -6,11 +6,11 @@ import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
-import { v4 as uuidv4 } from 'uuid';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
 import { trpc } from '../../util/trpc';
 import { useRouter } from 'next/router';
+import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -61,10 +61,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   });
 
   const createDraftOfArtifact = () => {
-    const draftOfArtifact = jsonData;
-    draftOfArtifact.id = uuidv4();
-    draftOfArtifact.status = 'draft';
-    delete draftOfArtifact.version;
+    const draftOfArtifact = modifyResourceToDraft(jsonData);
     draftMutation.mutate({ resourceType, draft: draftOfArtifact });
   };
 

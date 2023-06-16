@@ -1,9 +1,8 @@
 import { FhirArtifact } from '@/util/types/fhir';
 import { publicProcedure, router } from '../trpc';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 import { createDraft } from '@/server/db/dbOperations';
-
+import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
  */
@@ -41,10 +40,7 @@ export const serviceRouter = router({
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {
       const draftRes = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
-      const draftArtifact = (await draftRes.json()) as FhirArtifact;
-      draftArtifact.id = uuidv4();
-      draftArtifact.status = 'draft';
-      delete draftArtifact.version;
+      const draftArtifact = modifyResourceToDraft((await draftRes.json()) as FhirArtifact);
 
       const res = await createDraft(input.resourceType, draftArtifact);
       return { draftId: draftArtifact.id, ...res };
