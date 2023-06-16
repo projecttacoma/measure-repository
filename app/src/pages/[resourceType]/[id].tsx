@@ -32,12 +32,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   }, []);
 
   const [loadingIconVisible, setLoadingIconVisible] = useState(false);
-
   const { data: dataRequirements, refetch } = trpc.service.getDataRequirements.useQuery(
     { resourceType: jsonData.resourceType, id: jsonData.id as string },
     { enabled: false }
   );
-
+  //useEffect checks if the data Requirements were loaded and whether the button was clicked
   useEffect(() => {
     if (dataRequirements && loadingIconVisible) {
       setTimeout(() => {
