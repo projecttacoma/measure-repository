@@ -1,4 +1,15 @@
-import { Button, Center, Paper, SegmentedControl, Stack, Title, createStyles } from '@mantine/core';
+import {
+  Button,
+  Center,
+  Paper,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+  Title,
+  createStyles,
+  Loader
+} from '@mantine/core';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
@@ -16,37 +27,72 @@ const useStyles = createStyles(() => ({
 
 export default function AuthoringPage() {
   const [resourceType, setResourceType] = useState<ArtifactResourceType>('Measure');
+  const [selectedArtifact, setSelectedArtifact] = useState<string | null>(null);
+
+  const {
+    data: artifacts,
+    isLoading: artifactsLoading,
+    error: artifactError
+  } = trpc.service.getArtifactsByType.useQuery({ resourceType });
 
   const ctx = trpc.useContext();
   const { classes } = useStyles();
+  const router = useRouter();
+
+  const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
+    const message = createdFromArtifact
+      ? `Draft of ${resourceType}/${selectedArtifact} successfully created`
+      : `${resourceType} successfully created`;
+    notifications.show({
+      title: `${resourceType} Created!`,
+      message: message,
+      icon: <CircleCheck />,
+      color: 'green'
+    });
+    router.push(`authoring/${resourceType}/${data.draftId}`);
+    ctx.draft.getDraftCounts.invalidate();
+  };
+
+  const errorNotification = (errorMessage: string, createdFromArtifact: boolean) => {
+    const message = createdFromArtifact
+      ? `Attempt to create draft of ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
+      : `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
+    notifications.show({
+      title: `${resourceType} Creation Failed!`,
+      message: message,
+      icon: <AlertCircle />,
+      color: 'red'
+    });
+  };
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
-      notifications.show({
-        title: `${resourceType} Created!`,
-        message: `${resourceType} successfully created`,
-        icon: <CircleCheck />,
-        color: 'green'
-      });
-      router.push(`authoring/${resourceType}/${data.draftId}`);
-      ctx.draft.getDraftCounts.invalidate();
+      successNotification(data, false);
     },
     onError: e => {
-      notifications.show({
-        title: `${resourceType} Creation Failed!`,
-        message: `Attempt to create ${resourceType} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
-        color: 'red'
-      });
+      errorNotification(e.message, false);
     }
   });
 
-  const router = useRouter();
+  const draftFromArtifactMutation = trpc.service.convertArtifactById.useMutation({
+    onSuccess: data => {
+      successNotification(data, true);
+    },
+    onError: e => {
+      errorNotification(e.message, true);
+    }
+  });
 
   const createResource = () => {
     const newResource = resourceType === 'Measure' ? { ...MeasureSkeleton } : { ...LibrarySkeleton };
     newResource.id = uuidv4();
     draftMutation.mutate({ resourceType, draft: newResource });
+  };
+
+  const createDraftArtifact = () => {
+    if (selectedArtifact !== null) {
+      draftFromArtifactMutation.mutate({ resourceType, id: selectedArtifact });
+    }
   };
 
   return (
@@ -55,7 +101,10 @@ export default function AuthoringPage() {
         <Stack>
           <SegmentedControl
             value={resourceType}
-            onChange={val => setResourceType(val as ArtifactResourceType)}
+            onChange={val => {
+              setResourceType(val as ArtifactResourceType);
+              setSelectedArtifact(null);
+            }}
             data={[
               { label: 'Measure', value: 'Measure' },
               { label: 'Library', value: 'Library' }
@@ -64,6 +113,31 @@ export default function AuthoringPage() {
           <Title order={3}>Start From Scratch:</Title>
           <Button w={240} loading={draftMutation.isLoading} onClick={createResource}>
             {`Create New Draft ${resourceType}`}
+          </Button>
+          <Title order={3}>Start From an Existing {resourceType}:</Title>
+          {artifactsLoading ? (
+            <Loader />
+          ) : artifactError ? (
+            <Text c="red">Artifacts could not be displayed due to an error: {artifactError.message}</Text>
+          ) : artifacts?.length === 0 ? (
+            <Text c="red">There are no {resourceType} artifacts in the repository at this time</Text>
+          ) : artifacts ? (
+            <Select
+              label={`Select an existing ${resourceType} to create a draft from`}
+              data={artifacts}
+              value={selectedArtifact}
+              onChange={setSelectedArtifact}
+            />
+          ) : (
+            <Text c="red">An unknown error occurred fetching artifacts</Text>
+          )}
+          <Button
+            w={240}
+            loading={draftFromArtifactMutation.isLoading}
+            onClick={createDraftArtifact}
+            disabled={!artifacts || !selectedArtifact}
+          >
+            Create Draft of {resourceType}
           </Button>
         </Stack>
       </Paper>

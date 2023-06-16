@@ -1,11 +1,16 @@
 import { Prism } from '@mantine/prism';
-import { Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
+import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
+import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { notifications } from '@mantine/notifications';
+import { trpc } from '../../util/trpc';
+import { useRouter } from 'next/router';
+import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
@@ -13,6 +18,8 @@ import parse from 'html-react-parser';
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const resourceType = jsonData.resourceType;
+
   // Overwrite Prism with our custom Prism that includes CQL as a language
   useEffect(() => {
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -29,14 +36,46 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     return decode('application/elm+json', jsonData);
   }, [jsonData]);
 
+  const ctx = trpc.useContext();
+  const router = useRouter();
+
+  const draftMutation = trpc.draft.createDraft.useMutation({
+    onSuccess: data => {
+      notifications.show({
+        title: `Draft ${jsonData.resourceType} Created!`,
+        message: `Draft ${jsonData.resourceType}/${jsonData.id} successfully created`,
+        icon: <CircleCheck />,
+        color: 'green'
+      });
+      router.push(`/authoring/${jsonData.resourceType}/${data.draftId}`);
+      ctx.draft.getDraftCounts.invalidate();
+    },
+    onError: e => {
+      notifications.show({
+        title: `Draft ${jsonData.resourceType} Creation Failed!`,
+        message: `Attempt to create draft of ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
+        icon: <AlertCircle />,
+        color: 'red'
+      });
+    }
+  });
+
+  const createDraftOfArtifact = () => {
+    const draftOfArtifact = modifyResourceToDraft(jsonData);
+    draftMutation.mutate({ resourceType, draft: draftOfArtifact });
+  };
+
   return (
     <div>
       <Stack spacing="xs">
         <div>
-          <Group>
+          <Group position="apart">
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
+            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+              Create Draft of {jsonData.resourceType}
+            </Button>
           </Group>
         </div>
         <Divider my="sm" pb={6} />

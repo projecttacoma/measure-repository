@@ -20,8 +20,10 @@ export const draftRouter = router({
     .query(async opts => getAllDraftsByType<FhirArtifact>(opts.input)),
 
   getDraftById: publicProcedure
-    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
-    .query(async ({ input }) => getDraftById<FhirArtifact>(input.id, input.resourceType)),
+    .input(z.object({ id: z.string().optional(), resourceType: z.enum(['Measure', 'Library']).optional() }))
+    .query(async ({ input }) =>
+      input.id && input.resourceType ? getDraftById<FhirArtifact>(input.id, input.resourceType) : null
+    ),
 
   createDraft: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), draft: z.any() }))
