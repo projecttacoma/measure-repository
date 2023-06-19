@@ -40,6 +40,18 @@ export default function ResourceAuthoringPage() {
         setIdentifier(resource.identifier[0].value);
       }
     }
+    if (resource?.name) {
+      setName(resource.name);
+    }
+    if (resource?.title) {
+      setTitle(resource.title);
+    }
+    if (resource?.version) {
+      setVersion(resource.version);
+    }
+    if (resource?.description) {
+      setDescription(resource.description);
+    }
   }, [resource]);
 
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
