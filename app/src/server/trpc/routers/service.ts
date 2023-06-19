@@ -37,12 +37,12 @@ export const serviceRouter = router({
     }),
 
   getDataRequirements: publicProcedure
-    .input(z.object({ resourceType: z.string(), id: z.string() }))
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .query(async ({ input }) => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
       );
-      const resource = (await res.json()) as FhirArtifact;
+      const resource = (await res.json()) as fhir4.Library;
       return {
         Library: resource
       } as const;

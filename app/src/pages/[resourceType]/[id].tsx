@@ -1,27 +1,40 @@
 import { Prism } from '@mantine/prism';
-import { Divider, Group, Space, Stack, Tabs, Text, Button } from '@mantine/core';
+import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import React from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
-import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck, AbacusOff } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
-import { AbacusOff } from 'tabler-icons-react';
-import { useState } from 'react';
 import { trpc } from '@/util/trpc';
 
 /**
- * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
- * Mantine tabs
+ * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
+ * Mantine tabs. The Data Requirements tab can be optionally rendered via the click of a button.
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
+  const [loadingIconVisible, setLoadingIconVisible] = useState(false);
+  const { data: dataRequirements, refetch } = trpc.service.getDataRequirements.useQuery(
+    { resourceType: jsonData.resourceType, id: jsonData.id as string },
+    { enabled: false }
+  );
+
+  const decodedCql = useMemo(() => {
+    return decode('text/cql', jsonData);
+  }, [jsonData]);
+  const decodedElm = useMemo(() => {
+    return decode('application/elm+json', jsonData);
+  }, [jsonData]);
+
+  const ctx = trpc.useContext();
+  const router = useRouter();
 
   // Overwrite Prism with our custom Prism that includes CQL as a language
   useEffect(() => {
@@ -31,16 +44,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
 
-  const [loadingIconVisible, setLoadingIconVisible] = useState(false);
-  const { data: dataRequirements, refetch } = trpc.service.getDataRequirements.useQuery(
-    { resourceType: jsonData.resourceType, id: jsonData.id as string },
-    { enabled: false }
-  );
   //useEffect checks if the data Requirements were loaded and whether the button was clicked
   useEffect(() => {
     if (dataRequirements && loadingIconVisible) {
       setTimeout(() => {
-        if (dataRequirements?.Library?.resourceType == 'Library') {
+        if (dataRequirements?.Library?.resourceType === 'Library') {
           notifications.show({
             id: 'requirements',
             withCloseButton: true,
@@ -58,7 +66,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             withCloseButton: true,
             autoClose: 3000,
             title: 'No Data Requirements Found',
-            message: 'No data requirements were found for this resource',
+            message: 'No data requirements were found, or a Library referenced by the resource could not be found.',
             color: 'red',
             style: { backgroundColor: 'white' },
             icon: <AbacusOff />,
@@ -69,17 +77,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       }, 250);
     }
   }, [dataRequirements, loadingIconVisible]);
-
-  const decodedCql = useMemo(() => {
-    return decode('text/cql', jsonData);
-  }, [jsonData]);
-
-  const decodedElm = useMemo(() => {
-    return decode('application/elm+json', jsonData);
-  }, [jsonData]);
-
-  const ctx = trpc.useContext();
-  const router = useRouter();
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -115,9 +112,23 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
-              Create Draft of {jsonData.resourceType}
-            </Button>
+            <Group>
+              <Button
+                w={240}
+                id="btn"
+                loading={loadingIconVisible}
+                loaderPosition="center"
+                onClick={() => {
+                  setLoadingIconVisible(true);
+                  refetch();
+                }}
+              >
+                Get Data Requirements
+              </Button>
+              <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+                Create Draft of {jsonData.resourceType}
+              </Button>
+            </Group>
           </Group>
         </div>
         <Divider my="sm" pb={6} />
@@ -128,8 +139,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
               {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
               {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-              {dataRequirements?.Library.resourceType == 'Library' && (
-                <Tabs.Tab value="datarequirements">Data Requirements</Tabs.Tab>
+              {dataRequirements?.Library.resourceType === 'Library' && (
+                <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
               )}
             </Tabs.List>
             <Tabs.Panel value="json" pt="xs">
@@ -159,28 +170,18 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 {parse(jsonData.text.div)}
               </Tabs.Panel>
             )}
-            {dataRequirements?.Library.resourceType == 'Library' && (
-              <Tabs.Panel value="datarequirements">
+            {dataRequirements?.Library.resourceType === 'Library' && (
+              <Tabs.Panel value="data-requirements">
                 <Prism language="json" colorScheme="light">
-                  {JSON.stringify(dataRequirements, null, 2)}
+                  {JSON.stringify(dataRequirements.Library, null, 2)}
                 </Prism>
               </Tabs.Panel>
             )}
           </Tabs>
         </div>
-        <div style={{ position: 'absolute', left: '85vw', top: '16vh' }}>
-          <Button
-            id="btn"
-            loading={loadingIconVisible}
-            loaderPosition="center"
-            onClick={() => {
-              refetch();
-              setLoadingIconVisible(true);
-            }}
-          >
-            Get Data Requirements
-          </Button>
-        </div>
+        {/* <div style={{ position: 'absolute', left: '85vw', top: '16vh' }}>
+         
+        </div> */}
       </Stack>
     </div>
   );
