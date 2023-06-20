@@ -16,8 +16,8 @@ export const draftRouter = router({
   }),
 
   getDrafts: publicProcedure
-    .input(z.enum(['Measure', 'Library']))
-    .query(async opts => getAllDraftsByType<FhirArtifact>(opts.input)),
+    .input(z.enum(['Measure', 'Library']).optional())
+    .query(async opts => (opts.input ? getAllDraftsByType<FhirArtifact>(opts.input) : null)),
 
   getDraftById: publicProcedure
     .input(z.object({ id: z.string().optional(), resourceType: z.enum(['Measure', 'Library']).optional() }))

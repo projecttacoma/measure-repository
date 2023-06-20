@@ -1,7 +1,8 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Center, Divider, Paper, Text } from '@mantine/core';
+import { Center, Divider, Paper, Text, Stack } from '@mantine/core';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
+import { extractResourceInfo } from '@/util/resourceCardUtils';
 
 export default function ResourceSearchResultsPage({
   resourceInfo,
@@ -24,9 +25,9 @@ export default function ResourceSearchResultsPage({
       </Center>
       <Divider my="md" />
       {resourceInfo ? (
-        <div style={{ paddingTop: '18px' }}>
+        <Stack align="center" pt={18}>
           <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
-        </div>
+        </Stack>
       ) : (
         <div
           style={{
@@ -75,16 +76,7 @@ export const getServerSideProps: GetServerSideProps<{
     const resources = bundle.entry;
     const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
       if (entry.resource && entry.resource.id) {
-        const identifier = entry.resource.identifier?.[0];
-        const resourceInfo: ResourceInfo = {
-          resourceType: checkedResourceType,
-          id: entry.resource.id,
-          identifier: identifier?.system && identifier?.value ? `${identifier.system}|${identifier.value}` : null,
-          name: entry.resource.name ?? null,
-          url: entry.resource.url ?? null,
-          version: entry.resource.version ?? null,
-          status: entry.resource.status ?? null
-        };
+        const resourceInfo = extractResourceInfo(entry.resource);
         acc.push(resourceInfo);
       }
       return acc;

@@ -1,8 +1,9 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Text, Divider, Button, Center } from '@mantine/core';
+import { Text, Divider, Button, Center, Stack } from '@mantine/core';
 import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
 import Link from 'next/link';
+import { extractResourceInfo } from '@/util/resourceCardUtils';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -21,14 +22,14 @@ export default function ResourceList({
           </Text>
         </Center>
         <Divider my="md" />
-        <Center>
+        <Stack align="center">
           <Link href={`/search?resourceType=${resourceType}`}>
             <Button>Search</Button>
           </Link>
-        </Center>
-        <div style={{ paddingTop: '18px' }}>
-          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
-        </div>
+          <div style={{ paddingTop: '18px' }}>
+            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
+          </div>
+        </Stack>
       </div>
     </>
   );
@@ -61,16 +62,7 @@ export const getServerSideProps: GetServerSideProps<{
   const resources = bundle.entry;
   const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
     if (entry.resource && entry.resource.id) {
-      const identifier = entry.resource.identifier?.[0];
-      const resourceInfo: ResourceInfo = {
-        resourceType: checkedResourceType,
-        id: entry.resource.id,
-        identifier: identifier?.system && identifier?.value ? `${identifier.system}|${identifier.value}` : null,
-        name: entry.resource.name ?? null,
-        url: entry.resource.url ?? null,
-        version: entry.resource.version ?? null,
-        status: entry.resource.status ?? null
-      };
+      const resourceInfo = extractResourceInfo(entry.resource);
       acc.push(resourceInfo);
     }
     return acc;

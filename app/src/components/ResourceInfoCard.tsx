@@ -1,11 +1,12 @@
-import { Button, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem } from '@mantine/core';
+import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem, Tooltip } from '@mantine/core';
 import Link from 'next/link';
 import React from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { ExternalLink } from 'tabler-icons-react';
+import { Edit, SquareArrowRight } from 'tabler-icons-react';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
+  authoring?: boolean;
 }
 
 const useStyles = createStyles(theme => ({
@@ -19,7 +20,7 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps) {
+export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceInfoCardProps) {
   const { classes } = useStyles();
   return (
     <Paper className={classes.card} shadow="sm" p="md">
@@ -50,10 +51,19 @@ export default function ResourceInfoCard({ resourceInfo }: ResourceInfoCardProps
             </Text>
           )}
         </Grid.Col>
-        <Link href={`/${resourceInfo.resourceType}/${resourceInfo.id}`} key={resourceInfo.id}>
-          <Button radius="md" size="md" variant="subtle" color="gray">
-            {<ExternalLink size="24" />}
-          </Button>
+        <Link
+          href={
+            authoring
+              ? `/authoring/${resourceInfo.resourceType}/${resourceInfo.id}`
+              : `/${resourceInfo.resourceType}/${resourceInfo.id}`
+          }
+          key={resourceInfo.id}
+        >
+          <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
+            <ActionIcon radius="md" size="md" variant="subtle" color="gray">
+              {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
+            </ActionIcon>
+          </Tooltip>
         </Link>
       </Grid>
     </Paper>
