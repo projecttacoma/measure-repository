@@ -31,10 +31,10 @@ export async function createDraft(resourceType: ArtifactResourceType, draft: any
 /**
  * Updates the resource of the given type with the given id
  */
-export async function updateDraft(resourceType: ArtifactResourceType, id: string, update: any) {
+export async function updateDraft(resourceType: ArtifactResourceType, id: string, additions: any, deletions: any) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
-  return collection.updateOne({ id }, { $set: update });
+  return collection.updateOne({ id }, { $set: additions, $unset: deletions });
 }
 
 /*

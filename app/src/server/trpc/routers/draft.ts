@@ -33,8 +33,10 @@ export const draftRouter = router({
     }),
 
   updateDraft: publicProcedure
-    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), draft: z.any(), id: z.string() }))
+    .input(
+      z.object({ resourceType: z.enum(['Measure', 'Library']), additions: z.any(), deletions: z.any(), id: z.string() })
+    )
     .mutation(async ({ input }) => {
-      return updateDraft(input.resourceType, input.id, input.draft);
+      return updateDraft(input.resourceType, input.id, input.additions, input.deletions);
     })
 });

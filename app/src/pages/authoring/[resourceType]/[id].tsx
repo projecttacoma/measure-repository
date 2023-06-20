@@ -1,10 +1,10 @@
 import { trpc } from '@/util/trpc';
-import { Button, Center, Divider, Grid, Paper, Stack, Text, TextInput } from '@mantine/core';
+import { ActionIcon, Button, Center, Divider, Grid, Paper, Stack, Text, TextInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
 import { notifications } from '@mantine/notifications';
-import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck, X } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 
 export default function ResourceAuthoringPage() {
@@ -15,7 +15,6 @@ export default function ResourceAuthoringPage() {
   const [identifier, setIdentifier] = useState('');
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
-  const [version, setVersion] = useState('');
   const [description, setDescription] = useState('');
 
   const ctx = trpc.useContext();
@@ -46,9 +45,6 @@ export default function ResourceAuthoringPage() {
     if (resource?.title) {
       setTitle(resource.title);
     }
-    if (resource?.version) {
-      setVersion(resource.version);
-    }
     if (resource?.description) {
       setDescription(resource.description);
     }
@@ -74,48 +70,55 @@ export default function ResourceAuthoringPage() {
     }
   });
 
-  function parseUpdate(
-    url: string,
-    identifier: string,
-    name: string,
-    title: string,
-    version: string,
-    description: string
-  ) {
-    const update: {
+  function parseUpdate(url: string, identifier: string, name: string, title: string, description: string) {
+    const additions: {
       url?: string;
       identifier?: fhir4.Identifier[];
       name?: string;
       title?: string;
-      version?: string;
+      description?: string;
+    } = {};
+
+    const deletions: {
+      url?: string;
+      identifier?: fhir4.Identifier[];
+      name?: string;
+      title?: string;
       description?: string;
     } = {};
 
     if (url !== '') {
-      update['url'] = url;
+      additions['url'] = url;
+    } else {
+      deletions['url'] = '';
     }
     if (identifier !== '') {
       const splitIden = identifier.split('|');
       if (splitIden.length > 1) {
-        update['identifier'] = [{ system: splitIden[0], value: splitIden[1] }];
+        additions['identifier'] = [{ system: splitIden[0], value: splitIden[1] }];
       } else {
-        update['identifier'] = [{ value: splitIden[0] }];
+        additions['identifier'] = [{ value: splitIden[0] }];
       }
+    } else {
+      deletions['identifier'] = [{ system: '', value: '' }];
     }
     if (name !== '') {
-      update['name'] = name;
+      additions['name'] = name;
+    } else {
+      deletions['name'] = '';
     }
     if (title !== '') {
-      update['title'] = title;
-    }
-    if (version !== '') {
-      update['version'] = version;
+      additions['title'] = title;
+    } else {
+      deletions['title'] = '';
     }
     if (description !== '') {
-      update['description'] = description;
+      additions['description'] = description;
+    } else {
+      deletions['description'] = '';
     }
 
-    return update;
+    return [additions, deletions];
   }
 
   return (
@@ -129,24 +132,87 @@ export default function ResourceAuthoringPage() {
       <Grid>
         <Grid.Col span={6}>
           <Stack spacing="md">
-            <TextInput label="url" value={url} onChange={e => setUrl(e.target.value)} />
-            <TextInput label="identifier" value={identifier} onChange={e => setIdentifier(e.target.value)} />
-            <TextInput label="name" value={name} onChange={e => setName(e.target.value)} />
-            <TextInput label="title" value={title} onChange={e => setTitle(e.target.value)} />
-            <TextInput label="version" value={version} onChange={e => setVersion(e.target.value)} />
-            <TextInput label="description" value={description} onChange={e => setDescription(e.target.value)} />
+            <TextInput
+              label="url"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              rightSection={
+                <ActionIcon
+                  onClick={() => {
+                    setUrl('');
+                  }}
+                >
+                  <X />
+                </ActionIcon>
+              }
+            />
+            <TextInput
+              label="identifier"
+              value={identifier}
+              onChange={e => setIdentifier(e.target.value)}
+              rightSection={
+                <ActionIcon
+                  onClick={() => {
+                    setIdentifier('');
+                  }}
+                >
+                  <X />
+                </ActionIcon>
+              }
+            />
+            <TextInput
+              label="name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              rightSection={
+                <ActionIcon
+                  onClick={() => {
+                    setName('');
+                  }}
+                >
+                  <X />
+                </ActionIcon>
+              }
+            />
+            <TextInput
+              label="title"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              rightSection={
+                <ActionIcon
+                  onClick={() => {
+                    setTitle('');
+                  }}
+                >
+                  <X />
+                </ActionIcon>
+              }
+            />
+            <TextInput
+              label="description"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rightSection={
+                <ActionIcon
+                  onClick={() => {
+                    setDescription('');
+                  }}
+                >
+                  <X />
+                </ActionIcon>
+              }
+            />
             <Button
               w={120}
-              onClick={() =>
+              onClick={() => {
+                const [additions, deletions] = parseUpdate(url, identifier, name, title, description);
                 resourceUpdate.mutate({
                   resourceType: resourceType as ArtifactResourceType,
                   id: id as string,
-                  draft: parseUpdate(url, identifier, name, title, version, description)
-                })
-              }
-              disabled={
-                identifier === '' && url === '' && name === '' && title === '' && version === '' && description === ''
-              }
+                  additions: additions,
+                  deletions: deletions
+                });
+              }}
             >
               Submit
             </Button>
