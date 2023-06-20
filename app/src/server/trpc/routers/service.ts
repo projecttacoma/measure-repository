@@ -43,15 +43,16 @@ export const serviceRouter = router({
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
       );
-      const resource = (await res.json()) as fhir4.Library;
-      if (resource?.resourceType != 'Library') {
+      const resource = await res.json();
+      if (resource?.resourceType === 'OperationOutcome') {
+        const eMessage = resource?.issue[0]?.details?.text;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'An unexpected error occurred, please try again later.'
+          message: eMessage
         });
       }
       return {
-        Library: resource
+        Library: resource as fhir4.Library
       } as const;
     }),
 

@@ -60,13 +60,13 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           loading: false
         });
       },
-      onError: () => {
+      onError: e => {
         notifications.show({
           id: 'no-requirements',
           withCloseButton: true,
-          autoClose: 3000,
+          autoClose: 4000,
           title: 'No Data Requirements Found',
-          message: 'No data requirements were found, or a Library referenced by the resource could not be found.',
+          message: e.message,
           color: 'red',
           style: { backgroundColor: 'white' },
           icon: <AbacusOff />,
