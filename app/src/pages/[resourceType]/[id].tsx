@@ -1,10 +1,9 @@
 import { Prism } from '@mantine/prism';
 import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
-import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
@@ -49,28 +48,20 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       enabled: false,
       onSuccess: () => {
         notifications.show({
-          id: 'requirements',
-          withCloseButton: true,
           autoClose: 2000,
           title: 'Successful Fetch',
           message: 'Data requirements successfully fetched',
           color: 'teal',
-          style: { backgroundColor: 'white' },
-          icon: <CircleCheck />,
-          loading: false
+          icon: <CircleCheck />
         });
       },
       onError: e => {
         notifications.show({
-          id: 'no-requirements',
-          withCloseButton: true,
           autoClose: 4000,
           title: 'No Data Requirements Found',
           message: e.message,
           color: 'red',
-          style: { backgroundColor: 'white' },
-          icon: <AbacusOff />,
-          loading: false
+          icon: <AbacusOff />
         });
       }
     }
@@ -113,7 +104,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Group>
               <Button
                 w={240}
-                id="btn"
                 loading={isFetching}
                 loaderPosition="center"
                 onClick={() => {
@@ -129,53 +119,51 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           </Group>
         </div>
         <Divider my="sm" pb={6} />
-        <div>
-          <Tabs variant="outline" defaultValue="json">
-            <Tabs.List>
-              <Tabs.Tab value="json">JSON</Tabs.Tab>
-              {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
-              {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
-              {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-              {dataRequirements?.Library.resourceType === 'Library' && (
-                <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
-              )}
-            </Tabs.List>
-            <Tabs.Panel value="json" pt="xs">
-              <Prism language="json" colorScheme="light">
-                {JSON.stringify(jsonData, null, 2)}
+        <Tabs variant="outline" defaultValue="json">
+          <Tabs.List>
+            <Tabs.Tab value="json">JSON</Tabs.Tab>
+            {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
+            {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
+            {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
+            {dataRequirements?.Library.resourceType === 'Library' && (
+              <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
+            )}
+          </Tabs.List>
+          <Tabs.Panel value="json" pt="xs">
+            <Prism language="json" colorScheme="light">
+              {JSON.stringify(jsonData, null, 2)}
+            </Prism>
+          </Tabs.Panel>
+          {decodedCql != null && (
+            <Tabs.Panel value="cql" pt="xs">
+              {/* eslint-disable  @typescript-eslint/no-explicit-any */}
+              <Prism language={'cql' as any} colorScheme="light">
+                {/* eslint-enable  @typescript-eslint/no-explicit-any */}
+                {decodedCql}
               </Prism>
             </Tabs.Panel>
-            {decodedCql != null && (
-              <Tabs.Panel value="cql" pt="xs">
-                {/* eslint-disable  @typescript-eslint/no-explicit-any */}
-                <Prism language={'cql' as any} colorScheme="light">
-                  {/* eslint-enable  @typescript-eslint/no-explicit-any */}
-                  {decodedCql}
-                </Prism>
-              </Tabs.Panel>
-            )}
-            {decodedElm != null && (
-              <Tabs.Panel value="elm" pt="xs">
-                <Prism language="json" colorScheme="light">
-                  {decodedElm}
-                </Prism>
-              </Tabs.Panel>
-            )}
-            {jsonData.text && (
-              <Tabs.Panel value="narrative">
-                <Space h="sm" />
-                {parse(jsonData.text.div)}
-              </Tabs.Panel>
-            )}
-            {dataRequirements?.Library.resourceType === 'Library' && (
-              <Tabs.Panel value="data-requirements">
-                <Prism language="json" colorScheme="light">
-                  {JSON.stringify(dataRequirements.Library, null, 2)}
-                </Prism>
-              </Tabs.Panel>
-            )}
-          </Tabs>
-        </div>
+          )}
+          {decodedElm != null && (
+            <Tabs.Panel value="elm" pt="xs">
+              <Prism language="json" colorScheme="light">
+                {decodedElm}
+              </Prism>
+            </Tabs.Panel>
+          )}
+          {jsonData.text && (
+            <Tabs.Panel value="narrative">
+              <Space h="sm" />
+              {parse(jsonData.text.div)}
+            </Tabs.Panel>
+          )}
+          {dataRequirements?.Library.resourceType === 'Library' && (
+            <Tabs.Panel value="data-requirements">
+              <Prism language="json" colorScheme="light">
+                {JSON.stringify(dataRequirements.Library, null, 2)}
+              </Prism>
+            </Tabs.Panel>
+          )}
+        </Tabs>
       </Stack>
     </div>
   );
