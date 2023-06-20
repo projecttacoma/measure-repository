@@ -2,7 +2,7 @@ import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, re
 import Link from 'next/link';
 import React from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { Edit, ExternalLink } from 'tabler-icons-react';
+import { Edit, SquareArrowRight } from 'tabler-icons-react';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
@@ -61,7 +61,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         >
           <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
             <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-              {authoring ? <Edit size="24" /> : <ExternalLink size="24" />}
+              {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
             </ActionIcon>
           </Tooltip>
         </Link>
