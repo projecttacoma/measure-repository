@@ -16,6 +16,7 @@ export const serviceRouter = router({
     ]).then(([resMeasure, resLibrary]) =>
       Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
     );
+
     return {
       Measure: measureBundle.total ?? 0,
       Library: libraryBundle.total ?? 0
@@ -45,15 +46,12 @@ export const serviceRouter = router({
       );
       const resource = await res.json();
       if (resource?.resourceType === 'OperationOutcome') {
-        const eMessage = resource?.issue[0]?.details?.text;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: eMessage
+          message: resource?.issue[0]?.details?.text
         });
       }
-      return {
-        Library: resource as fhir4.Library
-      } as const;
+      return resource as fhir4.Library;
     }),
 
   convertArtifactById: publicProcedure

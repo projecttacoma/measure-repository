@@ -23,6 +23,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
   }, [jsonData]);
+
   const decodedElm = useMemo(() => {
     return decode('application/elm+json', jsonData);
   }, [jsonData]);
@@ -51,7 +52,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           autoClose: 2000,
           title: 'Successful Fetch',
           message: 'Data requirements successfully fetched',
-          color: 'teal',
+          color: 'green',
           icon: <CircleCheck />
         });
       },
@@ -125,7 +126,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
             {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
             {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
-            {dataRequirements?.Library.resourceType === 'Library' && (
+            {dataRequirements?.resourceType === 'Library' && (
               <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
             )}
           </Tabs.List>
@@ -156,10 +157,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {parse(jsonData.text.div)}
             </Tabs.Panel>
           )}
-          {dataRequirements?.Library.resourceType === 'Library' && (
+          {dataRequirements?.resourceType === 'Library' && (
             <Tabs.Panel value="data-requirements">
               <Prism language="json" colorScheme="light">
-                {JSON.stringify(dataRequirements.Library, null, 2)}
+                {JSON.stringify(dataRequirements, null, 2)}
               </Prism>
             </Tabs.Panel>
           )}
