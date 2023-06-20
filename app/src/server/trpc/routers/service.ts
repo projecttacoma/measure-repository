@@ -3,6 +3,7 @@ import { createDraft } from '@/server/db/dbOperations';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
@@ -43,6 +44,12 @@ export const serviceRouter = router({
         `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
       );
       const resource = (await res.json()) as fhir4.Library;
+      if (resource?.resourceType != 'Library') {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'An unexpected error occurred, please try again later.'
+        });
+      }
       return {
         Library: resource
       } as const;

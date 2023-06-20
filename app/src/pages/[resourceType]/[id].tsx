@@ -4,7 +4,7 @@ import { notifications } from '@mantine/notifications';
 import React from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
@@ -20,11 +20,6 @@ import { trpc } from '@/util/trpc';
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
-  const [loadingIconVisible, setLoadingIconVisible] = useState(false);
-  const { data: dataRequirements, refetch } = trpc.service.getDataRequirements.useQuery(
-    { resourceType: jsonData.resourceType, id: jsonData.id as string },
-    { enabled: false }
-  );
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -44,39 +39,42 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, []);
 
-  //useEffect checks if the data Requirements were loaded and whether the button was clicked
-  useEffect(() => {
-    if (dataRequirements && loadingIconVisible) {
-      setTimeout(() => {
-        if (dataRequirements?.Library?.resourceType === 'Library') {
-          notifications.show({
-            id: 'requirements',
-            withCloseButton: true,
-            autoClose: 2000,
-            title: 'Successful Fetch',
-            message: 'Data requirements successfully fetched',
-            color: 'teal',
-            style: { backgroundColor: 'white' },
-            icon: <CircleCheck />,
-            loading: false
-          });
-        } else {
-          notifications.show({
-            id: 'no-requirements',
-            withCloseButton: true,
-            autoClose: 3000,
-            title: 'No Data Requirements Found',
-            message: 'No data requirements were found, or a Library referenced by the resource could not be found.',
-            color: 'red',
-            style: { backgroundColor: 'white' },
-            icon: <AbacusOff />,
-            loading: false
-          });
-        }
-        setLoadingIconVisible(false);
-      }, 250);
+  const {
+    data: dataRequirements,
+    refetch,
+    isFetching
+  } = trpc.service.getDataRequirements.useQuery(
+    { resourceType: jsonData.resourceType, id: jsonData.id as string },
+    {
+      enabled: false,
+      onSuccess: () => {
+        notifications.show({
+          id: 'requirements',
+          withCloseButton: true,
+          autoClose: 2000,
+          title: 'Successful Fetch',
+          message: 'Data requirements successfully fetched',
+          color: 'teal',
+          style: { backgroundColor: 'white' },
+          icon: <CircleCheck />,
+          loading: false
+        });
+      },
+      onError: () => {
+        notifications.show({
+          id: 'no-requirements',
+          withCloseButton: true,
+          autoClose: 3000,
+          title: 'No Data Requirements Found',
+          message: 'No data requirements were found, or a Library referenced by the resource could not be found.',
+          color: 'red',
+          style: { backgroundColor: 'white' },
+          icon: <AbacusOff />,
+          loading: false
+        });
+      }
     }
-  }, [dataRequirements, loadingIconVisible]);
+  );
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -116,10 +114,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               <Button
                 w={240}
                 id="btn"
-                loading={loadingIconVisible}
+                loading={isFetching}
                 loaderPosition="center"
                 onClick={() => {
-                  setLoadingIconVisible(true);
                   refetch();
                 }}
               >
@@ -179,9 +176,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             )}
           </Tabs>
         </div>
-        {/* <div style={{ position: 'absolute', left: '85vw', top: '16vh' }}>
-         
-        </div> */}
       </Stack>
     </div>
   );
