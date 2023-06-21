@@ -47,7 +47,7 @@ export const serviceRouter = router({
       const resource = await res.json();
       if (resource?.resourceType === 'OperationOutcome') {
         throw new TRPCError({
-          code: resource?.issue[0]?.details?.text,
+          code: 'INTERNAL_SERVER_ERROR',
           message: resource?.issue[0]?.details?.text
         });
       }

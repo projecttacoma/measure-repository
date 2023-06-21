@@ -47,6 +47,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     { resourceType: jsonData.resourceType, id: jsonData.id as string },
     {
       enabled: false,
+      retry: 0,
       onSuccess: () => {
         notifications.show({
           autoClose: 2000,
