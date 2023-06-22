@@ -126,7 +126,7 @@ export default function ResourceAuthoringPage() {
                     setUrl('');
                   }}
                 >
-                  <X />
+                  <X size={16} />
                 </ActionIcon>
               }
             />
@@ -140,7 +140,7 @@ export default function ResourceAuthoringPage() {
                     setIdentifier('');
                   }}
                 >
-                  <X />
+                  <X size={16} />
                 </ActionIcon>
               }
             />
@@ -154,7 +154,7 @@ export default function ResourceAuthoringPage() {
                     setName('');
                   }}
                 >
-                  <X />
+                  <X size={16} />
                 </ActionIcon>
               }
             />
@@ -168,7 +168,7 @@ export default function ResourceAuthoringPage() {
                     setTitle('');
                   }}
                 >
-                  <X />
+                  <X size={16} />
                 </ActionIcon>
               }
             />
@@ -182,7 +182,7 @@ export default function ResourceAuthoringPage() {
                     setDescription('');
                   }}
                 >
-                  <X />
+                  <X size={16} />
                 </ActionIcon>
               }
             />
