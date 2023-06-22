@@ -1,11 +1,12 @@
 import { trpc } from '@/util/trpc';
-import { ActionIcon, Button, Center, Divider, Grid, Paper, Stack, Text, TextInput } from '@mantine/core';
+import { Button, Center, Divider, Grid, Paper, Stack, Text } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
 import { notifications } from '@mantine/notifications';
-import { AlertCircle, CircleCheck, X } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
+import ArtifactFieldInput from '@/components/ArtifactFieldInput';
 
 export default function ResourceAuthoringPage() {
   const router = useRouter();
@@ -116,76 +117,11 @@ export default function ResourceAuthoringPage() {
       <Grid>
         <Grid.Col span={6}>
           <Stack spacing="md">
-            <TextInput
-              label="url"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              rightSection={
-                <ActionIcon
-                  onClick={() => {
-                    setUrl('');
-                  }}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              }
-            />
-            <TextInput
-              label="identifier"
-              value={identifier}
-              onChange={e => setIdentifier(e.target.value)}
-              rightSection={
-                <ActionIcon
-                  onClick={() => {
-                    setIdentifier('');
-                  }}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              }
-            />
-            <TextInput
-              label="name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              rightSection={
-                <ActionIcon
-                  onClick={() => {
-                    setName('');
-                  }}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              }
-            />
-            <TextInput
-              label="title"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              rightSection={
-                <ActionIcon
-                  onClick={() => {
-                    setTitle('');
-                  }}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              }
-            />
-            <TextInput
-              label="description"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rightSection={
-                <ActionIcon
-                  onClick={() => {
-                    setDescription('');
-                  }}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              }
-            />
+            <ArtifactFieldInput label="url" value={url} setField={setUrl} />
+            <ArtifactFieldInput label="identifier" value={identifier} setField={setIdentifier} />
+            <ArtifactFieldInput label="name" value={name} setField={setName} />
+            <ArtifactFieldInput label="title" value={title} setField={setTitle} />
+            <ArtifactFieldInput label="description" value={description} setField={setDescription} />
             <Button
               w={120}
               onClick={() => {
