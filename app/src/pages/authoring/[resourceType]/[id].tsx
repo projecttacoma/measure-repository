@@ -87,12 +87,8 @@ export default function ResourceAuthoringPage() {
       description?: string;
     } = {};
 
-    if (url !== '') {
-      additions['url'] = url;
-    } else {
-      deletions['url'] = '';
-    }
-    if (identifier !== '') {
+    url.trim() !== '' ? (additions['url'] = url) : (deletions['url'] = '');
+    if (identifier.trim() !== '') {
       const splitIden = identifier.split('|');
       if (splitIden.length > 1) {
         additions['identifier'] = [{ system: splitIden[0], value: splitIden[1] }];
@@ -102,21 +98,9 @@ export default function ResourceAuthoringPage() {
     } else {
       deletions['identifier'] = [{ system: '', value: '' }];
     }
-    if (name !== '') {
-      additions['name'] = name;
-    } else {
-      deletions['name'] = '';
-    }
-    if (title !== '') {
-      additions['title'] = title;
-    } else {
-      deletions['title'] = '';
-    }
-    if (description !== '') {
-      additions['description'] = description;
-    } else {
-      deletions['description'] = '';
-    }
+    name.trim() !== '' ? (additions['name'] = name) : (deletions['name'] = '');
+    title.trim() !== '' ? (additions['title'] = title) : (deletions['title'] = '');
+    description.trim() !== '' ? (additions['description'] = description) : (deletions['description'] = '');
 
     return [additions, deletions];
   }
