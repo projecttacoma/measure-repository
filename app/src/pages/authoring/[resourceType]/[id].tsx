@@ -25,6 +25,31 @@ export default function ResourceAuthoringPage() {
     resourceType: resourceType as ArtifactResourceType
   });
 
+  // checks if the field inputs have been changed by the user by checking
+  // that they are different from the saved field values on the draft artifact
+  // if the input is undefined on the draft artifact, then it is treated as
+  // an empty string
+  const isChanged = () => {
+    let savedIdentifier = '';
+    if (resource?.identifier) {
+      const cmsIdentifier = resource.identifier.find(
+        identifier => identifier.system === 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms'
+      );
+      if (cmsIdentifier?.value) {
+        savedIdentifier = cmsIdentifier.value;
+      } else if (resource.identifier[0].value) {
+        savedIdentifier = resource.identifier[0].value;
+      }
+    }
+    return (
+      url !== (resource?.url ?? '') ||
+      identifier !== savedIdentifier ||
+      name !== (resource?.name ?? '') ||
+      title !== (resource?.title ?? '') ||
+      description !== (resource?.description ?? '')
+    );
+  };
+
   // useEffect to check if the resource has any fields already defined
   useEffect(() => {
     if (resource?.url) {
@@ -133,6 +158,7 @@ export default function ResourceAuthoringPage() {
                   deletions: deletions
                 });
               }}
+              disabled={!isChanged()} // only enable the submit button when a field has changed
             >
               Submit
             </Button>
