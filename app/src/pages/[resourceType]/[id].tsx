@@ -1,32 +1,24 @@
 import { Prism } from '@mantine/prism';
 import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import React, { useEffect, useMemo } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
-import { useEffect, useMemo } from 'react';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
-import { AlertCircle, CircleCheck } from 'tabler-icons-react';
-import { notifications } from '@mantine/notifications';
-import { trpc } from '../../util/trpc';
+import { AlertCircle, CircleCheck, AbacusOff } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
+import { trpc } from '@/util/trpc';
 
 /**
- * Component which displays the JSON/ELM/CQL/narrative content of an individual resource using
- * Mantine tabs
+ * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
+ * Mantine tabs. The Data Requirements tab can be optionally rendered via the click of a button.
  * @returns JSON/ELM/CQL/narrative content of the individual resource in a Prism component
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
-
-  // Overwrite Prism with our custom Prism that includes CQL as a language
-  useEffect(() => {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    (PrismRenderer.languages as any).cql = CQLRegex;
-    (window as any).Prism = PrismRenderer;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-  }, []);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -38,6 +30,44 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 
   const ctx = trpc.useContext();
   const router = useRouter();
+
+  // Overwrite Prism with our custom Prism that includes CQL as a language
+  useEffect(() => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    (PrismRenderer.languages as any).cql = CQLRegex;
+    (window as any).Prism = PrismRenderer;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  }, []);
+
+  const {
+    data: dataRequirements,
+    refetch,
+    isFetching
+  } = trpc.service.getDataRequirements.useQuery(
+    { resourceType: jsonData.resourceType, id: jsonData.id as string },
+    {
+      enabled: false,
+      retry: 0,
+      onSuccess: () => {
+        notifications.show({
+          autoClose: 2000,
+          title: 'Successful Fetch',
+          message: 'Data requirements successfully fetched',
+          color: 'green',
+          icon: <CircleCheck />
+        });
+      },
+      onError: e => {
+        notifications.show({
+          autoClose: 4000,
+          title: 'No Data Requirements Found',
+          message: e.message,
+          color: 'red',
+          icon: <AbacusOff />
+        });
+      }
+    }
+  );
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -73,9 +103,21 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
-              Create Draft of {jsonData.resourceType}
-            </Button>
+            <Group>
+              <Button
+                w={240}
+                loading={isFetching}
+                loaderPosition="center"
+                onClick={() => {
+                  refetch();
+                }}
+              >
+                Get Data Requirements
+              </Button>
+              <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+                Create Draft of {jsonData.resourceType}
+              </Button>
+            </Group>
           </Group>
         </div>
         <Divider my="sm" pb={6} />
@@ -85,6 +127,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
             {decodedCql != null && <Tabs.Tab value="cql">CQL</Tabs.Tab>}
             {jsonData.text && <Tabs.Tab value="narrative">Narrative</Tabs.Tab>}
+            {dataRequirements?.resourceType === 'Library' && (
+              <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
+            )}
           </Tabs.List>
           <Tabs.Panel value="json" pt="xs">
             <Prism language="json" colorScheme="light">
@@ -111,6 +156,13 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Tabs.Panel value="narrative">
               <Space h="sm" />
               {parse(jsonData.text.div)}
+            </Tabs.Panel>
+          )}
+          {dataRequirements?.resourceType === 'Library' && (
+            <Tabs.Panel value="data-requirements">
+              <Prism language="json" colorScheme="light">
+                {JSON.stringify(dataRequirements, null, 2)}
+              </Prism>
             </Tabs.Panel>
           )}
         </Tabs>

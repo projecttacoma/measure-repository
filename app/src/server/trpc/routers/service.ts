@@ -1,8 +1,10 @@
-import { FhirArtifact } from '@/util/types/fhir';
 import { publicProcedure, router } from '../trpc';
-import { z } from 'zod';
 import { createDraft } from '@/server/db/dbOperations';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
+import { FhirArtifact } from '@/util/types/fhir';
+import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
+
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
  */
@@ -34,6 +36,22 @@ export const serviceRouter = router({
       }));
 
       return artifactList;
+    }),
+
+  getDataRequirements: publicProcedure
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
+    .query(async ({ input }) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
+      );
+      const resource = await res.json();
+      if (resource?.resourceType === 'OperationOutcome') {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: resource?.issue[0]?.details?.text
+        });
+      }
+      return resource as fhir4.Library;
     }),
 
   convertArtifactById: publicProcedure
