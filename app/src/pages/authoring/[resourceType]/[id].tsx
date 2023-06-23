@@ -8,6 +8,14 @@ import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import ArtifactFieldInput from '@/components/ArtifactFieldInput';
 
+interface DraftArtifactUpdates {
+  url?: string;
+  identifier?: fhir4.Identifier[];
+  name?: string;
+  title?: string;
+  description?: string;
+}
+
 export default function ResourceAuthoringPage() {
   const router = useRouter();
   const { resourceType, id } = router.query;
@@ -97,21 +105,8 @@ export default function ResourceAuthoringPage() {
   });
 
   function parseUpdate(url: string, identifier: string, name: string, title: string, description: string) {
-    const additions: {
-      url?: string;
-      identifier?: fhir4.Identifier[];
-      name?: string;
-      title?: string;
-      description?: string;
-    } = {};
-
-    const deletions: {
-      url?: string;
-      identifier?: fhir4.Identifier[];
-      name?: string;
-      title?: string;
-      description?: string;
-    } = {};
+    const additions: DraftArtifactUpdates = {};
+    const deletions: DraftArtifactUpdates = {};
 
     url.trim() !== '' ? (additions['url'] = url) : (deletions['url'] = '');
     if (identifier.trim() !== '') {
