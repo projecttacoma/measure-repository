@@ -37,11 +37,20 @@ export async function updateDraft(resourceType: ArtifactResourceType, id: string
   return collection.updateOne({ id }, { $set: additions, $unset: deletions });
 }
 
-/*
+/**
  * Counts the number of artifact resources present for a given resource type
  */
 export async function getDraftCount(resourceType: ArtifactResourceType) {
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
   return collection.countDocuments();
+}
+
+/**
+ * Deletes the draft resource of the given type with the given id
+ */
+export async function deleteDraft(resourceType: ArtifactResourceType, id: string) {
+  const client = await clientPromise;
+  const collection = client.db().collection(resourceType);
+  return collection.deleteOne({ id });
 }

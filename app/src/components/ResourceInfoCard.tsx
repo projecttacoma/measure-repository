@@ -2,7 +2,9 @@ import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, re
 import Link from 'next/link';
 import React from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { Edit, SquareArrowRight } from 'tabler-icons-react';
+import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { trpc } from '@/util/trpc';
+import { notifications } from '@mantine/notifications';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
@@ -22,6 +24,29 @@ const useStyles = createStyles(theme => ({
 
 export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceInfoCardProps) {
   const { classes } = useStyles();
+  const ctx = trpc.useContext();
+
+  const deleteMutation = trpc.draft.deleteDraft.useMutation({
+    onSuccess: () => {
+      notifications.show({
+        title: `Draft ${resourceInfo.resourceType} Deleted!`,
+        message: `Draft ${resourceInfo.resourceType}/${resourceInfo.id} successfully deleted`,
+        icon: <CircleCheck />,
+        color: 'green'
+      });
+      ctx.draft.getDraftCounts.invalidate();
+      ctx.draft.getDrafts.invalidate();
+    },
+    onError: e => {
+      notifications.show({
+        title: `Draft ${resourceInfo.resourceType} Deletion Failed!`,
+        message: `Attempt to delete draft of ${resourceInfo.resourceType}/${resourceInfo.id} failed with message: ${e.message}`,
+        icon: <AlertCircle />,
+        color: 'red'
+      });
+    }
+  });
+
   return (
     <Paper className={classes.card} shadow="sm" p="md">
       <Grid align="center">
@@ -65,6 +90,24 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
             </ActionIcon>
           </Tooltip>
         </Link>
+        {authoring && (
+          <Tooltip label={'Delete Resource'} openDelay={1000}>
+            <ActionIcon
+              radius="md"
+              size="md"
+              variant="subtle"
+              color="red"
+              onClick={() => {
+                deleteMutation.mutate({
+                  resourceType: resourceInfo.resourceType,
+                  id: resourceInfo.id
+                });
+              }}
+            >
+              <Trash size="24" />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Grid>
     </Paper>
   );
