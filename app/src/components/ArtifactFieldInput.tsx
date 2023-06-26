@@ -1,11 +1,10 @@
 import { ActionIcon, TextInput } from '@mantine/core';
-import { Dispatch, SetStateAction } from 'react';
 import { X } from 'tabler-icons-react';
 
 export interface ArtifactFieldInputProps {
   label: string;
   value: string;
-  setField: Dispatch<SetStateAction<string>>;
+  setField: (val: string) => void;
 }
 
 export default function ArtifactFieldInput({ label, value, setField }: ArtifactFieldInputProps) {

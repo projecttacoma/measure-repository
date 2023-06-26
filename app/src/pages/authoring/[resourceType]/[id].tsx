@@ -21,7 +21,8 @@ export default function ResourceAuthoringPage() {
   const { resourceType, id } = router.query;
 
   const [url, setUrl] = useState('');
-  const [identifier, setIdentifier] = useState('');
+  const [identifierValue, setIdentifierValue] = useState('');
+  const [identifierSystem, setIdentifierSystem] = useState('');
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -38,20 +39,28 @@ export default function ResourceAuthoringPage() {
   // if the input is undefined on the draft artifact, then it is treated as
   // an empty string
   const isChanged = () => {
-    let savedIdentifier = '';
+    let savedIdentifierValue = '';
+    let savedIdentifierSystem = '';
     if (resource?.identifier) {
       const cmsIdentifier = resource.identifier.find(
         identifier => identifier.system === 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms'
       );
       if (cmsIdentifier?.value) {
-        savedIdentifier = cmsIdentifier.value;
+        savedIdentifierValue = cmsIdentifier.value;
+        if (cmsIdentifier.system) {
+          savedIdentifierSystem = cmsIdentifier.system;
+        }
       } else if (resource.identifier[0].value) {
-        savedIdentifier = resource.identifier[0].value;
+        savedIdentifierValue = resource.identifier[0].value;
+        if (resource.identifier[0].system) {
+          savedIdentifierSystem = resource.identifier[0].system;
+        }
       }
     }
     return (
       url !== (resource?.url ?? '') ||
-      identifier !== savedIdentifier ||
+      identifierValue !== savedIdentifierValue ||
+      identifierSystem !== savedIdentifierSystem ||
       name !== (resource?.name ?? '') ||
       title !== (resource?.title ?? '') ||
       description !== (resource?.description ?? '')
@@ -68,9 +77,15 @@ export default function ResourceAuthoringPage() {
         identifier => identifier.system === 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms'
       );
       if (cmsIdentifier?.value) {
-        setIdentifier(cmsIdentifier.value);
+        setIdentifierValue(cmsIdentifier.value);
+        if (cmsIdentifier.system) {
+          setIdentifierSystem(cmsIdentifier.system);
+        }
       } else if (resource.identifier[0].value) {
-        setIdentifier(resource.identifier[0].value);
+        setIdentifierValue(resource.identifier[0].value);
+        if (resource.identifier[0].system) {
+          setIdentifierSystem(resource.identifier[0].value);
+        }
       }
     }
     if (resource?.name) {
@@ -104,17 +119,23 @@ export default function ResourceAuthoringPage() {
     }
   });
 
-  function parseUpdate(url: string, identifier: string, name: string, title: string, description: string) {
+  function parseUpdate(
+    url: string,
+    identifierValue: string,
+    identifierSystem: string,
+    name: string,
+    title: string,
+    description: string
+  ) {
     const additions: DraftArtifactUpdates = {};
     const deletions: DraftArtifactUpdates = {};
 
     url.trim() !== '' ? (additions['url'] = url) : (deletions['url'] = '');
-    if (identifier.trim() !== '') {
-      const splitIden = identifier.split('|');
-      if (splitIden.length > 1) {
-        additions['identifier'] = [{ system: splitIden[0], value: splitIden[1] }];
+    if (identifierValue.trim() !== '') {
+      if (identifierSystem.trim() !== '') {
+        additions['identifier'] = [{ system: identifierSystem, value: identifierValue }];
       } else {
-        additions['identifier'] = [{ value: splitIden[0] }];
+        additions['identifier'] = [{ value: identifierValue }];
       }
     } else {
       deletions['identifier'] = [{ system: '', value: '' }];
@@ -138,14 +159,22 @@ export default function ResourceAuthoringPage() {
         <Grid.Col span={6}>
           <Stack spacing="md">
             <ArtifactFieldInput label="url" value={url} setField={setUrl} />
-            <ArtifactFieldInput label="identifier" value={identifier} setField={setIdentifier} />
+            <ArtifactFieldInput label="identifier value" value={identifierValue} setField={setIdentifierValue} />
+            <ArtifactFieldInput label="identifier system" value={identifierSystem} setField={setIdentifierSystem} />
             <ArtifactFieldInput label="name" value={name} setField={setName} />
             <ArtifactFieldInput label="title" value={title} setField={setTitle} />
             <ArtifactFieldInput label="description" value={description} setField={setDescription} />
             <Button
               w={120}
               onClick={() => {
-                const [additions, deletions] = parseUpdate(url, identifier, name, title, description);
+                const [additions, deletions] = parseUpdate(
+                  url,
+                  identifierValue,
+                  identifierSystem,
+                  name,
+                  title,
+                  description
+                );
                 resourceUpdate.mutate({
                   resourceType: resourceType as ArtifactResourceType,
                   id: id as string,
@@ -160,6 +189,9 @@ export default function ResourceAuthoringPage() {
           </Stack>
         </Grid.Col>
         <Grid.Col span={6}>
+          <Text c="gray" fz="sm">
+            Current JSON Content
+          </Text>
           <Paper withBorder>
             <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
               {resource ? JSON.stringify(resource, null, 2) : ''}
