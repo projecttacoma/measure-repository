@@ -11,6 +11,7 @@ import { AlertCircle, CircleCheck, AbacusOff } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
+import DataReqs from '@/components/DataRequirements';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
@@ -158,11 +159,14 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {parse(jsonData.text.div)}
             </Tabs.Panel>
           )}
-          {dataRequirements?.resourceType === 'Library' && (
+          {dataRequirements?.resourceType === 'Library' && dataRequirements?.dataRequirement != undefined && (
             <Tabs.Panel value="data-requirements">
               <Prism language="json" colorScheme="light">
                 {JSON.stringify(dataRequirements, null, 2)}
               </Prism>
+              {dataRequirements?.dataRequirement.map((item: any, index: any) => (
+                <DataReqs key={index} props={item}></DataReqs>
+              ))}
             </Tabs.Panel>
           )}
         </Tabs>
