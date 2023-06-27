@@ -10,7 +10,12 @@ export function extractResourceInfo(resource: FhirArtifact) {
   const resourceInfo: ResourceInfo = {
     resourceType: resource.resourceType,
     id: resource.id as string,
-    identifier: identifier?.system && identifier?.value ? `${identifier.system}|${identifier.value}` : null,
+    identifier:
+      identifier?.system && identifier?.value
+        ? `${identifier.system}|${identifier.value}`
+        : identifier?.value
+        ? `${identifier.value}`
+        : '',
     name: resource.name ?? null,
     url: resource.url ?? null,
     version: resource.version ?? null,
