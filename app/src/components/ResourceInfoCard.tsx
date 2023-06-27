@@ -1,4 +1,15 @@
-import { ActionIcon, Grid, Paper, Text, createStyles, em, getBreakpointValue, rem, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Grid,
+  Paper,
+  Text,
+  createStyles,
+  em,
+  getBreakpointValue,
+  rem,
+  Tooltip,
+  Group
+} from '@mantine/core';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
@@ -93,33 +104,35 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               </Text>
             )}
           </Grid.Col>
-          <Link
-            href={
-              authoring
-                ? `/authoring/${resourceInfo.resourceType}/${resourceInfo.id}`
-                : `/${resourceInfo.resourceType}/${resourceInfo.id}`
-            }
-            key={resourceInfo.id}
-          >
-            <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
-              <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-                {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
-              </ActionIcon>
-            </Tooltip>
-          </Link>
-          {authoring && (
-            <Tooltip label={'Delete Resource'} openDelay={1000}>
-              <ActionIcon
-                radius="md"
-                size="md"
-                variant="subtle"
-                color="red"
-                onClick={() => setIsConfirmationModalOpen(true)}
-              >
-                <Trash size="24" />
-              </ActionIcon>
-            </Tooltip>
-          )}
+          <Group>
+            <Link
+              href={
+                authoring
+                  ? `/authoring/${resourceInfo.resourceType}/${resourceInfo.id}`
+                  : `/${resourceInfo.resourceType}/${resourceInfo.id}`
+              }
+              key={resourceInfo.id}
+            >
+              <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
+                <ActionIcon radius="md" size="md" variant="subtle" color="gray">
+                  {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
+                </ActionIcon>
+              </Tooltip>
+            </Link>
+            {authoring && (
+              <Tooltip label={'Delete Resource'} openDelay={1000}>
+                <ActionIcon
+                  radius="md"
+                  size="md"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => setIsConfirmationModalOpen(true)}
+                >
+                  <Trash size="24" />
+                </ActionIcon>
+              </Tooltip>
+            )}
+          </Group>
         </Grid>
       </Paper>
     </>
