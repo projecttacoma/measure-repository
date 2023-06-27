@@ -1,7 +1,9 @@
-import { Button, Center, Collapse, createStyles, em, getBreakpointValue, List, Paper, rem } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { ArrowsMaximize, ArrowsMinimize } from 'tabler-icons-react';
-import { useState } from 'react';
+import { Accordion, Center, createStyles, em, getBreakpointValue, List, Paper, rem } from '@mantine/core';
+
+interface codeInterface {
+  code: string;
+  system: string;
+}
 
 const useStyles = createStyles(theme => ({
   card: {
@@ -14,17 +16,11 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-interface codeInterface {
-  code: string;
-  system: string;
-}
-
 /**
- * Component which takes in data requirements and then reformats it in a new div element
+ * Component which displays all data requirements of a specified resource and displays them
+ * as resource cards that contain all required information
  */
 function DataRequirements({ props }: any) {
-  const [opened, { toggle }] = useDisclosure(false);
-  // const [buttonIcon, setButtonicon] = useState(<ArrowsMaximize />);
   const { classes } = useStyles();
 
   const type = props.type;
@@ -32,40 +28,30 @@ function DataRequirements({ props }: any) {
   const dateFilters = props.dateFilter;
   const codeFilters = props.codeFilter;
   const codes: codeInterface[] = [];
+
   const valueSets = props.codeFilter.filter(function (x: any) {
     return x?.valueSet !== undefined;
   });
 
   codeFilters?.forEach((arr: { code: { code: any; system: any }[] }) => {
     arr?.code?.forEach((element: { code: any; system: any }) => {
-      let code: codeInterface = { code: element?.code, system: element?.system };
+      const code: codeInterface = { code: element?.code, system: element?.system };
       codes.push(code);
     });
   });
 
   return (
-    <>
-      {/* <Center>
-        <Paper className={classes.card} shadow="sm" p="md">
-          <Group position="center" mb={5}>
-            <Button onClick={toggle}>Toggle with linear transition</Button>
-          </Group>
-        </Paper>
-      </Center> */}
-
-      <Center>
-        <Paper className={classes.card} shadow="sm" p="md">
-          <div>
-            {/* <Group> */}
-            <Center>
-              {/* <h2>Requirements</h2> */}
-              <Button variant="default" color="green" size="lg" leftIcon={<ArrowsMaximize />} onClick={toggle}>
-                Click to Expand
-              </Button>
-            </Center>
-            {/* </Group> */}
-            <Collapse in={opened} transitionDuration={500} transitionTimingFunction="linear">
-              <br />
+    <Center>
+      <Paper className={classes.card} shadow="sm" p="md">
+        <Accordion variant="contained" radius="lg" defaultValue="customization">
+          <Accordion.Item value="customization">
+            <Accordion.Control>
+              {' '}
+              <Center>
+                <h2>{type} </h2>
+              </Center>
+            </Accordion.Control>
+            <Accordion.Panel>
               <List>
                 <List.Item>
                   <b>Type: </b>
@@ -98,7 +84,7 @@ function DataRequirements({ props }: any) {
                 {dateFilters?.length > 0 && (
                   <>
                     <List.Item>
-                      <b>DateFilter(s):</b>
+                      <b>DateFilter:</b>
                     </List.Item>
                     <List withPadding>
                       {dateFilters?.map((item: any, index: any, index2: any) => (
@@ -123,7 +109,6 @@ function DataRequirements({ props }: any) {
                 <List.Item>
                   <b>CodeFilter(s):</b>
                 </List.Item>
-                {/* ))} */}
                 {codes.length > 0 && (
                   <List withPadding>
                     <List.Item>
@@ -163,11 +148,11 @@ function DataRequirements({ props }: any) {
                   </List>
                 )}
               </List>
-            </Collapse>
-          </div>
-        </Paper>
-      </Center>
-    </>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      </Paper>
+    </Center>
   );
 }
 

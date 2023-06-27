@@ -1,7 +1,7 @@
 import { Prism } from '@mantine/prism';
-import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
+import { Button, Center, Divider, Group, SegmentedControl, Space, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
@@ -20,6 +20,7 @@ import DataReqs from '@/components/DataRequirements';
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
+  const [value, setValue] = useState('raw');
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -161,12 +162,29 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           )}
           {dataRequirements?.resourceType === 'Library' && dataRequirements?.dataRequirement != undefined && (
             <Tabs.Panel value="data-requirements">
-              <Prism language="json" colorScheme="light">
-                {JSON.stringify(dataRequirements, null, 2)}
-              </Prism>
-              {dataRequirements?.dataRequirement.map((item: any, index: any) => (
-                <DataReqs key={index} props={item}></DataReqs>
-              ))}
+              <Center>
+                {dataRequirements?.dataRequirement.length > 0 && (
+                  <SegmentedControl
+                    fullWidth
+                    color="blue"
+                    value={value}
+                    onChange={setValue}
+                    data={[
+                      { label: 'Raw Data Requirements', value: 'raw' },
+                      { label: 'Readable Data Requirements', value: 'readable' }
+                    ]}
+                  />
+                )}
+              </Center>
+              {value == 'raw' && (
+                <Prism language="json" colorScheme="light">
+                  {JSON.stringify(dataRequirements, null, 2)}
+                </Prism>
+              )}
+              {value == 'readable' &&
+                dataRequirements?.dataRequirement.map((item: any, index: any) => (
+                  <DataReqs key={index} props={item}></DataReqs>
+                ))}
             </Tabs.Panel>
           )}
         </Tabs>
