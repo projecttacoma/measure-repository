@@ -60,7 +60,8 @@ export default function ResourceAuthoringPage() {
     return (
       url !== (resource?.url ?? '') ||
       identifierValue !== savedIdentifierValue ||
-      identifierSystem !== savedIdentifierSystem ||
+      (identifierSystem !== savedIdentifierSystem && savedIdentifierValue) ||
+      (identifierValue.trim() !== '' && identifierSystem !== savedIdentifierSystem) ||
       name !== (resource?.name ?? '') ||
       title !== (resource?.title ?? '') ||
       description !== (resource?.description ?? '')
@@ -160,7 +161,12 @@ export default function ResourceAuthoringPage() {
           <Stack spacing="md">
             <ArtifactFieldInput label="url" value={url} setField={setUrl} />
             <ArtifactFieldInput label="identifier value" value={identifierValue} setField={setIdentifierValue} />
-            <ArtifactFieldInput label="identifier system" value={identifierSystem} setField={setIdentifierSystem} />
+            <ArtifactFieldInput
+              disabled={!identifierValue}
+              label="identifier system"
+              value={identifierSystem}
+              setField={setIdentifierSystem}
+            />
             <ArtifactFieldInput label="name" value={name} setField={setName} />
             <ArtifactFieldInput label="title" value={title} setField={setTitle} />
             <ArtifactFieldInput label="description" value={description} setField={setDescription} />

@@ -4,15 +4,17 @@ import { X } from 'tabler-icons-react';
 export interface ArtifactFieldInputProps {
   label: string;
   value: string;
+  disabled?: boolean;
   setField: (val: string) => void;
 }
 
-export default function ArtifactFieldInput({ label, value, setField }: ArtifactFieldInputProps) {
+export default function ArtifactFieldInput({ label, value, disabled, setField }: ArtifactFieldInputProps) {
   return (
     <div>
       <TextInput
         label={label}
         value={value}
+        disabled={disabled}
         onChange={e => setField(e.target.value)}
         rightSection={
           <ActionIcon
