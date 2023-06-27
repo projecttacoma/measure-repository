@@ -84,7 +84,7 @@ export default function ResourceAuthoringPage() {
       } else if (resource.identifier[0].value) {
         setIdentifierValue(resource.identifier[0].value);
         if (resource.identifier[0].system) {
-          setIdentifierSystem(resource.identifier[0].value);
+          setIdentifierSystem(resource.identifier[0].system);
         }
       }
     }
