@@ -1,6 +1,13 @@
 import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
-import { createDraft, getAllDraftsByType, getDraftById, getDraftCount, updateDraft } from '../../db/dbOperations';
+import {
+  createDraft,
+  getAllDraftsByType,
+  getDraftById,
+  getDraftCount,
+  updateDraft,
+  deleteDraft
+} from '../../db/dbOperations';
 import { publicProcedure, router } from '../trpc';
 
 /** one big router with resource types passed in */
@@ -38,5 +45,11 @@ export const draftRouter = router({
     )
     .mutation(async ({ input }) => {
       return updateDraft(input.resourceType, input.id, input.additions, input.deletions);
+    }),
+
+  deleteDraft: publicProcedure
+    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
+    .mutation(async ({ input }) => {
+      return deleteDraft(input.resourceType, input.id);
     })
 });

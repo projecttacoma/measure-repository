@@ -7,7 +7,7 @@ export type ArtifactResourceType = FhirArtifact['resourceType'];
  * to populate the Resource Info Card.
  */
 export interface ResourceInfo {
-  resourceType: string;
+  resourceType: ArtifactResourceType;
   id: string;
   identifier: string | null;
   name: string | null;
