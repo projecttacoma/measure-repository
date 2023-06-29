@@ -20,7 +20,7 @@ import DataReqs from '@/components/DataRequirements';
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
-  const [value, setValue] = useState('raw');
+  const [dataReqsView, setDataReqsView] = useState('raw');
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -160,15 +160,14 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {parse(jsonData.text.div)}
             </Tabs.Panel>
           )}
-          {dataRequirements?.resourceType === 'Library' && dataRequirements?.dataRequirement != undefined && (
+          {dataRequirements?.resourceType === 'Library' && dataRequirements?.dataRequirement && (
             <Tabs.Panel value="data-requirements">
               <Center>
                 {dataRequirements?.dataRequirement.length > 0 && (
                   <SegmentedControl
                     fullWidth
-                    color="blue"
-                    value={value}
-                    onChange={setValue}
+                    value={dataReqsView}
+                    onChange={setDataReqsView}
                     data={[
                       { label: 'Raw Data Requirements', value: 'raw' },
                       { label: 'Readable Data Requirements', value: 'readable' }
@@ -176,14 +175,20 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                   />
                 )}
               </Center>
-              {value == 'raw' && (
+              {dataReqsView === 'raw' && (
                 <Prism language="json" colorScheme="light">
                   {JSON.stringify(dataRequirements, null, 2)}
                 </Prism>
               )}
-              {value == 'readable' &&
-                dataRequirements?.dataRequirement.map((item: any, index: any) => (
-                  <DataReqs key={index} props={item}></DataReqs>
+              {dataReqsView === 'readable' &&
+                dataRequirements?.dataRequirement.map((item: fhir4.DataRequirement, index: any) => (
+                  <DataReqs
+                    key={index}
+                    type={item?.type}
+                    codeFilter={item?.codeFilter}
+                    dateFilter={item?.dateFilter}
+                    extension={item?.extension}
+                  ></DataReqs>
                 ))}
             </Tabs.Panel>
           )}

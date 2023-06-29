@@ -1,8 +1,8 @@
 import { Accordion, Center, createStyles, em, getBreakpointValue, List, Paper, rem } from '@mantine/core';
 
 interface codeInterface {
-  code: string;
-  system: string;
+  code: string | undefined;
+  system: string | undefined;
 }
 
 const useStyles = createStyles(theme => ({
@@ -20,21 +20,16 @@ const useStyles = createStyles(theme => ({
  * Component which displays all data requirements of a specified resource and displays them
  * as resource cards that contain all required information
  */
-function DataRequirements({ props }: any) {
+function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.DataRequirement) {
   const { classes } = useStyles();
-
-  const type = props.type;
-  const extensions = props.extension;
-  const dateFilters = props.dateFilter;
-  const codeFilters = props.codeFilter;
   const codes: codeInterface[] = [];
 
-  const valueSets = props.codeFilter.filter(function (x: any) {
+  const valueSets = codeFilter?.filter(function (x: fhir4.DataRequirementCodeFilter) {
     return x?.valueSet !== undefined;
   });
 
-  codeFilters?.forEach((arr: { code: { code: any; system: any }[] }) => {
-    arr?.code?.forEach((element: { code: any; system: any }) => {
+  codeFilter?.forEach((arr: fhir4.DataRequirementCodeFilter) => {
+    arr?.code?.forEach((element: fhir4.Coding) => {
       const code: codeInterface = { code: element?.code, system: element?.system };
       codes.push(code);
     });
@@ -54,16 +49,11 @@ function DataRequirements({ props }: any) {
             <Accordion.Panel>
               <List>
                 <List.Item>
-                  <b>Type: </b>
-                  {type}
-                </List.Item>
-                <br />
-                <List.Item>
-                  <b>Extension: </b>
+                  <b>Extension(s): </b>
                   <br />
                 </List.Item>
                 <List withPadding>
-                  {extensions.map((item: any, index: any, index2: any) => (
+                  {extension?.map((item: any, index: any, index2: any) => (
                     <>
                       {item?.url != undefined && (
                         <List.Item key={index}>
@@ -81,24 +71,20 @@ function DataRequirements({ props }: any) {
                     </>
                   ))}
                 </List>
-                {dateFilters?.length > 0 && (
+                {dateFilter && dateFilter?.length > 0 && (
                   <>
                     <List.Item>
-                      <b>DateFilter:</b>
+                      <b>DateFilter(s):</b>
                     </List.Item>
                     <List withPadding>
-                      {dateFilters?.map((item: any, index: any, index2: any) => (
+                      {dateFilter?.map((item: fhir4.DataRequirementDateFilter, index: any, index2: any) => (
                         <>
                           <List.Item key={index}>
                             <b> Start Date: </b>
-                            {new Date(item.valuePeriod.start).getUTCMonth() + 1}/
-                            {new Date(item.valuePeriod.start).getUTCDate()}/
-                            {new Date(item.valuePeriod.start).getUTCFullYear()} <br />
+                            {item?.valuePeriod?.start} <br />
                           </List.Item>
                           <List.Item key={index2}>
-                            <b> End Date: </b> {new Date(item.valuePeriod.end).getUTCMonth() + 1}/
-                            {new Date(item.valuePeriod.end).getUTCDate()}/
-                            {new Date(item.valuePeriod.end).getUTCFullYear()} <br />
+                            <b> End Date: </b> {item?.valuePeriod?.end} <br />
                           </List.Item>
                         </>
                       ))}
@@ -133,7 +119,7 @@ function DataRequirements({ props }: any) {
                     </List>
                   </List>
                 )}
-                {valueSets.length > 0 && (
+                {valueSets && valueSets.length > 0 && (
                   <List withPadding>
                     <List.Item>
                       <b>Value Set(s):</b>
