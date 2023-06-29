@@ -5,7 +5,6 @@ export interface DeletionConfirmationModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title?: string | null;
   modalText?: string | null;
 }
 
