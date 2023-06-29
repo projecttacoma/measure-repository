@@ -1,7 +1,7 @@
 import { Modal, Button, Center, Group, Text } from '@mantine/core';
 import { AlertTriangle } from 'tabler-icons-react';
 
-export interface ConfirmationModalProps {
+export interface DeletionConfirmationModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -9,25 +9,24 @@ export interface ConfirmationModalProps {
   modalText?: string | null;
 }
 
-export default function ConfirmationModal({
+export default function DeletionConfirmationModal({
   open = true,
   onClose,
   onConfirm,
-  title,
   modalText
-}: ConfirmationModalProps) {
+}: DeletionConfirmationModalProps) {
   return (
-    <Modal opened={open} onClose={onClose} withCloseButton={false} size="lg" title={title}>
+    <Modal opened={open} onClose={onClose} withCloseButton={false} size="lg">
       <Center>
-        <AlertTriangle color="red" size={35} />
+        <AlertTriangle color="red" size={40} />
       </Center>
       <Center>
-        <Text weight={700} align="center" lineClamp={2}>
+        <Text weight={700} align="center" lineClamp={2} p={'sm'}>
           {modalText}
         </Text>
       </Center>
       <Center>
-        <Group style={{ paddingTop: '5px' }}>
+        <Group pt={8}>
           <Button variant="default" onClick={onClose}>
             Cancel
           </Button>

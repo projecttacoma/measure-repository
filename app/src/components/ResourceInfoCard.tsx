@@ -1,14 +1,14 @@
 import {
   ActionIcon,
-  Grid,
-  Paper,
-  Text,
   createStyles,
   em,
   getBreakpointValue,
+  Grid,
+  Group,
+  Paper,
   rem,
-  Tooltip,
-  Group
+  Text,
+  Tooltip
 } from '@mantine/core';
 import Link from 'next/link';
 import React, { useState } from 'react';
@@ -16,7 +16,7 @@ import { ResourceInfo } from '@/util/types/fhir';
 import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
-import ConfirmationModal from './ConfirmationModal';
+import DeletionConfirmationModal from './DeletionConfirmationModal';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
@@ -62,13 +62,12 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
 
   return (
     <>
-      <ConfirmationModal
+      <DeletionConfirmationModal
         open={isConfirmationModalOpen}
         onClose={() => setIsConfirmationModalOpen(false)}
-        title={'Delete Draft?'}
-        modalText={`This will delete draft ${resourceInfo.resourceType} ${
+        modalText={`This will delete draft ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
-        } permanently.`}
+        }" permanently.`}
         onConfirm={() => {
           deleteMutation.mutate({
             resourceType: resourceInfo.resourceType,
@@ -120,7 +119,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               </Tooltip>
             </Link>
             {authoring && (
-              <Tooltip label={'Delete Resource'} openDelay={1000}>
+              <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
                 <ActionIcon
                   radius="md"
                   size="md"
