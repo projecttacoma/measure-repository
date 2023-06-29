@@ -12,6 +12,7 @@ import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
 import DataReqs from '@/components/DataRequirements';
+import Dependency from '@/components/DependencyCards';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
@@ -141,6 +142,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             {dataRequirements?.resourceType === 'Library' && (
               <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
             )}
+            {dataRequirements?.resourceType === 'Library' && <Tabs.Tab value="dependencies">Dependencies</Tabs.Tab>}
           </Tabs.List>
           <Tabs.Panel value="json" pt="xs">
             <Prism language="json" colorScheme="light">
@@ -209,6 +211,13 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     />
                   ))}
               </ScrollArea.Autosize>
+            </Tabs.Panel>
+          )}
+          {dataRequirements?.resourceType === 'Library' && dataRequirements?.relatedArtifact && (
+            <Tabs.Panel value="dependencies">
+              {dataRequirements?.relatedArtifact.map((item: fhir4.RelatedArtifact, index: any) => (
+                <Dependency key={index} value={item} sourceName={jsonData?.id}></Dependency>
+              ))}
             </Tabs.Panel>
           )}
         </Tabs>
