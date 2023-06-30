@@ -54,12 +54,12 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                 <List withPadding>
                   {extension?.map(e => (
                     <>
-                      <List.Item>
+                      <List.Item key={e.url}>
                         <b>URL:</b>
                         {e.url}
                       </List.Item>
-                      {e?.valueString && (
-                        <List.Item>
+                      {e.valueString && (
+                        <List.Item key={e.valueString}>
                           <b> ValueString: </b>
                           {e.valueString}
                         </List.Item>
@@ -74,14 +74,14 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                       <b>DateFilter(s):</b>
                     </List.Item>
                     <List withPadding>
-                      {dateFilter?.map(data => (
+                      {dateFilter.map(date => (
                         <>
-                          <List.Item>
+                          <List.Item key={date?.valuePeriod?.start}>
                             <b> Start Date: </b>
-                            {data?.valuePeriod?.start} <br />
+                            {date?.valuePeriod?.start} <br />
                           </List.Item>
-                          <List.Item>
-                            <b> End Date: </b> {data?.valuePeriod?.end} <br />
+                          <List.Item key={date?.valuePeriod?.end}>
+                            <b> End Date: </b> {date?.valuePeriod?.end} <br />
                           </List.Item>
                         </>
                       ))}
@@ -101,12 +101,12 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                       {codes.map(codeInterface => (
                         <>
                           {codeInterface.code && (
-                            <List.Item>
-                              <b> Code: </b> {codeInterface?.code} <br />
+                            <List.Item key={codeInterface.code}>
+                              <b> Code: </b> {codeInterface.code} <br />
                             </List.Item>
                           )}
                           {codeInterface.system && (
-                            <List.Item>
+                            <List.Item key={codeInterface.system}>
                               <b> System: </b> {codeInterface?.system} <br />
                             </List.Item>
                           )}
@@ -122,8 +122,8 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                       <b>Value Set(s):</b>
                     </List.Item>
                     <List withPadding>
-                      {codeFiltersWithVS.map(c => (
-                        <List.Item>
+                      {codeFiltersWithVS.map((c, index) => (
+                        <List.Item key={index}>
                           {c.valueSet} <br />
                         </List.Item>
                       ))}

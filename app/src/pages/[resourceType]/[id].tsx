@@ -200,8 +200,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               )}
               <ScrollArea.Autosize mah={height * 0.8} type="always">
                 {dataReqsView === 'formatted' &&
-                  dataRequirements?.dataRequirement.map(data => (
+                  dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index: any) => (
                     <DataReqs
+                      key={index}
                       type={data.type}
                       codeFilter={data.codeFilter}
                       dateFilter={data.dateFilter}
