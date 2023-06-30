@@ -1,6 +1,6 @@
 import { Accordion, Center, createStyles, em, getBreakpointValue, List, Paper, rem } from '@mantine/core';
 
-interface codeInterface {
+interface CodeInterface {
   code: string | undefined;
   system: string | undefined;
 }
@@ -22,15 +22,15 @@ const useStyles = createStyles(theme => ({
  */
 function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.DataRequirement) {
   const { classes } = useStyles();
-  const codes: codeInterface[] = [];
+  const codes: CodeInterface[] = [];
 
-  const valueSets = codeFilter?.filter(function (x: fhir4.DataRequirementCodeFilter) {
-    return x?.valueSet !== undefined;
+  const codeFiltersWithVS = codeFilter?.filter(cf => {
+    return cf?.valueSet !== undefined;
   });
 
-  codeFilter?.forEach((arr: fhir4.DataRequirementCodeFilter) => {
-    arr?.code?.forEach((element: fhir4.Coding) => {
-      const code: codeInterface = { code: element?.code, system: element?.system };
+  codeFilter?.forEach(cf => {
+    cf?.code?.forEach(c => {
+      const code: CodeInterface = { code: c.code, system: c.system };
       codes.push(code);
     });
   });
@@ -41,7 +41,6 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
         <Accordion variant="contained" radius="lg" defaultValue="customization">
           <Accordion.Item value="customization">
             <Accordion.Control>
-              {' '}
               <Center>
                 <h2>{type} </h2>
               </Center>
@@ -53,18 +52,16 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                   <br />
                 </List.Item>
                 <List withPadding>
-                  {extension?.map((item: any, index: any, index2: any) => (
+                  {extension?.map(e => (
                     <>
-                      {item?.url != undefined && (
-                        <List.Item key={index}>
-                          <b> URL: </b>
-                          {item.url}{' '}
-                        </List.Item>
-                      )}
-                      {item?.valueString != undefined && (
-                        <List.Item key={index2}>
+                      <List.Item>
+                        <b>URL:</b>
+                        {e.url}
+                      </List.Item>
+                      {e?.valueString && (
+                        <List.Item>
                           <b> ValueString: </b>
-                          {item.valueString}{' '}
+                          {e.valueString}
                         </List.Item>
                       )}
                       <br />
@@ -77,14 +74,14 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                       <b>DateFilter(s):</b>
                     </List.Item>
                     <List withPadding>
-                      {dateFilter?.map((item: fhir4.DataRequirementDateFilter, index: any, index2: any) => (
+                      {dateFilter?.map(data => (
                         <>
-                          <List.Item key={index}>
+                          <List.Item>
                             <b> Start Date: </b>
-                            {item?.valuePeriod?.start} <br />
+                            {data?.valuePeriod?.start} <br />
                           </List.Item>
-                          <List.Item key={index2}>
-                            <b> End Date: </b> {item?.valuePeriod?.end} <br />
+                          <List.Item>
+                            <b> End Date: </b> {data?.valuePeriod?.end} <br />
                           </List.Item>
                         </>
                       ))}
@@ -101,16 +98,16 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                       <b>Code(s):</b>
                     </List.Item>
                     <List withPadding>
-                      {codes?.map((item: any, index: any, index2: any) => (
+                      {codes.map(codeInterface => (
                         <>
-                          {item?.code && (
-                            <List.Item key={index}>
-                              <b> Code: </b> {item?.code} <br />
+                          {codeInterface.code && (
+                            <List.Item>
+                              <b> Code: </b> {codeInterface?.code} <br />
                             </List.Item>
                           )}
-                          {item?.system && (
-                            <List.Item key={index2}>
-                              <b> System: </b> {item?.system} <br />
+                          {codeInterface.system && (
+                            <List.Item>
+                              <b> System: </b> {codeInterface?.system} <br />
                             </List.Item>
                           )}
                           <br />
@@ -119,15 +116,15 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                     </List>
                   </List>
                 )}
-                {valueSets && valueSets.length > 0 && (
+                {codeFiltersWithVS && codeFiltersWithVS.length > 0 && (
                   <List withPadding>
                     <List.Item>
                       <b>Value Set(s):</b>
                     </List.Item>
                     <List withPadding>
-                      {valueSets?.map((item: any, index3: any) => (
-                        <List.Item key={index3}>
-                          {item?.valueSet} <br />
+                      {codeFiltersWithVS.map(c => (
+                        <List.Item>
+                          {c.valueSet} <br />
                         </List.Item>
                       ))}
                     </List>

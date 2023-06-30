@@ -1,5 +1,5 @@
 import { Prism } from '@mantine/prism';
-import { Button, Center, Divider, Group, SegmentedControl, Space, Stack, Tabs, Text } from '@mantine/core';
+import { Button, Center, Divider, Group, SegmentedControl, ScrollArea, Space, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
@@ -21,6 +21,7 @@ import DataReqs from '@/components/DataRequirements';
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
   const [dataReqsView, setDataReqsView] = useState('raw');
+  const [height, setWindowHeight] = useState(0);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -39,6 +40,15 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     (PrismRenderer.languages as any).cql = CQLRegex;
     (window as any).Prism = PrismRenderer;
     /* eslint-enable @typescript-eslint/no-explicit-any */
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return window.removeEventListener('resize', handleResize);
   }, []);
 
   const {
@@ -162,34 +172,43 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           )}
           {dataRequirements?.resourceType === 'Library' && dataRequirements?.dataRequirement && (
             <Tabs.Panel value="data-requirements">
-              <Center>
-                {dataRequirements?.dataRequirement.length > 0 && (
-                  <SegmentedControl
-                    fullWidth
-                    value={dataReqsView}
-                    onChange={setDataReqsView}
-                    data={[
-                      { label: 'Raw Data Requirements', value: 'raw' },
-                      { label: 'Readable Data Requirements', value: 'readable' }
-                    ]}
-                  />
-                )}
-              </Center>
+              {dataRequirements?.dataRequirement.length > 0 && (
+                <>
+                  <Space h="md" />
+                  <Text c="dimmed">
+                    {' '}
+                    Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
+                  </Text>
+                  <Center>
+                    <SegmentedControl
+                      fullWidth
+                      value={dataReqsView}
+                      onChange={setDataReqsView}
+                      data={[
+                        { label: 'Raw Data Requirements', value: 'raw' },
+                        { label: 'Formatted Data Requirements', value: 'formatted' }
+                      ]}
+                    />
+                  </Center>
+                  <Space h="md" />
+                </>
+              )}
               {dataReqsView === 'raw' && (
                 <Prism language="json" colorScheme="light">
                   {JSON.stringify(dataRequirements, null, 2)}
                 </Prism>
               )}
-              {dataReqsView === 'readable' &&
-                dataRequirements?.dataRequirement.map((item: fhir4.DataRequirement, index: any) => (
-                  <DataReqs
-                    key={index}
-                    type={item?.type}
-                    codeFilter={item?.codeFilter}
-                    dateFilter={item?.dateFilter}
-                    extension={item?.extension}
-                  ></DataReqs>
-                ))}
+              <ScrollArea.Autosize mah={height * 0.8} type="always">
+                {dataReqsView === 'formatted' &&
+                  dataRequirements?.dataRequirement.map(data => (
+                    <DataReqs
+                      type={data.type}
+                      codeFilter={data.codeFilter}
+                      dateFilter={data.dateFilter}
+                      extension={data.extension}
+                    />
+                  ))}
+              </ScrollArea.Autosize>
             </Tabs.Panel>
           )}
         </Tabs>
