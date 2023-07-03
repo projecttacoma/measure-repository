@@ -1,4 +1,5 @@
 import {
+  Anchor,
   ActionIcon,
   Center,
   createStyles,
@@ -10,11 +11,10 @@ import {
   getBreakpointValue,
   rem
 } from '@mantine/core';
-import Link from 'next/link';
 import React from 'react';
 import { SquareArrowRight } from 'tabler-icons-react';
 
-export interface ResourceInformation {
+interface DependencyInformation {
   type?: string;
   link?: string;
 }
@@ -29,23 +29,25 @@ const useStyles = createStyles(theme => ({
     }
   }
 }));
-function Dependencies(props: { value: fhir4.RelatedArtifact; sourceName: string | undefined }) {
+
+/**
+ * Component which displays all data requirement dependencies for a specified resource
+ * and displays them as resource cards that contain all required information and link to their
+ * respective resources if a link exists
+ */
+function Dependencies(props: { relatedArtifact: fhir4.RelatedArtifact }) {
   const { classes } = useStyles();
-  const type = props.value.type;
-  const display = props.value.display;
-  const resource = props.value.resource;
-  const sourceName = JSON.stringify(props.sourceName);
+  const display = props.relatedArtifact.display;
+  const resourceLink = props.relatedArtifact.resource;
 
-  let resourceInfo: ResourceInformation = {};
+  let dependencyInfo: DependencyInformation = {};
 
-  if (resource?.includes('Library')) {
-    let substr = resource.substring(resource.indexOf('Library'));
-    let myArray: string[] = substr?.split('|');
-    resourceInfo = { type: 'Library', link: myArray[0] };
-  } else if (resource?.includes('Measure')) {
-    let substr = resource.substring(resource.indexOf('Measure'));
-    let myArray: string[] = substr?.split('|');
-    resourceInfo = { type: 'Measure', link: myArray[0] };
+  if (resourceLink?.includes('Library')) {
+    const resourceArr: string[] = resourceLink.substring(resourceLink.indexOf('Library')).split('|');
+    dependencyInfo = { type: 'Library', link: resourceArr[0] };
+  } else if (resourceLink?.includes('Measure')) {
+    const resourceArr: string[] = resourceLink.substring(resourceLink.indexOf('Measure')).split('|');
+    dependencyInfo = { type: 'Measure', link: resourceArr[0] };
   }
 
   return (
@@ -61,18 +63,18 @@ function Dependencies(props: { value: fhir4.RelatedArtifact; sourceName: string 
               </div>
               <div>
                 <Text size="sm" fw={500}>
-                  {resource}
+                  {resourceLink}
                 </Text>
               </div>
             </Grid.Col>
-            {resourceInfo?.type && (
-              <Link href={`http://localhost:3001/${resourceInfo?.link}#JSON`} key={1}>
-                <Tooltip label={'Open to Resource'} openDelay={1000}>
+            {dependencyInfo.type && (
+              <Anchor href={`/${dependencyInfo.link}`}>
+                <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
                   <ActionIcon radius="md" size="md" variant="subtle" color="gray">
                     {<SquareArrowRight size="24" />}
                   </ActionIcon>
                 </Tooltip>
-              </Link>
+              </Anchor>
             )}
           </Grid>
         </Paper>

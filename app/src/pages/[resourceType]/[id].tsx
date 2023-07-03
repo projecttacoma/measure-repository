@@ -213,11 +213,19 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               </ScrollArea.Autosize>
             </Tabs.Panel>
           )}
-          {dataRequirements?.resourceType === 'Library' && dataRequirements?.relatedArtifact && (
+          {dataRequirements?.relatedArtifact && (
             <Tabs.Panel value="dependencies">
-              {dataRequirements?.relatedArtifact.map((item: fhir4.RelatedArtifact, index: any) => (
-                <Dependency key={index} value={item} sourceName={jsonData?.id}></Dependency>
-              ))}
+              <Space h="md" />
+              <Text c="dimmed">
+                Number of Dependencies:<b> {dataRequirements?.relatedArtifact.length} </b>
+              </Text>
+              <Space h="md" />
+              <ScrollArea.Autosize mah={height * 0.8} type="hover">
+                {dataRequirements?.relatedArtifact.map((relatedArtifact, index) => (
+                  <Dependency key={index} relatedArtifact={relatedArtifact} />
+                ))}
+              </ScrollArea.Autosize>
+              <Space h="md" />
             </Tabs.Panel>
           )}
         </Tabs>
