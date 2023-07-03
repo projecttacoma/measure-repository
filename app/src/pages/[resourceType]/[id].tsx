@@ -170,15 +170,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {parse(jsonData.text.div)}
             </Tabs.Panel>
           )}
-          {dataRequirements?.resourceType === 'Library' && dataRequirements?.dataRequirement && (
+          {dataRequirements?.dataRequirement && (
             <Tabs.Panel value="data-requirements">
               {dataRequirements?.dataRequirement.length > 0 && (
                 <>
                   <Space h="md" />
-                  <Text c="dimmed">
-                    {' '}
-                    Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
-                  </Text>
                   <Center>
                     <SegmentedControl
                       fullWidth
@@ -190,7 +186,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                       ]}
                     />
                   </Center>
-                  <Space h="md" />
                 </>
               )}
               {dataReqsView === 'raw' && (
@@ -199,6 +194,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 </Prism>
               )}
               <ScrollArea.Autosize mah={height * 0.8} type="always">
+                <Space h="md" />
+                <Text c="dimmed">
+                  Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
+                </Text>
+                <Space h="md" />
                 {dataReqsView === 'formatted' &&
                   dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index: any) => (
                     <DataReqs

@@ -24,9 +24,7 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
   const { classes } = useStyles();
   const codes: CodeInterface[] = [];
 
-  const codeFiltersWithVS = codeFilter?.filter(cf => {
-    return cf?.valueSet !== undefined;
-  });
+  const codeFiltersWithVS = codeFilter?.filter(cf => cf?.valueSet);
 
   codeFilter?.forEach(cf => {
     cf?.code?.forEach(c => {
@@ -38,8 +36,8 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
   return (
     <Center>
       <Paper className={classes.card} shadow="sm" p="md">
-        <Accordion variant="contained" radius="lg" defaultValue="customization">
-          <Accordion.Item value="customization">
+        <Accordion variant="contained" radius="lg" defaultValue="data-req-card">
+          <Accordion.Item value="data-req-card">
             <Accordion.Control>
               <Center>
                 <h2>{type} </h2>
@@ -76,12 +74,12 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                     <List withPadding>
                       {dateFilter.map(date => (
                         <>
-                          <List.Item key={date?.valuePeriod?.start}>
+                          <List.Item key={date.valuePeriod?.start}>
                             <b> Start Date: </b>
-                            {date?.valuePeriod?.start} <br />
+                            {date.valuePeriod?.start} <br />
                           </List.Item>
-                          <List.Item key={date?.valuePeriod?.end}>
-                            <b> End Date: </b> {date?.valuePeriod?.end} <br />
+                          <List.Item key={date.valuePeriod?.end}>
+                            <b> End Date: </b> {date.valuePeriod?.end} <br />
                           </List.Item>
                         </>
                       ))}
@@ -107,7 +105,7 @@ function DataRequirements({ type, extension, dateFilter, codeFilter }: fhir4.Dat
                           )}
                           {codeInterface.system && (
                             <List.Item key={codeInterface.system}>
-                              <b> System: </b> {codeInterface?.system} <br />
+                              <b> System: </b> {codeInterface.system} <br />
                             </List.Item>
                           )}
                           <br />
