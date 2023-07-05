@@ -48,7 +48,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     };
     handleResize();
     window.addEventListener('resize', handleResize);
-    return window.removeEventListener('resize', handleResize);
   }, []);
 
   const {
@@ -200,7 +199,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 </Text>
                 <Space h="md" />
                 {dataReqsView === 'formatted' &&
-                  dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index: any) => (
+                  dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index) => (
                     <DataReqs
                       key={index}
                       type={data.type}
