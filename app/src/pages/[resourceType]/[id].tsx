@@ -22,6 +22,8 @@ import Dependency from '@/components/DependencyCards';
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
   const [dataReqsView, setDataReqsView] = useState('raw');
+
+  const [activeTab, setActiveTab] = useState<string | null>('json');
   const [height, setWindowHeight] = useState(0);
 
   const decodedCql = useMemo(() => {
@@ -81,6 +83,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   );
 
+  useEffect(() => {
+    setActiveTab('json');
+  }, [jsonData.id]);
+
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
       notifications.show({
@@ -133,7 +139,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           </Group>
         </div>
         <Divider my="sm" pb={6} />
-        <Tabs variant="outline" defaultValue="json">
+        <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>
             {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
@@ -217,11 +223,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Tabs.Panel value="dependencies">
               <Space h="md" />
               <Text c="dimmed">
-                Number of Dependencies:<b> {dataRequirements?.relatedArtifact.length} </b>
+                Number of Dependencies:<b> {dataRequirements.relatedArtifact.length} </b>
               </Text>
               <Space h="md" />
               <ScrollArea.Autosize mah={height * 0.8} type="hover">
-                {dataRequirements?.relatedArtifact.map((relatedArtifact, index) => (
+                {dataRequirements.relatedArtifact.map((relatedArtifact, index) => (
                   <Dependency key={index} relatedArtifact={relatedArtifact} />
                 ))}
               </ScrollArea.Autosize>

@@ -1,5 +1,4 @@
 import {
-  Anchor,
   ActionIcon,
   Center,
   createStyles,
@@ -11,6 +10,7 @@ import {
   getBreakpointValue,
   rem
 } from '@mantine/core';
+import Link from 'next/link';
 import React from 'react';
 import { SquareArrowRight } from 'tabler-icons-react';
 
@@ -68,13 +68,13 @@ function Dependencies(props: { relatedArtifact: fhir4.RelatedArtifact }) {
               </div>
             </Grid.Col>
             {dependencyInfo.type && (
-              <Anchor href={`/${dependencyInfo.link}`}>
+              <Link href={`/${dependencyInfo.link}`}>
                 <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
                   <ActionIcon radius="md" size="md" variant="subtle" color="gray">
                     {<SquareArrowRight size="24" />}
                   </ActionIcon>
                 </Tooltip>
-              </Anchor>
+              </Link>
             )}
           </Grid>
         </Paper>
