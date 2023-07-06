@@ -1,7 +1,7 @@
 import { Prism } from '@mantine/prism';
-import { Button, Divider, Group, Space, Stack, Tabs, Text } from '@mantine/core';
+import { Button, Center, Divider, Group, SegmentedControl, ScrollArea, Space, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
@@ -11,6 +11,7 @@ import { AlertCircle, CircleCheck, AbacusOff } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
+import DataReqs from '@/components/DataRequirements';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
@@ -19,6 +20,8 @@ import { trpc } from '@/util/trpc';
  */
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
+  const [dataReqsView, setDataReqsView] = useState('raw');
+  const [height, setWindowHeight] = useState(0);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -37,6 +40,14 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     (PrismRenderer.languages as any).cql = CQLRegex;
     (window as any).Prism = PrismRenderer;
     /* eslint-enable @typescript-eslint/no-explicit-any */
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
   }, []);
 
   const {
@@ -158,11 +169,46 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {parse(jsonData.text.div)}
             </Tabs.Panel>
           )}
-          {dataRequirements?.resourceType === 'Library' && (
+          {dataRequirements?.dataRequirement && (
             <Tabs.Panel value="data-requirements">
-              <Prism language="json" colorScheme="light">
-                {JSON.stringify(dataRequirements, null, 2)}
-              </Prism>
+              {dataRequirements?.dataRequirement.length > 0 && (
+                <>
+                  <Space h="md" />
+                  <Center>
+                    <SegmentedControl
+                      fullWidth
+                      value={dataReqsView}
+                      onChange={setDataReqsView}
+                      data={[
+                        { label: 'Raw Data Requirements', value: 'raw' },
+                        { label: 'Formatted Data Requirements', value: 'formatted' }
+                      ]}
+                    />
+                  </Center>
+                </>
+              )}
+              {dataReqsView === 'raw' && (
+                <Prism language="json" colorScheme="light">
+                  {JSON.stringify(dataRequirements, null, 2)}
+                </Prism>
+              )}
+              <ScrollArea.Autosize mah={height * 0.8} type="always">
+                <Space h="md" />
+                <Text c="dimmed">
+                  Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
+                </Text>
+                <Space h="md" />
+                {dataReqsView === 'formatted' &&
+                  dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index) => (
+                    <DataReqs
+                      key={index}
+                      type={data.type}
+                      codeFilter={data.codeFilter}
+                      dateFilter={data.dateFilter}
+                      extension={data.extension}
+                    />
+                  ))}
+              </ScrollArea.Autosize>
             </Tabs.Panel>
           )}
         </Tabs>
