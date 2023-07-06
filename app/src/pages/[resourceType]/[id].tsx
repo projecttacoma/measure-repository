@@ -53,6 +53,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     window.addEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    setActiveTab('json');
+  }, [jsonData.id]);
+
   const {
     data: dataRequirements,
     refetch,
@@ -83,9 +87,31 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   );
 
+  //Sorts the dependencies of an artifact alphabetically based on display name. If a dependency has a link, however,
+  //it will appear at the top of the list.
   useEffect(() => {
-    setActiveTab('json');
-  }, [jsonData.id]);
+    dataRequirements?.relatedArtifact?.sort((a, b) => {
+      const displayA = a?.display?.toUpperCase();
+      const displayB = b?.display?.toUpperCase();
+      if (displayA !== undefined && displayB !== undefined) {
+        if (
+          a.resource?.includes('Library') ||
+          a.resource?.includes('Measure') ||
+          b.resource?.includes('Library') ||
+          b.resource?.includes('Measure')
+        ) {
+          return 1;
+        }
+        if (displayA < displayB) {
+          return -1;
+        }
+        if (displayA > displayB) {
+          return 1;
+        }
+      }
+      return 0;
+    });
+  }, [dataRequirements?.relatedArtifact]);
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
