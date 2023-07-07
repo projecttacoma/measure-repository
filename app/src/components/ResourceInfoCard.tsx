@@ -13,10 +13,11 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck, Report } from 'tabler-icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
 import DeletionConfirmationModal from './DeletionConfirmationModal';
+import { useRouter } from 'next/router';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
@@ -35,6 +36,7 @@ const useStyles = createStyles(theme => ({
 }));
 
 export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceInfoCardProps) {
+  const router = useRouter();
   const { classes } = useStyles();
   const ctx = trpc.useContext();
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
@@ -118,6 +120,25 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 </ActionIcon>
               </Tooltip>
             </Link>
+            {/* <Link
+              href={
+                authoring
+                  ? `/authoring/${resourceInfo.resourceType}/${resourceInfo.id}/comment`
+                  : `/${resourceInfo.resourceType}/${resourceInfo.id}/comment`
+              }
+              key={resourceInfo.id}
+            > */}
+            <Tooltip label={authoring ? 'Add Draft Artifact Comment' : 'Add Artifact Comment'} openDelay={1000}>
+              <ActionIcon radius="md" size="md" variant="subtle" color="gray">
+                <Report
+                  size="24"
+                  onClick={() => {
+                    router.push(`/comments`);
+                  }}
+                />
+              </ActionIcon>
+            </Tooltip>
+            {/* </Link> */}
             {authoring && (
               <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
                 <ActionIcon
