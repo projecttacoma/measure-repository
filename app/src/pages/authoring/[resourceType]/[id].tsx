@@ -1,5 +1,5 @@
 import { trpc } from '@/util/trpc';
-import { Button, Center, Divider, Grid, Paper, Stack, Text } from '@mantine/core';
+import { Button, Center, Divider, Grid, Paper, Select, Stack, Text } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
@@ -14,6 +14,7 @@ interface DraftArtifactUpdates {
   name?: string;
   title?: string;
   description?: string;
+  library?: string[] | null;
 }
 
 export default function ResourceAuthoringPage() {
@@ -26,6 +27,7 @@ export default function ResourceAuthoringPage() {
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [library, setLibrary] = useState<string | null>(null);
 
   const ctx = trpc.useContext();
 
@@ -56,6 +58,9 @@ export default function ResourceAuthoringPage() {
           savedIdentifierSystem = resource.identifier[0].system;
         }
       }
+    }
+    if (resource?.resourceType === 'Measure' && library !== resource?.library?.[0]) {
+      return true;
     }
     return (
       url !== (resource?.url ?? '') ||
@@ -98,6 +103,9 @@ export default function ResourceAuthoringPage() {
     if (resource?.description) {
       setDescription(resource.description);
     }
+    if (resource?.resourceType === 'Measure' && resource?.library?.[0]) {
+      setLibrary(resource.library?.[0]);
+    }
   }, [resource]);
 
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
@@ -126,7 +134,8 @@ export default function ResourceAuthoringPage() {
     identifierSystem: string,
     name: string,
     title: string,
-    description: string
+    description: string,
+    library: string | null
   ) {
     const additions: DraftArtifactUpdates = {};
     const deletions: DraftArtifactUpdates = {};
@@ -144,8 +153,35 @@ export default function ResourceAuthoringPage() {
     name.trim() !== '' ? (additions['name'] = name) : (deletions['name'] = '');
     title.trim() !== '' ? (additions['title'] = title) : (deletions['title'] = '');
     description.trim() !== '' ? (additions['description'] = description) : (deletions['description'] = '');
+    library ? (additions['library'] = [library]) : (deletions['library'] = null);
 
     return [additions, deletions];
+  }
+
+  // set up main library options
+  let libOptions: { value: string; label: string; disabled: boolean }[] = []; // default to empty
+  if (resourceType === 'Measure') {
+    const { data: libraries } = trpc.draft.getDrafts.useQuery('Library' as ArtifactResourceType);
+    if (libraries) {
+      libOptions = libraries?.map(l => {
+        if (l.url) {
+          // prioritizes use of url/version
+          const val = `${l.url}${l.version ? `|${l.version}` : ''}`;
+          return { value: val, label: val, disabled: false };
+        } else {
+          // uses id (assumed to exist in this context), but option disabled if no url exists (required for canonical reference)
+          const val = l.id ?? '';
+          return { value: val, label: val, disabled: true };
+        }
+      });
+      // disabled to the bottom, alphabetize by value
+      libOptions.sort((a, b) => {
+        if (a.disabled && !b.disabled) return 1;
+        if (b.disabled && !a.disabled) return -1;
+        if (a.value < b.value) return -1;
+        return 1;
+      });
+    }
   }
 
   return (
@@ -170,6 +206,19 @@ export default function ResourceAuthoringPage() {
             <ArtifactFieldInput label="name" value={name} setField={setName} />
             <ArtifactFieldInput label="title" value={title} setField={setTitle} />
             <ArtifactFieldInput label="description" value={description} setField={setDescription} />
+            {resourceType === 'Measure' && (
+              <Select
+                label="library"
+                value={library}
+                onChange={setLibrary}
+                placeholder="Select main logic library"
+                searchable
+                clearable
+                nothingFound="No libraries available"
+                maxDropdownHeight={280}
+                data={libOptions}
+              />
+            )}
             <Button
               w={120}
               onClick={() => {
@@ -179,7 +228,8 @@ export default function ResourceAuthoringPage() {
                   identifierSystem,
                   name,
                   title,
-                  description
+                  description,
+                  library
                 );
                 resourceUpdate.mutate({
                   resourceType: resourceType as ArtifactResourceType,

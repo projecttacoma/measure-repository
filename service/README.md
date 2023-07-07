@@ -40,10 +40,16 @@ To create these collections:
 npm run db:setup
 ```
 
-to clear the database and regenerate empty FHIR Measure, Library, and MeasureReport collections, run:
+To clear the database and regenerate empty FHIR Measure, Library, and MeasureReport collections, run:
 
 ```
 npm run db:reset
+```
+
+To load a measure bundle and related library artifacts, run:
+
+```
+npm run db:loadBundle <path to measure bundle>
 ```
 
 ## Usage

@@ -1,6 +1,6 @@
 # Measure Repository
 
-A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html) and associated frontend application.
+A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository.html) and associated frontend application.
 
 ## Installation
 
@@ -24,7 +24,7 @@ If you want to install a dependency in only the `app` or the `service` directory
 npm install --workspace=<app-or-service> <package-name>
 ```
 
-Copy `app/.env.example` to `app/.env.local` and `service/.env.example` to `service/.env`. Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API.
+Copy `app/.env.example` to `app/.env.local` and `service/.env.example` to `service/.env`. Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups.
 
 ## Usage
 
