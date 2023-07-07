@@ -87,9 +87,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   );
 
-  //Sorts the dependencies of an artifact alphabetically based on display name. If a dependency has a link, however,
-  //it will appear at the top of the list.
-  useEffect(() => {
+  const sortedDependencies =
     dataRequirements?.relatedArtifact?.sort((a, b) => {
       const displayA = a?.display?.toUpperCase();
       const displayB = b?.display?.toUpperCase();
@@ -110,8 +108,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
         }
       }
       return 0;
-    });
-  }, [dataRequirements?.relatedArtifact]);
+    }) ?? []; // Defaults to an empty array until we have actual data to sort through
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -165,7 +162,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           </Group>
         </div>
         <Divider my="sm" pb={6} />
-        <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
+        <Tabs variant="outline" defaultValue="json" value={activeTab} onTabChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>
             {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
@@ -253,8 +250,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               </Text>
               <Space h="md" />
               <ScrollArea.Autosize mah={height * 0.8} type="hover">
-                {dataRequirements.relatedArtifact.map((relatedArtifact, index) => (
-                  <Dependency key={index} relatedArtifact={relatedArtifact} />
+                {sortedDependencies.map(relatedArtifact => (
+                  <Dependency key={relatedArtifact.resource} relatedArtifact={relatedArtifact} />
                 ))}
               </ScrollArea.Autosize>
               <Space h="md" />

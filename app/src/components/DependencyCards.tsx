@@ -19,6 +19,10 @@ interface DependencyInformation {
   link?: string;
 }
 
+interface myComponentProps {
+  relatedArtifact: fhir4.RelatedArtifact;
+}
+
 const useStyles = createStyles(theme => ({
   card: {
     borderRadius: 6,
@@ -35,13 +39,18 @@ const useStyles = createStyles(theme => ({
  * and displays them as resource cards that contain all required information and link to their
  * respective resources if a link exists
  */
-function Dependencies(props: { relatedArtifact: fhir4.RelatedArtifact }) {
+function Dependencies(props: myComponentProps) {
   const { classes } = useStyles();
   const display = props.relatedArtifact.display;
   const resourceLink = props.relatedArtifact.resource;
 
   let dependencyInfo: DependencyInformation = {};
 
+  // TODO
+  //Theoretically, canonicals for FHIR resources should be formatted in a way such that this code will work
+  //to get the proper url to route to. However, this might not always be the case and so we should add
+  //some logic to to handle trying to view resource details using the canoncical URL fo the resource as
+  //the identifying information
   if (resourceLink?.includes('Library')) {
     const resourceArr: string[] = resourceLink.substring(resourceLink.indexOf('Library')).split('|');
     dependencyInfo = { type: 'Library', link: resourceArr[0] };
