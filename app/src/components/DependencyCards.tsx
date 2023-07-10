@@ -47,9 +47,10 @@ function Dependencies(props: myComponentProps) {
   let dependencyInfo: DependencyInformation = {};
 
   // TODO
-  //Theoretically, canonicals for FHIR resources should be formatted in a way such that this code will work
-  //to get the proper url to route to. However, this might not always be the case and so we should add
-  //some logic to to handle trying to view resource details using the canoncical URL fo the resource as
+  //Canonicals for FHIR resources should be formatted in such a way that this code will work
+  //to get the proper url that routes the user to the new page.
+  // However, they can technically be anything and so we should potentially add
+  //some logic that handles viewing resource details using the canoncical URL of the resource as
   //the identifying information
   if (resourceLink?.includes('Library')) {
     const resourceArr: string[] = resourceLink.substring(resourceLink.indexOf('Library')).split('|');

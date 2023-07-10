@@ -1,7 +1,20 @@
 import { Prism } from '@mantine/prism';
-import { Button, Center, Divider, Group, SegmentedControl, ScrollArea, Space, Stack, Tabs, Text } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Center,
+  Divider,
+  Group,
+  SegmentedControl,
+  ScrollArea,
+  Space,
+  Stack,
+  Tabs,
+  Text,
+  TextInput
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
@@ -22,9 +35,10 @@ import Dependency from '@/components/DependencyCards';
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
   const [dataReqsView, setDataReqsView] = useState('raw');
-
   const [activeTab, setActiveTab] = useState<string | null>('json');
   const [height, setWindowHeight] = useState(0);
+  const [searchValue, setSearchValue] = useState('');
+  const [sortedDependencies, setSortedDependencies] = useState<fhir4.RelatedArtifact[]>([]);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -53,14 +67,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     window.addEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    setActiveTab('json');
-  }, [jsonData.id]);
-
   const {
     data: dataRequirements,
     refetch,
-    isFetching
+    isFetching,
+    isSuccess
   } = trpc.service.getDataRequirements.useQuery(
     { resourceType: jsonData.resourceType, id: jsonData.id as string },
     {
@@ -87,28 +98,49 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   );
 
-  const sortedDependencies =
-    dataRequirements?.relatedArtifact?.sort((a, b) => {
-      const displayA = a?.display?.toUpperCase();
-      const displayB = b?.display?.toUpperCase();
-      if (displayA !== undefined && displayB !== undefined) {
-        if (
-          a.resource?.includes('Library') ||
-          a.resource?.includes('Measure') ||
-          b.resource?.includes('Library') ||
-          b.resource?.includes('Measure')
-        ) {
-          return 1;
+  //Sorts dependencies alphabetically based on their display property. If the the
+  //dependency is a library/measure, however, it will always take precedence in sorting to ensure all
+  //dependencies with links are always shown first
+  const sortDependencies = useCallback(() => {
+    if (dataRequirements?.relatedArtifact) {
+      dataRequirements.relatedArtifact.sort((firstElement, secondElement) => {
+        const displayFirst = firstElement.display?.toUpperCase();
+        const displaySecond = secondElement.display?.toUpperCase();
+        if (displayFirst && displaySecond) {
+          if (
+            firstElement.resource?.includes('Library') ||
+            firstElement.resource?.includes('Measure') ||
+            secondElement.resource?.includes('Library') ||
+            secondElement.resource?.includes('Measure')
+          ) {
+            return 1;
+          }
+          if (displayFirst < displaySecond) {
+            return -1;
+          }
+          if (displayFirst > displaySecond) {
+            return 1;
+          }
         }
-        if (displayA < displayB) {
-          return -1;
-        }
-        if (displayA > displayB) {
-          return 1;
-        }
+        return 0;
+      });
+    }
+  }, [dataRequirements?.relatedArtifact]);
+
+  //This useEffect is intended to handle the rendering for specific situations having
+  //to do with the dependencies
+  useEffect(() => {
+    setSearchValue('');
+    if (!isSuccess) {
+      setActiveTab('json');
+    } else {
+      if (dataRequirements.relatedArtifact) {
+        setSearchValue('');
+        sortDependencies();
+        setSortedDependencies(dataRequirements.relatedArtifact);
       }
-      return 0;
-    }) ?? []; // Defaults to an empty array until we have actual data to sort through
+    }
+  }, [jsonData.id, isSuccess, dataRequirements?.relatedArtifact, sortDependencies]);
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -134,6 +166,19 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   const createDraftOfArtifact = () => {
     const draftOfArtifact = modifyResourceToDraft(jsonData);
     draftMutation.mutate({ resourceType, draft: draftOfArtifact });
+  };
+
+  const clickHandler = () => {
+    sortDependencies();
+    const filteredDependencies = dataRequirements?.relatedArtifact?.filter(function (dependency) {
+      return (
+        dependency.display?.toUpperCase().includes(searchValue.toUpperCase()) ||
+        dependency.resource?.toUpperCase().includes(searchValue.toUpperCase())
+      );
+    });
+    if (filteredDependencies) {
+      setSortedDependencies(filteredDependencies);
+    }
   };
 
   return (
@@ -246,8 +291,22 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Tabs.Panel value="dependencies">
               <Space h="md" />
               <Text c="dimmed">
-                Number of Dependencies:<b> {dataRequirements.relatedArtifact.length} </b>
+                Number of Dependencies:<b> {sortedDependencies.length} </b>
               </Text>
+              <Space h="md" />
+              <Box maw={600} mx="auto">
+                <TextInput
+                  placeholder="Dependency Name or Resource"
+                  label="Search"
+                  description="Returns any dependency whose name/resource includes the search value"
+                  radius="md"
+                  size="sm"
+                  onBlur={event => setSearchValue(event.currentTarget.value)}
+                />
+                <Group position="right" mt="md">
+                  <Button onClick={clickHandler}>Submit</Button>
+                </Group>
+              </Box>
               <Space h="md" />
               <ScrollArea.Autosize mah={height * 0.8} type="hover">
                 {sortedDependencies.map(relatedArtifact => (
