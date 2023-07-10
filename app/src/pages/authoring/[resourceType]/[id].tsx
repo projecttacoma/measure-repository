@@ -59,9 +59,6 @@ export default function ResourceAuthoringPage() {
         }
       }
     }
-    if (resource?.resourceType === 'Measure' && library !== resource?.library?.[0]) {
-      return true;
-    }
     return (
       url !== (resource?.url ?? '') ||
       identifierValue !== savedIdentifierValue ||
@@ -69,7 +66,8 @@ export default function ResourceAuthoringPage() {
       (identifierValue.trim() !== '' && identifierSystem !== savedIdentifierSystem) ||
       name !== (resource?.name ?? '') ||
       title !== (resource?.title ?? '') ||
-      description !== (resource?.description ?? '')
+      description !== (resource?.description ?? '') ||
+      (resource?.resourceType === 'Measure' && (library ? library !== resource?.library?.[0] : resource?.library?.[0]))
     );
   };
 
@@ -104,7 +102,7 @@ export default function ResourceAuthoringPage() {
       setDescription(resource.description);
     }
     if (resource?.resourceType === 'Measure' && resource?.library?.[0]) {
-      setLibrary(resource.library?.[0]);
+      setLibrary(resource.library[0]);
     }
   }, [resource]);
 
