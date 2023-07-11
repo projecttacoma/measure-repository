@@ -1,10 +1,10 @@
 import { trpc } from '@/util/trpc';
-import { Button, Center, Divider, Grid, Paper, Select, Stack, Text } from '@mantine/core';
+import { Button, Center, Divider, Grid, Group, Paper, Select, Stack, Text, Tooltip } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
 import { notifications } from '@mantine/notifications';
-import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import ArtifactFieldInput from '@/components/ArtifactFieldInput';
 
@@ -206,7 +206,16 @@ export default function ResourceAuthoringPage() {
             <ArtifactFieldInput label="description" value={description} setField={setDescription} />
             {resourceType === 'Measure' && (
               <Select
-                label="library"
+                label={
+                  <Group spacing="xs">
+                    library
+                    <Tooltip label="Only draft libraries with a valid url may be selected.">
+                      <div>
+                        <InfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
+                      </div>
+                    </Tooltip>
+                  </Group>
+                }
                 value={library}
                 onChange={setLibrary}
                 placeholder="Select main logic library"
