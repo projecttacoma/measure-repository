@@ -67,7 +67,7 @@ export default function ResourceAuthoringPage() {
       name !== (resource?.name ?? '') ||
       title !== (resource?.title ?? '') ||
       description !== (resource?.description ?? '') ||
-      (resource?.resourceType === 'Measure' && (library ? library !== resource?.library?.[0] : resource?.library?.[0]))
+      (resource?.resourceType === 'Measure' && (library ? library !== resource.library?.[0] : resource.library?.[0]))
     );
   };
 
@@ -101,7 +101,7 @@ export default function ResourceAuthoringPage() {
     if (resource?.description) {
       setDescription(resource.description);
     }
-    if (resource?.resourceType === 'Measure' && resource?.library?.[0]) {
+    if (resource?.resourceType === 'Measure' && resource.library?.[0]) {
       setLibrary(resource.library[0]);
     }
   }, [resource]);
@@ -161,7 +161,7 @@ export default function ResourceAuthoringPage() {
   if (resourceType === 'Measure') {
     const { data: libraries } = trpc.draft.getDrafts.useQuery('Library' as ArtifactResourceType);
     if (libraries) {
-      libOptions = libraries?.map(l => {
+      libOptions = libraries.map(l => {
         if (l.url) {
           // prioritizes use of url/version
           const val = `${l.url}${l.version ? `|${l.version}` : ''}`;
