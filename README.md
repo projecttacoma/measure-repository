@@ -1,6 +1,6 @@
 # Measure Repository
 
-A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository.html) and associated frontend application.
+A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html) and associated frontend application.
 
 ## Installation
 
