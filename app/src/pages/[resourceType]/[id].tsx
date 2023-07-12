@@ -20,7 +20,7 @@ import { FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
-import { AlertCircle, CircleCheck, AbacusOff } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
@@ -67,34 +67,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     window.addEventListener('resize', handleResize);
   }, []);
 
-  const {
-    data: dataRequirements,
-    refetch,
-    isFetching,
-    isSuccess
-  } = trpc.service.getDataRequirements.useQuery(
+  const { data: dataRequirements, isSuccess } = trpc.service.getDataRequirements.useQuery(
     { resourceType: jsonData.resourceType, id: jsonData.id as string },
     {
-      enabled: false,
-      retry: 0,
-      onSuccess: () => {
-        notifications.show({
-          autoClose: 2000,
-          title: 'Successful Fetch',
-          message: 'Data requirements successfully fetched',
-          color: 'green',
-          icon: <CircleCheck />
-        });
-      },
-      onError: e => {
-        notifications.show({
-          autoClose: 4000,
-          title: 'No Data Requirements Found',
-          message: e.message,
-          color: 'red',
-          icon: <AbacusOff />
-        });
-      }
+      enabled: true,
+      retry: 0
     }
   );
 
@@ -198,21 +175,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Group>
-              <Button
-                w={240}
-                loading={isFetching}
-                loaderPosition="center"
-                onClick={() => {
-                  refetch();
-                }}
-              >
-                Get Data Requirements
-              </Button>
-              <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
-                Create Draft of {jsonData.resourceType}
-              </Button>
-            </Group>
+            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+              Create Draft of {jsonData.resourceType}
+            </Button>
           </Group>
         </div>
         <Divider my="sm" pb={6} />
@@ -259,6 +224,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {dataRequirements?.dataRequirement.length > 0 && (
                 <>
                   <Space h="md" />
+                  <Text c="dimmed">
+                    Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
+                  </Text>
+                  <Space h="md" />
                   <Center>
                     <SegmentedControl
                       fullWidth
@@ -270,6 +239,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                       ]}
                     />
                   </Center>
+                  <Space h="md" />
                 </>
               )}
               {dataReqsView === 'raw' && (
@@ -278,11 +248,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 </Prism>
               )}
               <ScrollArea.Autosize mah={height * 0.8} type="always">
-                <Space h="md" />
-                <Text c="dimmed">
-                  Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
-                </Text>
-                <Space h="md" />
                 {dataReqsView === 'formatted' &&
                   dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index) => (
                     <DataReqs
