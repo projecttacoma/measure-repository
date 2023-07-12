@@ -98,7 +98,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   );
 
-  //Sorts dependencies alphabetically based on their display property. If the the
+  //Sorts dependencies alphabetically based on their display property. If the
   //dependency is a library/measure, however, it will always take precedence in sorting to ensure all
   //dependencies with links are always shown first
   const sortDependencies = useCallback(() => {
@@ -108,13 +108,22 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
         const displaySecond = secondElement.display?.toUpperCase();
         if (displayFirst && displaySecond) {
           if (
-            firstElement.resource?.includes('Library') ||
-            firstElement.resource?.includes('Measure') ||
-            secondElement.resource?.includes('Library') ||
-            secondElement.resource?.includes('Measure')
+            (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) &&
+            (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure'))
           ) {
+            if (displayFirst < displaySecond) {
+              return -1;
+            }
+            if (displayFirst > displaySecond) {
+              return 1;
+            }
+          }
+          if (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) {
+            return 1;
+          } else if (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure')) {
             return 1;
           }
+
           if (displayFirst < displaySecond) {
             return -1;
           }
