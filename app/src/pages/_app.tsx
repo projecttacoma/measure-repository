@@ -114,9 +114,7 @@ function App({ Component, pageProps }: AppProps) {
                       </Center>
                       <Divider my="md" />
                     </Navbar.Section>
-                    <Navbar.Section grow>
-                      <DraftResourceButtons />
-                    </Navbar.Section>
+                    <DraftResourceButtons />
                   </Stack>
                 </>
               )}
