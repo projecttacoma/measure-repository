@@ -119,8 +119,10 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               </Tooltip>
             </Link>
             <Link
-              href={`/review/${resourceInfo.resourceType}/${resourceInfo.id}authoring=${authoring}`}
-              key={`index-${resourceInfo.id}`}
+              href={{
+                pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
+                query: { authoring: `${authoring}` }
+              }}
             >
               <Tooltip label={authoring ? 'Review Draft Artifact' : 'Review Artifact'} openDelay={1000}>
                 <ActionIcon radius="md" size="md" variant="subtle" color="gray">

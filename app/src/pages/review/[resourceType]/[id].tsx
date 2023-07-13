@@ -6,22 +6,15 @@ import { ArtifactResourceType } from '@/util/types/fhir';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
 
-interface authoringProps {
-  authoring?: boolean;
-}
 /**
  * Component which renders a page that displays the JSON data of a resource. Also will eventually
  *  provide the user with the ability to make review comments and visualize previous review comments.
  */
 export default function CommentPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  // console.log(authoring + ' authoring');
   const jsonResourceType = jsonData.resourceType;
   const router = useRouter();
   const { resourceType: draftResourceType, id: draftID } = router.query;
   const { authoring } = router.query;
-  const status = jsonData.status;
-
-  console.log(authoring + ' PARAM');
 
   const { data: resource } = trpc.draft.getDraftById.useQuery({
     id: draftID as string,
@@ -32,7 +25,7 @@ export default function CommentPage({ jsonData }: InferGetServerSidePropsType<ty
     <div>
       <Center>
         <Text c="gray" fz="xl">
-          {status === 'active'
+          {authoring === 'undefined'
             ? `Reviewing ${jsonResourceType}/${jsonData.id}`
             : `Reviewing Draft ${draftResourceType}/${draftID}`}
         </Text>
@@ -58,14 +51,14 @@ export default function CommentPage({ jsonData }: InferGetServerSidePropsType<ty
           <Text c="gray" fz="sm">
             Current JSON Content
           </Text>
-          {status === 'active' && (
+          {authoring === 'undefined' && (
             <Paper withBorder>
               <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
                 {jsonData.id ? JSON.stringify(jsonData, null, 2) : ''}
               </Prism>
             </Paper>
           )}
-          {draftID && (
+          {authoring === 'true' && (
             <Paper withBorder>
               <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
                 {resource ? JSON.stringify(resource, null, 2) : ''}
