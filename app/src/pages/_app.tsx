@@ -6,6 +6,7 @@ import {
   Header,
   MantineProvider,
   Navbar,
+  Stack,
   Text,
   Divider,
   Group,
@@ -62,11 +63,11 @@ function App({ Component, pageProps }: AppProps) {
           /** Consistent navbar shows available resources as regular content page changes to drill into details */
           navbar={
             <Navbar width={{ base: '320px' }}>
-              {router.pathname.startsWith('/authoring') ? (
+              {router.pathname.startsWith('/authoring') && (
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
-                      <Text c="gray">Draft Artifacts</Text>
+                      <Text c="gray">Browse Measure Repository</Text>
                     </Center>
                   </Navbar.Section>
                   <Divider my="md" />
@@ -74,7 +75,8 @@ function App({ Component, pageProps }: AppProps) {
                     <DraftResourceButtons />
                   </Navbar.Section>
                 </>
-              ) : (
+              )}
+              {!router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review') && (
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
@@ -89,10 +91,33 @@ function App({ Component, pageProps }: AppProps) {
                       </Button>
                     </Link>
                   </Navbar.Section>
-
                   <Navbar.Section grow pt={18}>
                     <ServiceResourceButtons />
                   </Navbar.Section>
+                </>
+              )}
+              {router.pathname.startsWith('/review') && (
+                <>
+                  <Stack>
+                    <Navbar.Section pt={18}>
+                      <Center>
+                        <Text c="gray">Browse Measure Repository</Text>
+                      </Center>
+                      <Divider my="md" />
+                      <Navbar.Section grow>
+                        <ServiceResourceButtons />
+                      </Navbar.Section>
+                    </Navbar.Section>
+                    <Navbar.Section grow pt={18}>
+                      <Center>
+                        <Text c="gray">Browse Authoring Repository</Text>
+                      </Center>
+                      <Divider my="md" />
+                    </Navbar.Section>
+                    <Navbar.Section grow>
+                      <DraftResourceButtons />
+                    </Navbar.Section>
+                  </Stack>
                 </>
               )}
             </Navbar>
@@ -105,7 +130,6 @@ function App({ Component, pageProps }: AppProps) {
               sx={theme => {
                 const shade =
                   typeof theme.primaryShade === 'number' ? theme.primaryShade : theme.primaryShade[theme.colorScheme];
-
                 return {
                   backgroundColor: theme.colors[theme.primaryColor][shade],
                   display: 'flex',
@@ -128,10 +152,21 @@ function App({ Component, pageProps }: AppProps) {
               </div>
               <Group position="center" className={classes.navGroup} spacing="xl">
                 <Link href="/">
-                  <Text c={!router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Repository</Text>
+                  <Text
+                    c={
+                      !router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review')
+                        ? 'orange.3'
+                        : 'gray.4'
+                    }
+                  >
+                    Repository
+                  </Text>
                 </Link>
                 <Link href="/authoring">
                   <Text c={router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Authoring</Text>
+                </Link>
+                <Link href="/review">
+                  <Text c={router.pathname.startsWith('/review') ? 'orange.3' : 'gray.4'}>Review</Text>
                 </Link>
               </Group>
             </Header>
