@@ -54,6 +54,14 @@ export const serviceRouter = router({
       return resource as fhir4.Library;
     }),
 
+  getArtifactById: publicProcedure
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
+    .query(async ({ input }) => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const resource = await res.json();
+      return resource as fhir4.Library;
+    }),
+
   convertArtifactById: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {

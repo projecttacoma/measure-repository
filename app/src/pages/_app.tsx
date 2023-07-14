@@ -67,7 +67,7 @@ function App({ Component, pageProps }: AppProps) {
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
-                      <Text c="gray">Browse Measure Repository</Text>
+                      <Text c="gray">Draft Artifacts</Text>
                     </Center>
                   </Navbar.Section>
                   <Divider my="md" />
@@ -80,7 +80,7 @@ function App({ Component, pageProps }: AppProps) {
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
-                      <Text c="gray">Browse Measure Repository</Text>
+                      <Text c="gray">Measure Repository Artifacts</Text>
                     </Center>
                   </Navbar.Section>
                   <Divider my="md" />
@@ -101,7 +101,7 @@ function App({ Component, pageProps }: AppProps) {
                   <Stack>
                     <Navbar.Section pt={18}>
                       <Center>
-                        <Text c="gray">Browse Measure Repository</Text>
+                        <Text c="gray">Measure Repository Artifacts</Text>
                       </Center>
                       <Divider my="md" />
                       <Navbar.Section grow>
@@ -110,7 +110,7 @@ function App({ Component, pageProps }: AppProps) {
                     </Navbar.Section>
                     <Navbar.Section grow pt={18}>
                       <Center>
-                        <Text c="gray">Browse Authoring Repository</Text>
+                        <Text c="gray">Draft Artifacts</Text>
                       </Center>
                       <Divider my="md" />
                     </Navbar.Section>
