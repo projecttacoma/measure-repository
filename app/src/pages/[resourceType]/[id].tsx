@@ -83,6 +83,8 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       dataRequirements.relatedArtifact.sort((firstElement, secondElement) => {
         const displayFirst = firstElement.display?.toUpperCase();
         const displaySecond = secondElement.display?.toUpperCase();
+        const resourceFirst = firstElement.resource?.toUpperCase();
+        const resourceSecond = secondElement.resource?.toUpperCase();
         if (displayFirst && displaySecond) {
           if (
             (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) &&
@@ -100,11 +102,18 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
           } else if (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure')) {
             return 1;
           }
-
           if (displayFirst < displaySecond) {
             return -1;
           }
           if (displayFirst > displaySecond) {
+            return 1;
+          }
+          //If a related artifact doesn't have a display property it will instead sort by the resource
+        } else if (resourceFirst && resourceSecond) {
+          if (resourceFirst < resourceSecond) {
+            return -1;
+          }
+          if (resourceFirst > resourceSecond) {
             return 1;
           }
         }
