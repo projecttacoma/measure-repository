@@ -39,8 +39,6 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   const ctx = trpc.useContext();
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
-  authoring = authoring === undefined ? false : true;
-
   const deleteMutation = trpc.draft.deleteDraft.useMutation({
     onSuccess: () => {
       notifications.show({
@@ -108,15 +106,15 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
           <Group>
             <Link
               href={
-                authoring === true
+                authoring
                   ? `/authoring/${resourceInfo.resourceType}/${resourceInfo.id}`
                   : `/${resourceInfo.resourceType}/${resourceInfo.id}`
               }
               key={resourceInfo.id}
             >
-              <Tooltip label={authoring === true ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
+              <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
                 <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-                  {authoring === true ? <Edit size="24" /> : <SquareArrowRight size="24" />}
+                  {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
                 </ActionIcon>
               </Tooltip>
             </Link>
@@ -126,13 +124,13 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 query: { authoring: `${authoring}` }
               }}
             >
-              <Tooltip label={authoring === true ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
-                <ActionIcon radius="md" size="md" variant="subtle" color="#339AF0">
+              <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
+                <ActionIcon radius="md" size="md" variant="subtle" color="blue">
                   <Report size="24" />
                 </ActionIcon>
               </Tooltip>
             </Link>
-            {authoring === true && (
+            {authoring && (
               <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
                 <ActionIcon
                   radius="md"

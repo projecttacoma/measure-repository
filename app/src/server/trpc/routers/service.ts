@@ -59,7 +59,7 @@ export const serviceRouter = router({
     .query(async ({ input }) => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = await res.json();
-      return resource as fhir4.Library;
+      return resource as FhirArtifact;
     }),
 
   convertArtifactById: publicProcedure

@@ -10,8 +10,7 @@ import { trpc } from '@/util/trpc';
  */
 export default function CommentPage() {
   const router = useRouter();
-  const { resourceType: resourceType, id: resourceID } = router.query;
-  const { authoring } = router.query;
+  const { resourceType: resourceType, id: resourceID, authoring } = router.query;
   let resource;
 
   if (authoring == 'true') {
