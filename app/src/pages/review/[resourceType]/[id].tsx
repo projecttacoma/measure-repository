@@ -13,7 +13,7 @@ export default function CommentPage() {
   const { resourceType: resourceType, id: resourceID, authoring } = router.query;
   let resource;
 
-  if (authoring == 'true') {
+  if (authoring === 'true') {
     resource = trpc.draft.getDraftById.useQuery({
       id: resourceID as string,
       resourceType: resourceType as ArtifactResourceType
@@ -34,24 +34,24 @@ export default function CommentPage() {
             : `Reviewing ${resourceType}/${resourceID}`}
         </Text>
       </Center>
-      <Divider my="md" style={{ marginTop: '14px' }} />
+      <Divider my="md" mt={14} />
       <Grid>
         <Grid.Col span={6}>
           <Tabs variant="outline" defaultValue="addComments">
             <Tabs.List>
               <Tabs.Tab value="addComments">Add comment</Tabs.Tab>
-              <Tabs.Tab value="visualizeComments"> Visualize Comments</Tabs.Tab>
+              <Tabs.Tab value="viewComments"> View Comments</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="addComments" pt="xs">
               Components to add review comment goes here
             </Tabs.Panel>
-            <Tabs.Panel value="visualizeComments" pt="xs">
-              Components to visualize comments go here
+            <Tabs.Panel value="viewComments" pt="xs">
+              Components to view comments go here
             </Tabs.Panel>
           </Tabs>
         </Grid.Col>
         <Grid.Col span={6}>
-          <Space></Space>
+          <Space />
           <Text c="gray" fz="sm">
             Current JSON Content
           </Text>
