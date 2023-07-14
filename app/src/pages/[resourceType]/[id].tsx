@@ -1,17 +1,31 @@
 import { Prism } from '@mantine/prism';
-import { Button, Center, Divider, Group, SegmentedControl, ScrollArea, Space, Stack, Tabs, Text } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Center,
+  Divider,
+  Group,
+  SegmentedControl,
+  ScrollArea,
+  Space,
+  Stack,
+  Tabs,
+  Text,
+  TextInput
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
-import { AlertCircle, CircleCheck, AbacusOff } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
 import DataReqs from '@/components/DataRequirements';
+import Dependency from '@/components/DependencyCards';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
@@ -21,7 +35,10 @@ import DataReqs from '@/components/DataRequirements';
 export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const resourceType = jsonData.resourceType;
   const [dataReqsView, setDataReqsView] = useState('raw');
+  const [activeTab, setActiveTab] = useState<string | null>('json');
   const [height, setWindowHeight] = useState(0);
+  const [searchValue, setSearchValue] = useState('');
+  const [sortedDependencies, setSortedDependencies] = useState<fhir4.RelatedArtifact[]>([]);
 
   const decodedCql = useMemo(() => {
     return decode('text/cql', jsonData);
@@ -50,35 +67,75 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     window.addEventListener('resize', handleResize);
   }, []);
 
-  const {
-    data: dataRequirements,
-    refetch,
-    isFetching
-  } = trpc.service.getDataRequirements.useQuery(
+  const { data: dataRequirements, isSuccess } = trpc.service.getDataRequirements.useQuery(
     { resourceType: jsonData.resourceType, id: jsonData.id as string },
     {
-      enabled: false,
-      retry: 0,
-      onSuccess: () => {
-        notifications.show({
-          autoClose: 2000,
-          title: 'Successful Fetch',
-          message: 'Data requirements successfully fetched',
-          color: 'green',
-          icon: <CircleCheck />
-        });
-      },
-      onError: e => {
-        notifications.show({
-          autoClose: 4000,
-          title: 'No Data Requirements Found',
-          message: e.message,
-          color: 'red',
-          icon: <AbacusOff />
-        });
-      }
+      enabled: true,
+      retry: 0
     }
   );
+
+  //Sorts dependencies alphabetically based on their display property. If the
+  //dependency is a library/measure, however, it will always take precedence in sorting to ensure all
+  //dependencies with links are always shown first
+  const sortDependencies = useCallback(() => {
+    if (dataRequirements?.relatedArtifact) {
+      dataRequirements.relatedArtifact.sort((firstElement, secondElement) => {
+        const displayFirst = firstElement.display?.toUpperCase();
+        const displaySecond = secondElement.display?.toUpperCase();
+        const resourceFirst = firstElement.resource?.toUpperCase();
+        const resourceSecond = secondElement.resource?.toUpperCase();
+        if (displayFirst && displaySecond) {
+          if (
+            (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) &&
+            (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure'))
+          ) {
+            if (displayFirst < displaySecond) {
+              return -1;
+            }
+            if (displayFirst > displaySecond) {
+              return 1;
+            }
+          }
+          if (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) {
+            return 1;
+          } else if (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure')) {
+            return 1;
+          }
+          if (displayFirst < displaySecond) {
+            return -1;
+          }
+          if (displayFirst > displaySecond) {
+            return 1;
+          }
+          //If a related artifact doesn't have a display property it will instead sort by the resource
+        } else if (resourceFirst && resourceSecond) {
+          if (resourceFirst < resourceSecond) {
+            return -1;
+          }
+          if (resourceFirst > resourceSecond) {
+            return 1;
+          }
+        }
+        return 0;
+      });
+    }
+  }, [dataRequirements?.relatedArtifact]);
+
+  //This useEffect is intended to handle the rendering for specific situations having
+  //to do with the dependencies
+  useEffect(() => {
+    setSearchValue('');
+    if (!isSuccess) {
+      setActiveTab('json');
+    } else {
+      if (dataRequirements.relatedArtifact) {
+        setSearchValue('');
+        sortDependencies();
+        setSortedDependencies(dataRequirements.relatedArtifact);
+      }
+    }
+  }, [jsonData.id, isSuccess, dataRequirements?.relatedArtifact, sortDependencies]);
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -106,6 +163,19 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     draftMutation.mutate({ resourceType, draft: draftOfArtifact });
   };
 
+  const clickHandler = () => {
+    sortDependencies();
+    const filteredDependencies = dataRequirements?.relatedArtifact?.filter(function (dependency) {
+      return (
+        dependency.display?.toUpperCase().includes(searchValue.toUpperCase()) ||
+        dependency.resource?.toUpperCase().includes(searchValue.toUpperCase())
+      );
+    });
+    if (filteredDependencies) {
+      setSortedDependencies(filteredDependencies);
+    }
+  };
+
   return (
     <div>
       <Stack spacing="xs">
@@ -114,25 +184,13 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Group>
-              <Button
-                w={240}
-                loading={isFetching}
-                loaderPosition="center"
-                onClick={() => {
-                  refetch();
-                }}
-              >
-                Get Data Requirements
-              </Button>
-              <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
-                Create Draft of {jsonData.resourceType}
-              </Button>
-            </Group>
+            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+              Create Draft of {jsonData.resourceType}
+            </Button>
           </Group>
         </div>
         <Divider my="sm" pb={6} />
-        <Tabs variant="outline" defaultValue="json">
+        <Tabs variant="outline" defaultValue="json" value={activeTab} onTabChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab value="json">JSON</Tabs.Tab>
             {decodedElm != null && <Tabs.Tab value="elm">ELM</Tabs.Tab>}
@@ -141,6 +199,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             {dataRequirements?.resourceType === 'Library' && (
               <Tabs.Tab value="data-requirements">Data Requirements</Tabs.Tab>
             )}
+            {dataRequirements?.resourceType === 'Library' && <Tabs.Tab value="dependencies">Dependencies</Tabs.Tab>}
           </Tabs.List>
           <Tabs.Panel value="json" pt="xs">
             <Prism language="json" colorScheme="light">
@@ -174,6 +233,10 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {dataRequirements?.dataRequirement.length > 0 && (
                 <>
                   <Space h="md" />
+                  <Text c="dimmed">
+                    Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
+                  </Text>
+                  <Space h="md" />
                   <Center>
                     <SegmentedControl
                       fullWidth
@@ -185,6 +248,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                       ]}
                     />
                   </Center>
+                  <Space h="md" />
                 </>
               )}
               {dataReqsView === 'raw' && (
@@ -193,11 +257,6 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                 </Prism>
               )}
               <ScrollArea.Autosize mah={height * 0.8} type="always">
-                <Space h="md" />
-                <Text c="dimmed">
-                  Number of Requirements:<b> {dataRequirements?.dataRequirement.length} </b>
-                </Text>
-                <Space h="md" />
                 {dataReqsView === 'formatted' &&
                   dataRequirements?.dataRequirement.map((data: fhir4.DataRequirement, index) => (
                     <DataReqs
@@ -209,6 +268,35 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
                     />
                   ))}
               </ScrollArea.Autosize>
+            </Tabs.Panel>
+          )}
+          {dataRequirements?.relatedArtifact && (
+            <Tabs.Panel value="dependencies">
+              <Space h="md" />
+              <Text c="dimmed">
+                Number of Dependencies:<b> {sortedDependencies.length} </b>
+              </Text>
+              <Space h="md" />
+              <Box maw={600} mx="auto">
+                <TextInput
+                  placeholder="Dependency Name or Resource"
+                  label="Search"
+                  description="Returns any dependency whose name/resource includes the search value"
+                  radius="md"
+                  size="sm"
+                  onBlur={event => setSearchValue(event.currentTarget.value)}
+                />
+                <Group position="right" mt="md">
+                  <Button onClick={clickHandler}>Submit</Button>
+                </Group>
+              </Box>
+              <Space h="md" />
+              <ScrollArea.Autosize mah={height * 0.8} type="hover">
+                {sortedDependencies.map(relatedArtifact => (
+                  <Dependency key={relatedArtifact.resource} relatedArtifact={relatedArtifact} />
+                ))}
+              </ScrollArea.Autosize>
+              <Space h="md" />
             </Tabs.Panel>
           )}
         </Tabs>
