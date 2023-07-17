@@ -1,6 +1,6 @@
 import { Center, Text, Divider } from '@mantine/core';
 
-export default function ResourceAuthoringPage() {
+export default function ReviewPage() {
   return (
     <div>
       <Center>
