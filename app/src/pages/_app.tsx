@@ -72,7 +72,7 @@ function App({ Component, pageProps }: AppProps) {
                   </Navbar.Section>
                   <Divider my="md" />
                   <Navbar.Section grow pt={18}>
-                    <DraftResourceButtons />
+                    <DraftResourceButtons review={false} />
                   </Navbar.Section>
                 </>
               )}
@@ -92,7 +92,7 @@ function App({ Component, pageProps }: AppProps) {
                     </Link>
                   </Navbar.Section>
                   <Navbar.Section grow pt={18}>
-                    <ServiceResourceButtons />
+                    <ServiceResourceButtons review={false} />
                   </Navbar.Section>
                 </>
               )}
@@ -105,7 +105,7 @@ function App({ Component, pageProps }: AppProps) {
                       </Center>
                       <Divider my="md" />
                       <Navbar.Section grow>
-                        <ServiceResourceButtons />
+                        <ServiceResourceButtons review={true} />
                       </Navbar.Section>
                     </Navbar.Section>
                     <Navbar.Section grow pt={18}>
@@ -114,7 +114,7 @@ function App({ Component, pageProps }: AppProps) {
                       </Center>
                       <Divider my="md" />
                     </Navbar.Section>
-                    <DraftResourceButtons />
+                    <DraftResourceButtons review={true} />
                   </Stack>
                 </>
               )}

@@ -2,11 +2,15 @@ import { Text, Paper, Stack, Center, Loader } from '@mantine/core';
 import { trpc } from '@/util/trpc';
 import SidebarButtonList from './SidebarButtonList';
 
+interface MyComponentProps {
+  review: boolean;
+}
+
 /**
  * Component which retrieves all _draft_ resources and their counts and translates them into buttons
  * Used in the context of the sidebar in the app shell
  */
-function DraftResourceButtons() {
+function DraftResourceButtons({ review }: MyComponentProps) {
   const {
     data: resourceCounts,
     error: artifactCountError,
@@ -37,7 +41,13 @@ function DraftResourceButtons() {
           </Paper>
         </div>
       ) : resourceCounts ? (
-        <SidebarButtonList routePrefix="/authoring" buttonData={resourceCounts} />
+        <>
+          {review ? (
+            <SidebarButtonList routePrefix="/review/authoring" buttonData={resourceCounts} />
+          ) : (
+            <SidebarButtonList routePrefix="/authoring" buttonData={resourceCounts} />
+          )}
+        </>
       ) : null}
     </Stack>
   );
