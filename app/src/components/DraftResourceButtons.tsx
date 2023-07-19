@@ -2,7 +2,7 @@ import { Text, Paper, Stack, Center, Loader } from '@mantine/core';
 import { trpc } from '@/util/trpc';
 import SidebarButtonList from './SidebarButtonList';
 
-interface MyComponentProps {
+interface DraftResourceButtonsProps {
   review: boolean;
 }
 
@@ -10,7 +10,7 @@ interface MyComponentProps {
  * Component which retrieves all _draft_ resources and their counts and translates them into buttons
  * Used in the context of the sidebar in the app shell
  */
-function DraftResourceButtons({ review }: MyComponentProps) {
+function DraftResourceButtons({ review }: DraftResourceButtonsProps) {
   const {
     data: resourceCounts,
     error: artifactCountError,

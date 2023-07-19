@@ -26,7 +26,7 @@ export default function ResourceSearchResultsPage({
       <Divider my="md" />
       {resourceInfo ? (
         <Stack align="center" pt={18}>
-          <ResourceCards resourceInfo={resourceInfo} resourceType={'Measure'} authoring={false} />
+          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} authoring={false} />
         </Stack>
       ) : (
         <div

@@ -40,7 +40,7 @@ export default function CommentPage() {
           <Tabs variant="outline" defaultValue="addComments">
             <Tabs.List>
               <Tabs.Tab value="addComments">Add comment</Tabs.Tab>
-              <Tabs.Tab value="viewComments"> View Comments</Tabs.Tab>
+              <Tabs.Tab value="viewComments">View Comments</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="addComments" pt="xs">
               Components to add review comment goes here

@@ -2,14 +2,14 @@ import { Text, Paper, Stack, Center, Loader } from '@mantine/core';
 import { trpc } from '@/util/trpc';
 import SidebarButtonList from './SidebarButtonList';
 
-interface MyComponentProps {
+interface ResourceButtonsProps {
   review: boolean;
 }
 /**
  * Component which retrieves all resources and their counts and translates them into buttons and adds
  * a search button that links to the overall search page
  */
-function ServiceResourceButtons({ review }: MyComponentProps) {
+function ServiceResourceButtons({ review }: ResourceButtonsProps) {
   const {
     data: resourceCounts,
     error: artifactCountError,
