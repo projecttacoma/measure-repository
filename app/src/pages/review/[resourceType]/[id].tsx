@@ -20,20 +20,32 @@ import {
   TextInput
 } from '@mantine/core';
 import { ArtifactResourceType } from '@/util/types/fhir';
+import { useState, useEffect } from 'react';
+
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
 import { IconStar, IconCalendar, IconInfoHexagonFilled } from '@tabler/icons-react';
-import { InfoCircle } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import 'dayjs/locale/ru';
 import { DateTimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { isNotEmpty, hasLength } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+
+interface DraftArtifactUpdates {
+  comment?: string;
+  extension?: fhir4.Extension[];
+  nestedExtension?: fhir4.Extension;
+}
 
 /**
  * Component which renders a page that displays the JSON data of a resource. Also will eventually
  *  provide the user with the ability to make review comments and visualize previous review comments.
  */
 export default function CommentPage() {
+  const ctx = trpc.useContext();
+  const [comment, setComment] = useState('');
+
   const date = new Date();
   const year = date.getFullYear();
   const month = date.getMonth();
@@ -41,34 +53,89 @@ export default function CommentPage() {
 
   const router = useRouter();
   const { resourceType: resourceType, id: resourceID, authoring } = router.query;
-  let resource;
+  const { data: resource } = getResource();
 
   const form = useForm({
     initialValues: {
-      name: '',
-      type: '',
-      comment: '',
-      date: ''
+      // name: '',
+      // type: '',
+      comment: ''
+      // date: ''
     },
     validate: {
-      name: hasLength({ min: 2, max: 10 }, 'Name must be 2-10 characters long'),
-      type: isNotEmpty('Select the type of comment'),
-      comment: isNotEmpty('Enter artifact comment'),
-      date: isNotEmpty('Enter date')
+      // name: hasLength({ min: 2, max: 10 }, 'Name must be 2-10 characters long'),
+      // type: isNotEmpty('Select the type of comment'),
+      comment: isNotEmpty('Enter artifact comment')
+      // date: isNotEmpty('Enter date')
     }
   });
 
-  if (authoring === 'true') {
-    resource = trpc.draft.getDraftById.useQuery({
-      id: resourceID as string,
-      resourceType: resourceType as ArtifactResourceType
-    });
-  } else {
-    resource = trpc.service.getArtifactById.useQuery({
-      id: resourceID as string,
-      resourceType: resourceType as ArtifactResourceType
-    });
+  const resourceUpdate = trpc.draft.updateDraft.useMutation({
+    onSuccess: () => {
+      notifications.show({
+        title: 'Comment Successfully added!',
+        message: `${resourceType} Successful comment`,
+        icon: <CircleCheck />,
+        color: 'green'
+      });
+      ctx.draft.getDraftById.invalidate();
+    },
+    onError: e => {
+      notifications.show({
+        title: 'Update Failed!',
+        message: `Attempt to update ${resourceType} failed with message: ${e.message}`,
+        icon: <AlertCircle />,
+        color: 'red'
+      });
+    }
+  });
+
+  function getResource() {
+    if (authoring === 'true') {
+      return trpc.draft.getDraftById.useQuery({
+        id: resourceID as string,
+        resourceType: resourceType as ArtifactResourceType
+      });
+    } else {
+      return trpc.service.getArtifactById.useQuery({
+        id: resourceID as string,
+        resourceType: resourceType as ArtifactResourceType
+      });
+    }
   }
+
+  function parseUpdate(comment: string) {
+    const additions: DraftArtifactUpdates = {};
+    const deletions: DraftArtifactUpdates = {};
+
+    if (comment.trim() !== '') {
+      additions['nestedExtension'] = { url: 'string' };
+    }
+    return [additions, deletions];
+  }
+
+  // useEffect to check if the resource has any fields already defined
+  useEffect(() => {
+    console.log('in here');
+    if (resource?.url) {
+      console.log(resource.url + ' url');
+    }
+    if (resource?.extension) {
+      console.log(JSON.stringify(resource.extension) + 'extension');
+    } else {
+      console.log('no extension');
+      const additions: DraftArtifactUpdates = {};
+      const deletions: DraftArtifactUpdates = {};
+      additions['extension'] = [];
+
+      resourceUpdate.mutate({
+        resourceType: resourceType as ArtifactResourceType,
+        id: resourceID as string,
+        additions: additions,
+        deletions: deletions
+      });
+    }
+  }, [resource]);
 
   return (
     <div>
@@ -198,7 +265,14 @@ export default function CommentPage() {
                     type="submit"
                     onClick={() => {
                       if (form.isValid()) {
-                        console.log(form.values.comment + ' access comment');
+                        console.log(form.values.comment + ' form  is valid');
+                        const [additions, deletions] = parseUpdate(form.values.comment);
+                        resourceUpdate.mutate({
+                          resourceType: resourceType as ArtifactResourceType,
+                          id: resourceID as string,
+                          additions: additions,
+                          deletions: deletions
+                        });
                       }
                     }}
                   >
@@ -219,7 +293,7 @@ export default function CommentPage() {
           </Text>
           <Paper withBorder>
             <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
-              {resource.data ? JSON.stringify(resource.data, null, 2) : ''}
+              {resource ? JSON.stringify(resource, null, 2) : ''}
             </Prism>
           </Paper>
         </Grid.Col>

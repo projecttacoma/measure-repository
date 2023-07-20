@@ -73,6 +73,7 @@ export default function ResourceAuthoringPage() {
 
   // useEffect to check if the resource has any fields already defined
   useEffect(() => {
+    console.log('changed when??');
     if (resource?.url) {
       setUrl(resource.url);
     }
@@ -138,6 +139,7 @@ export default function ResourceAuthoringPage() {
     const additions: DraftArtifactUpdates = {};
     const deletions: DraftArtifactUpdates = {};
 
+    console.log('parse uodate now!!');
     url.trim() !== '' ? (additions['url'] = url) : (deletions['url'] = '');
     if (identifierValue.trim() !== '') {
       if (identifierSystem.trim() !== '') {
