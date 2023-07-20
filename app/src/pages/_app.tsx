@@ -6,7 +6,6 @@ import {
   Header,
   MantineProvider,
   Navbar,
-  Stack,
   Text,
   Divider,
   Group,
@@ -63,7 +62,7 @@ function App({ Component, pageProps }: AppProps) {
           /** Consistent navbar shows available resources as regular content page changes to drill into details */
           navbar={
             <Navbar width={{ base: '320px' }}>
-              {router.pathname.startsWith('/authoring') && (
+              {(router.pathname.startsWith('/authoring') || router.asPath.endsWith('authoring=true')) && (
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
@@ -72,11 +71,12 @@ function App({ Component, pageProps }: AppProps) {
                   </Navbar.Section>
                   <Divider my="md" />
                   <Navbar.Section grow pt={18}>
-                    <DraftResourceButtons review={false} />
+                    <DraftResourceButtons />
                   </Navbar.Section>
                 </>
               )}
-              {!router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review') && (
+              {((!router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review')) ||
+                router.asPath.endsWith('authoring=false')) && (
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
@@ -92,30 +92,8 @@ function App({ Component, pageProps }: AppProps) {
                     </Link>
                   </Navbar.Section>
                   <Navbar.Section grow pt={18}>
-                    <ServiceResourceButtons review={false} />
+                    <ServiceResourceButtons />
                   </Navbar.Section>
-                </>
-              )}
-              {router.pathname.startsWith('/review') && (
-                <>
-                  <Stack>
-                    <Navbar.Section pt={18}>
-                      <Center>
-                        <Text c="gray">Measure Repository Artifacts</Text>
-                      </Center>
-                      <Divider my="md" />
-                      <Navbar.Section grow>
-                        <ServiceResourceButtons review={true} />
-                      </Navbar.Section>
-                    </Navbar.Section>
-                    <Navbar.Section grow pt={18}>
-                      <Center>
-                        <Text c="gray">Draft Artifacts</Text>
-                      </Center>
-                      <Divider my="md" />
-                    </Navbar.Section>
-                    <DraftResourceButtons review={true} />
-                  </Stack>
                 </>
               )}
             </Navbar>
@@ -152,7 +130,8 @@ function App({ Component, pageProps }: AppProps) {
                 <Link href="/">
                   <Text
                     c={
-                      !router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review')
+                      router.asPath.endsWith('authoring=false') ||
+                      (!router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review'))
                         ? 'orange.3'
                         : 'gray.4'
                     }
@@ -161,10 +140,15 @@ function App({ Component, pageProps }: AppProps) {
                   </Text>
                 </Link>
                 <Link href="/authoring">
-                  <Text c={router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Authoring</Text>
-                </Link>
-                <Link href="/review">
-                  <Text c={router.pathname.startsWith('/review') ? 'orange.3' : 'gray.4'}>Review</Text>
+                  <Text
+                    c={
+                      router.asPath.endsWith(`authoring=true`) || router.pathname.startsWith('/authoring')
+                        ? 'orange.3'
+                        : 'gray.4'
+                    }
+                  >
+                    Authoring
+                  </Text>
                 </Link>
               </Group>
             </Header>
