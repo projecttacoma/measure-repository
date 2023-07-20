@@ -62,7 +62,7 @@ function App({ Component, pageProps }: AppProps) {
           /** Consistent navbar shows available resources as regular content page changes to drill into details */
           navbar={
             <Navbar width={{ base: '320px' }}>
-              {router.pathname.startsWith('/authoring') ? (
+              {(router.pathname.startsWith('/authoring') || router.asPath.endsWith('authoring=true')) && (
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
@@ -74,11 +74,13 @@ function App({ Component, pageProps }: AppProps) {
                     <DraftResourceButtons />
                   </Navbar.Section>
                 </>
-              ) : (
+              )}
+              {((!router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review')) ||
+                router.asPath.endsWith('authoring=false')) && (
                 <>
                   <Navbar.Section pt={18}>
                     <Center>
-                      <Text c="gray">Browse Measure Repository</Text>
+                      <Text c="gray">Measure Repository Artifacts</Text>
                     </Center>
                   </Navbar.Section>
                   <Divider my="md" />
@@ -89,7 +91,6 @@ function App({ Component, pageProps }: AppProps) {
                       </Button>
                     </Link>
                   </Navbar.Section>
-
                   <Navbar.Section grow pt={18}>
                     <ServiceResourceButtons />
                   </Navbar.Section>
@@ -105,7 +106,6 @@ function App({ Component, pageProps }: AppProps) {
               sx={theme => {
                 const shade =
                   typeof theme.primaryShade === 'number' ? theme.primaryShade : theme.primaryShade[theme.colorScheme];
-
                 return {
                   backgroundColor: theme.colors[theme.primaryColor][shade],
                   display: 'flex',
@@ -128,10 +128,27 @@ function App({ Component, pageProps }: AppProps) {
               </div>
               <Group position="center" className={classes.navGroup} spacing="xl">
                 <Link href="/">
-                  <Text c={!router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Repository</Text>
+                  <Text
+                    c={
+                      router.asPath.endsWith('authoring=false') ||
+                      (!router.pathname.startsWith('/authoring') && !router.pathname.startsWith('/review'))
+                        ? 'orange.3'
+                        : 'gray.4'
+                    }
+                  >
+                    Repository
+                  </Text>
                 </Link>
                 <Link href="/authoring">
-                  <Text c={router.pathname.startsWith('/authoring') ? 'orange.3' : 'gray.4'}>Authoring</Text>
+                  <Text
+                    c={
+                      router.asPath.endsWith(`authoring=true`) || router.pathname.startsWith('/authoring')
+                        ? 'orange.3'
+                        : 'gray.4'
+                    }
+                  >
+                    Authoring
+                  </Text>
                 </Link>
               </Group>
             </Header>

@@ -13,7 +13,7 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck, Report } from 'tabler-icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
 import DeletionConfirmationModal from './DeletionConfirmationModal';
@@ -115,6 +115,18 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
                 <ActionIcon radius="md" size="md" variant="subtle" color="gray">
                   {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
+                </ActionIcon>
+              </Tooltip>
+            </Link>
+            <Link
+              href={{
+                pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
+                query: { authoring: `${authoring}` }
+              }}
+            >
+              <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
+                <ActionIcon radius="md" size="md" variant="subtle" color="blue">
+                  <Report size="24" />
                 </ActionIcon>
               </Tooltip>
             </Link>

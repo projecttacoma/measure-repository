@@ -27,7 +27,7 @@ export default function ResourceList({
             <Button>Search</Button>
           </Link>
           <div style={{ paddingTop: '18px' }}>
-            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} />
+            <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} authoring={false} />
           </div>
         </Stack>
       </div>
