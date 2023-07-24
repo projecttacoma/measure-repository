@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "concurrently": "^7.6.0"
+  },
+  "dependencies": {
+    "@mantine/form": "^6.0.17"
   }
 }
