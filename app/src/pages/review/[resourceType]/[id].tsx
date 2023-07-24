@@ -24,8 +24,7 @@ import { ArtifactResourceType } from '@/util/types/fhir';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
-import { IconStar, IconCalendar, IconInfoHexagonFilled } from '@tabler/icons-react';
-import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
+import { AlertCircle, CircleCheck, InfoCircle, Star } from 'tabler-icons-react';
 import { isNotEmpty, useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 
@@ -52,7 +51,8 @@ export default function CommentPage() {
     initialValues: {
       type: '',
       comment: '',
-      name: ''
+      name: '',
+      date: ''
     },
     //An error will be thrown if these fields aren't entered properly
     validate: {
@@ -128,9 +128,7 @@ export default function CommentPage() {
   // useEffect to check if the artifact has an extension and adds it if it doesn't
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    console.log('in here');
     if (!resource?.extension) {
-      console.log('no extension');
       const additions: DraftArtifactUpdates = {};
       const deletions: DraftArtifactUpdates = {};
       additions['extension'] = [];
@@ -190,7 +188,7 @@ export default function CommentPage() {
                           <HoverCard.Dropdown>
                             <Group>
                               <Avatar color="blue" radius="xl">
-                                <IconInfoHexagonFilled size="1.5rem" />
+                                <InfoCircle size="1.5rem" />
                               </Avatar>
                               <Stack spacing={5}>
                                 <Text size="sm" weight={700} sx={{ lineHeight: 1 }}>
@@ -224,7 +222,7 @@ export default function CommentPage() {
                         </HoverCard>
                       </Group>
                     }
-                    icon={<IconStar />}
+                    icon={<Star opacity={0.5} />}
                     placeholder="Type"
                     data={[
                       { value: 'Documentation', label: 'Documentation' },
@@ -251,7 +249,6 @@ export default function CommentPage() {
                   <Checkbox
                     ref={ref}
                     id="checkbox"
-                    icon={IconCalendar}
                     color="white"
                     mt="md"
                     label="Include Date in Comment"
