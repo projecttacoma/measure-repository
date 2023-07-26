@@ -21,7 +21,7 @@ import {
   TextInput
 } from '@mantine/core';
 import { ArtifactResourceType } from '@/util/types/fhir';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
 import { AlertCircle, CircleCheck, InfoCircle, Star } from 'tabler-icons-react';
@@ -66,14 +66,12 @@ export default function CommentPage() {
     onSuccess: () => {
       //This if statement prevents the success notifaction from popping up in the unique case
       //that the draft artifact has just had an extension array added to the JSON.
-      if (JSON.stringify(resource?.extension) !== undefined) {
-        notifications.show({
-          title: 'Comment Successfully added!',
-          message: `Comment Successfully added to ${resourceType}/${resourceID}`,
-          icon: <CircleCheck />,
-          color: 'green'
-        });
-      }
+      notifications.show({
+        title: 'Comment Successfully added!',
+        message: `Comment Successfully added to ${resourceType}/${resourceID}`,
+        icon: <CircleCheck />,
+        color: 'green'
+      });
       ctx.draft.getDraftById.invalidate();
     },
     onError: e => {
@@ -115,7 +113,15 @@ export default function CommentPage() {
       const isoString = now.toISOString();
       newExtensionObject.push({ url: 'authoredOn', valueDateTime: isoString });
     }
+
     if (resource?.extension) {
+      resource.extension.push({
+        extension: newExtensionObject,
+        url: 'http://hl7.org/fhir/us/cqfmeasures/CodeSystem/artifact-comment-type'
+      });
+      additions['extension'] = resource.extension;
+    } else if (resource && !resource.extension) {
+      resource.extension = [];
       resource.extension.push({
         extension: newExtensionObject,
         url: 'http://hl7.org/fhir/us/cqfmeasures/CodeSystem/artifact-comment-type'
@@ -124,23 +130,6 @@ export default function CommentPage() {
     }
     return [additions, deletions];
   }
-
-  // useEffect to check if the artifact has an extension and adds it if it doesn't
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    if (!resource?.extension) {
-      const additions: DraftArtifactUpdates = {};
-      const deletions: DraftArtifactUpdates = {};
-      additions['extension'] = [];
-      resourceUpdate.mutate({
-        resourceType: resourceType as ArtifactResourceType,
-        id: resourceID as string,
-        additions: additions,
-        deletions: deletions
-      });
-    }
-  }, [resource]);
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   return (
     <div>
