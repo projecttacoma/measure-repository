@@ -46,7 +46,7 @@ export default function CommentPage() {
   const { resourceType: resourceType, id: resourceID, authoring } = router.query;
   const { data: resource } = getResource();
 
-  //Validates that all of the necessary form properties were entered by the user
+  // Validates that all of the necessary form properties were entered by the user
   const form = useForm({
     initialValues: {
       type: '',
@@ -54,18 +54,18 @@ export default function CommentPage() {
       name: '',
       date: ''
     },
-    //An error will be thrown if these fields aren't entered properly
+    // An error will be thrown if these fields aren't entered properly
     validate: {
       type: isNotEmpty('Select the type of comment'),
       comment: isNotEmpty('Enter artifact comment')
     }
   });
 
-  //Currently we can only update draft artifact resources.
+  // Currently we can only update draft artifact resources.
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
     onSuccess: () => {
-      //This if statement prevents the success notifaction from popping up in the unique case
-      //that the draft artifact has just had an extension array added to the JSON.
+      // This if statement prevents the success notifaction from popping up in the unique case
+      // that the draft artifact has just had an extension array added to the JSON.
       notifications.show({
         title: 'Comment Successfully added!',
         message: `Comment Successfully added to ${resourceType}/${resourceID}`,
@@ -153,8 +153,8 @@ export default function CommentPage() {
                 component="form"
                 maw={1200}
                 mx="auto"
-                //This console.log is necessary because the onSubmit function has to use the '() => {}' format
-                //and it will cause an error if it is left empty.
+                // This console.log is necessary because the onSubmit function has to use the '() => {}' format
+                // and it will cause an error if it is left empty.
                 onSubmit={form.onSubmit(values => {
                   console.log(values);
                 })}
@@ -167,7 +167,7 @@ export default function CommentPage() {
                     radius="lg"
                     label={
                       <Group spacing="xs">
-                        Comment Type
+                        <Text>Comment Type</Text> <Text color="red">*</Text>
                         <HoverCard width={420} shadow="md" withArrow openDelay={200} closeDelay={200}>
                           <HoverCard.Target>
                             <div>
@@ -197,14 +197,14 @@ export default function CommentPage() {
                             <Space h="lg" />
                             <List spacing="sm" size="sm" center>
                               <List.Item>
-                                <i>Documentation:</i> The comment is providing additional documentation from an
+                                <i>documentation:</i> The comment is providing additional documentation from an
                                 authoring perspective
                               </List.Item>
                               <List.Item>
-                                <i>Review:</i> The comment is providing feedback from a reviewer and requires resolution
+                                <i>review:</i> The comment is providing feedback from a reviewer and requires resolution
                               </List.Item>
                               <List.Item>
-                                <i>Guidance:</i> The comment is providing usage guidance to an artifact consumer
+                                <i>guidance:</i> The comment is providing usage guidance to an artifact consumer
                               </List.Item>
                             </List>
                           </HoverCard.Dropdown>
@@ -214,9 +214,9 @@ export default function CommentPage() {
                     icon={<Star opacity={0.5} />}
                     placeholder="Type"
                     data={[
-                      { value: 'Documentation', label: 'Documentation' },
-                      { value: 'Guidance', label: 'Guidance' },
-                      { value: 'Review', label: 'Review' }
+                      { value: 'documentation', label: 'documentation' },
+                      { value: 'guidance', label: 'guidance' },
+                      { value: 'review', label: 'review' }
                     ]}
                     {...form.getInputProps('type')}
                   />
@@ -228,7 +228,7 @@ export default function CommentPage() {
                   maxRows={15}
                   placeholder="Your Artifact comment"
                   label="Artifact Comment"
-                  description="Add a comment to the resource"
+                  description="Add a comment to the artifact"
                   withAsterisk
                   {...form.getInputProps('comment')}
                 />
