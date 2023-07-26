@@ -64,8 +64,6 @@ export default function CommentPage() {
   // Currently we can only update draft artifact resources.
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
     onSuccess: () => {
-      // This if statement prevents the success notifaction from popping up in the unique case
-      // that the draft artifact has just had an extension array added to the JSON.
       notifications.show({
         title: 'Comment Successfully added!',
         message: `Comment Successfully added to ${resourceType}/${resourceID}`,
@@ -109,9 +107,8 @@ export default function CommentPage() {
       newExtensionObject.push({ url: 'user', valueString: userName });
     }
     if (dateSelected === true) {
-      const now = new Date();
-      const isoString = now.toISOString();
-      newExtensionObject.push({ url: 'authoredOn', valueDateTime: isoString });
+      const authoredDate = new Date();
+      newExtensionObject.push({ url: 'authoredOn', valueDateTime: authoredDate.toISOString() });
     }
 
     if (resource?.extension) {
@@ -264,18 +261,20 @@ export default function CommentPage() {
                           }
                           setIsLoading(false);
                         }, 1000);
-                        const [additions, deletions] = parseUpdate(
-                          form.values.comment,
-                          form.values.type,
-                          form.values.name,
-                          dateSelected
-                        );
-                        resourceUpdate.mutate({
-                          resourceType: resourceType as ArtifactResourceType,
-                          id: resourceID as string,
-                          additions: additions,
-                          deletions: deletions
-                        });
+                        if (authoring === 'true') {
+                          const [additions, deletions] = parseUpdate(
+                            form.values.comment,
+                            form.values.type,
+                            form.values.name,
+                            dateSelected
+                          );
+                          resourceUpdate.mutate({
+                            resourceType: resourceType as ArtifactResourceType,
+                            id: resourceID as string,
+                            additions: additions,
+                            deletions: deletions
+                          });
+                        }
                       }
                     }}
                   >
