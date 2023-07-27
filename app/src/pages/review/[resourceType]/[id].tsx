@@ -100,29 +100,27 @@ export default function CommentPage() {
     const additions: DraftArtifactUpdates = {};
     const deletions: DraftArtifactUpdates = {};
 
-    const newExtensionObject: fhir4.Extension[] = [];
-    newExtensionObject.push({ url: 'type', valueCode: type }, { url: 'text', valueMarkdown: comment });
+    const newExtension: fhir4.Extension[] = [];
+    newExtension.push({ url: 'type', valueCode: type }, { url: 'text', valueMarkdown: comment });
 
     if (userName !== '') {
-      newExtensionObject.push({ url: 'user', valueString: userName });
+      newExtension.push({ url: 'user', valueString: userName });
     }
     if (dateSelected === true) {
       const authoredDate = new Date();
-      newExtensionObject.push({ url: 'authoredOn', valueDateTime: authoredDate.toISOString() });
+      newExtension.push({ url: 'authoredOn', valueDateTime: authoredDate.toISOString() });
     }
 
     if (resource?.extension) {
       resource.extension.push({
-        extension: newExtensionObject,
-        url: 'http://hl7.org/fhir/us/cqfmeasures/CodeSystem/artifact-comment-type'
+        extension: newExtension,
+        url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
       });
       additions['extension'] = resource.extension;
     } else if (resource && !resource.extension) {
-      resource.extension = [];
-      resource.extension.push({
-        extension: newExtensionObject,
-        url: 'http://hl7.org/fhir/us/cqfmeasures/CodeSystem/artifact-comment-type'
-      });
+      resource.extension = [
+        { extension: newExtension, url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment' }
+      ];
       additions['extension'] = resource.extension;
     }
     return [additions, deletions];
@@ -163,8 +161,10 @@ export default function CommentPage() {
                     clearable
                     radius="lg"
                     label={
-                      <Group spacing="xs">
-                        <Text>Comment Type</Text> <Text color="red">*</Text>
+                      <Group spacing="lg">
+                        <Text>
+                          Comment Type <span style={{ color: 'red' }}>*</span>
+                        </Text>
                         <HoverCard width={420} shadow="md" withArrow openDelay={200} closeDelay={200}>
                           <HoverCard.Target>
                             <div>
