@@ -1,4 +1,5 @@
 import { Avatar, createStyles, Group, Paper, rem, Text, TypographyStylesProvider } from '@mantine/core';
+import parse from 'html-react-parser';
 import { useHover } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 
@@ -43,7 +44,7 @@ export default function ArtifactComments({ date, body, author }: ArtifactComment
   function getDate() {
     if (date) {
       const stringDate = new Date(date);
-      return `${stringDate.getMonth()}/${stringDate.getDate()}/${stringDate.getFullYear()}`;
+      return `${stringDate.getMonth() + 1}/${stringDate.getDate()}/${stringDate.getFullYear()}`;
     }
   }
 
@@ -86,7 +87,8 @@ export default function ArtifactComments({ date, body, author }: ArtifactComment
         </Group>
         <div style={{ wordBreak: 'break-word' }}>
           <TypographyStylesProvider className={classes.body}>
-            {body && <div className={classes.content} dangerouslySetInnerHTML={{ __html: body }} />}
+            {body && <div className={classes.content} />}
+            {body && parse(body)}
           </TypographyStylesProvider>
         </div>
       </div>
