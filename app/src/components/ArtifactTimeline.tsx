@@ -2,23 +2,18 @@ import { Center, ScrollArea, Space, Text, Timeline } from '@mantine/core';
 import { Message } from 'tabler-icons-react';
 import { useEffect, useState } from 'react';
 import ArtifactComments from './ArtifactComments';
+import { ArtifactCommentProps } from './ArtifactComments';
 
-interface ArtifactCommentProps {
-  date: string | undefined;
-  body: string | undefined;
-  author: string | undefined;
+interface ArtifactTimelineProps {
+  extensions?: fhir4.Extension[];
 }
 
-interface ExtensionArray {
-  extensions: undefined | fhir4.Extension[];
-}
-
-interface commentProps {
-  author: string | undefined;
-  date: string | undefined;
-  body: string | undefined;
-  type: string | undefined;
-}
+type commentProps = {
+  author?: string;
+  date?: string;
+  body?: string;
+  type?: string;
+};
 
 function addArtifactComment({ date, body, author }: ArtifactCommentProps) {
   return (
@@ -33,14 +28,14 @@ function noCommentsAvailable() {
     <div>
       <Center>
         <Text color="red">
-          <i>No Comments Found for Resource</i>{' '}
+          <i>No Comments Found for Artifact</i>{' '}
         </Text>
       </Center>
     </div>
   );
 }
 
-export default function ArtifactTimeline(extensionArr: ExtensionArray) {
+export default function ArtifactTimeline(extensionArr: ArtifactTimelineProps) {
   const [height, setWindowHeight] = useState(0);
 
   useEffect(() => {
@@ -59,12 +54,7 @@ export default function ArtifactTimeline(extensionArr: ExtensionArray) {
       const commentArray: commentProps[] = [];
 
       extensionArr.extensions.forEach(e => {
-        const newComment: commentProps = {
-          author: undefined,
-          date: undefined,
-          body: undefined,
-          type: undefined
-        };
+        const newComment: commentProps = {};
         e.extension?.forEach(e => {
           if (e.valueDateTime) {
             newComment.date = e.valueDateTime;

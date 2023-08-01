@@ -27,19 +27,19 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-interface CommentHtmlProps {
-  date: string | undefined;
-  body: string | undefined;
-  author: string | undefined;
+export interface ArtifactCommentProps {
+  date?: string;
+  body?: string;
+  author?: string;
 }
 
-export default function ArtifactComments({ date: date, body, author }: CommentHtmlProps) {
+export default function ArtifactComments({ date, body, author }: ArtifactCommentProps) {
   const { classes } = useStyles();
   const { hovered, ref } = useHover();
   const [color, setColor] = useState('grey');
   const [displayedDate, setDisplayedDate] = useState<string | undefined>(date);
 
-  //This changes the UTC date format into the 'mm/dd/yyyy' format and returns that
+  // This changes the UTC date format into the 'mm/dd/yyyy' format
   function getDate() {
     if (date) {
       const stringDate = new Date(date);
@@ -57,7 +57,7 @@ export default function ArtifactComments({ date: date, body, author }: CommentHt
     }
   }
 
-  //Changes the color of the date text depending on if the user is hovering over the text or not
+  // Changes the color of the date text depending on if the user is hovering over the text or not
   useEffect(() => {
     if (hovered === true) {
       setColor('blue');
