@@ -27,6 +27,7 @@ import { trpc } from '@/util/trpc';
 import { AlertCircle, CircleCheck, InfoCircle, Star } from 'tabler-icons-react';
 import { isNotEmpty, useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
+import ArtifactTimeline from '@/components/ArtifactTimeline';
 
 interface DraftArtifactUpdates {
   extension?: fhir4.Extension[];
@@ -136,14 +137,18 @@ export default function CommentPage() {
         </Text>
       </Center>
       <Divider my="md" mt={12} />
-      <Grid>
-        <Grid.Col span={6}>
-          <Tabs variant="outline" defaultValue="addComments">
-            <Tabs.List>
-              <Tabs.Tab value="addComments">Add comment</Tabs.Tab>
-              <Tabs.Tab value="viewComments"> View Comments</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="addComments" pt="xs">
+
+      <Tabs variant="outline" defaultValue="addComments">
+        <Tabs.List>
+          <Tabs.Tab value="addComments">Add comment</Tabs.Tab>
+          <Tabs.Tab value="viewComments"> View Comments</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="viewComments" pt="xs">
+          <ArtifactTimeline extensions={resource?.extension} />
+        </Tabs.Panel>
+        <Tabs.Panel value="addComments" pt="xs">
+          <Grid>
+            <Grid.Col span={6}>
               <Box
                 component="form"
                 maw={1200}
@@ -282,24 +287,21 @@ export default function CommentPage() {
                   </Button>
                 </Group>
               </Box>
-            </Tabs.Panel>
-            <Tabs.Panel value="viewComments" pt="xs">
-              Components to view comments go here
-            </Tabs.Panel>
-          </Tabs>
-        </Grid.Col>
-        <Grid.Col span={6}>
-          <Space />
-          <Text c="gray" fz="sm">
-            Current JSON Content
-          </Text>
-          <Paper withBorder>
-            <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
-              {resource ? JSON.stringify(resource, null, 2) : ''}
-            </Prism>
-          </Paper>
-        </Grid.Col>
-      </Grid>
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <Space />
+              <Text c="gray" fz="sm">
+                Current JSON Content
+              </Text>
+              <Paper withBorder>
+                <Prism language="json" colorScheme="light" styles={{ scrollArea: { height: 'calc(100vh - 150px)' } }}>
+                  {resource ? JSON.stringify(resource, null, 2) : ''}
+                </Prism>
+              </Paper>
+            </Grid.Col>
+          </Grid>
+        </Tabs.Panel>
+      </Tabs>
     </div>
   );
 }
