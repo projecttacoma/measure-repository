@@ -87,8 +87,7 @@ export default function ArtifactComments({ date, body, author }: ArtifactComment
         </Group>
         <div style={{ wordBreak: 'break-word' }}>
           <TypographyStylesProvider className={classes.body}>
-            {body && <div className={classes.content} />}
-            {body && parse(body)}
+            {body && <div className={classes.content} /> && parse(body)}
           </TypographyStylesProvider>
         </div>
       </div>
