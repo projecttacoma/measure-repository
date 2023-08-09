@@ -82,7 +82,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     });
 
     const location = res.headers.get('Location')?.substring(5); // remove 4_0_1 (version)
-    console.log(res.status + '     res');
     if (res.status !== 201) {
       console.error(res.statusText);
       notifications.show({
