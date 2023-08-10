@@ -3,14 +3,14 @@ import { Center, Grid, List, Space, Table, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useHover } from '@mantine/hooks';
 
-interface modalProps {
+interface DraftListItemProps {
   header: string;
   context?: string;
   originalColor: string;
-  date?: any;
+  date?: fhir4.Period;
 }
 
-export default function DraftListItem({ header, context, originalColor, date }: modalProps) {
+export default function DraftListItem({ header, context, originalColor, date }: DraftListItemProps) {
   const [color, setColor] = useState(originalColor);
   const { hovered, ref } = useHover();
 
@@ -25,7 +25,7 @@ export default function DraftListItem({ header, context, originalColor, date }: 
 
   if (date) {
     const rows = (
-      <tr key={date}>
+      <tr key={`${date}`}>
         <td>{date.start}</td>
         <td>{date.end}</td>
       </tr>

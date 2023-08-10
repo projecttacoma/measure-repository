@@ -18,7 +18,7 @@ import {
 } from '@mantine/core';
 import { DateTime } from 'luxon';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, CircleCheck, Flame, InfoCircle } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
 import DraftListItem from './DraftListItem';
@@ -35,6 +35,20 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
   const [version, setVersion] = useState('');
   const colorsArr: string[] = ['#F8F9FA', '#F1F3F5'];
   let currentColor = '#F8F9FA';
+
+  const [height, setWindowHeight] = useState(0);
+  const [width, setWindowWidth] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+      setWindowWidth(window.innerWidth);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return window.removeEventListener('resize', handleResize);
+  }, []);
+
   const { data: resource } = trpc.draft.getDraftById.useQuery({
     id: id,
     resourceType: resourceType
@@ -119,7 +133,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
   };
 
   return (
-    <Modal opened={open} onClose={onClose} withCloseButton={false} size="65%" centered>
+    <Modal opened={open} onClose={onClose} withCloseButton={false} mah={height * 0.6} size={width * 0.5} centered>
       <Stack>
         <div>
           <Group spacing="lg">
@@ -225,7 +239,8 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           creating a draft artifact from an existing artifact should result in the loss of it's version. 
           So it is necessary to make the user add one because it should not have one to begin with*/}
           <TextInput
-            size="md"
+            mah={height * 0.8}
+            maw={width * 0.5}
             style={{ width: '55rem' }}
             radius="md"
             withAsterisk
