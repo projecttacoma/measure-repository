@@ -1,27 +1,11 @@
 import { trpc } from '@/util/trpc';
 import { ArtifactResourceType } from '@/util/types/fhir';
-import {
-  Anchor,
-  Avatar,
-  Blockquote,
-  Button,
-  Center,
-  Divider,
-  Group,
-  HoverCard,
-  List,
-  Modal,
-  Stack,
-  Space,
-  Text,
-  TextInput
-} from '@mantine/core';
+import { Button, Center, Group, Modal, Stack, TextInput, Tooltip } from '@mantine/core';
 import { DateTime } from 'luxon';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { AlertCircle, CircleCheck, Flame, InfoCircle } from 'tabler-icons-react';
+import { useState } from 'react';
+import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
-import DraftListItem from './DraftListItem';
 
 export interface ReleaseModalProps {
   open: boolean;
@@ -33,21 +17,6 @@ export interface ReleaseModalProps {
 export default function ReleaseModal({ open = true, onClose, id, resourceType }: ReleaseModalProps) {
   const router = useRouter();
   const [version, setVersion] = useState('');
-  const colorsArr: string[] = ['#F8F9FA', '#F1F3F5'];
-  let currentColor = '#F8F9FA';
-
-  const [height, setWindowHeight] = useState(0);
-  const [width, setWindowWidth] = useState(0);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight);
-      setWindowWidth(window.innerWidth);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return window.removeEventListener('resize', handleResize);
-  }, []);
 
   const { data: resource } = trpc.draft.getDraftById.useQuery({
     id: id,
@@ -58,12 +27,12 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     onSuccess: () => {
       notifications.show({
         title: `Draft ${resource?.resourceType} released!`,
-        message: `Draft ${resource?.resourceType}/${resource?.id} successfully released to the MRS!`,
+        message: `Draft ${resource?.resourceType}/${resource?.id} successfully released to the Measure Repository!`,
         icon: <CircleCheck />,
         color: 'green'
       });
       ctx.draft.getDraftCounts.invalidate();
-      ctx.draft.getDrafts.invalidate(); //? needed if redirecting?
+      ctx.draft.getDrafts.invalidate();
     },
     onError: e => {
       console.error(e);
@@ -80,7 +49,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     // requirements:
     // https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release
     // TODO: release recursively all children (ignore for now).
-    // TODO/question: spec says don't change anything but status and date, but we're also changing version and idea (but spec is a mess)
     if (resource) {
       resource.version = version;
       resource.status = 'active';
@@ -119,137 +87,38 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         id: id
       });
 
-      //direct user to published artifact detail page
+      // direct user to published artifact detail page
       router.push(location);
     }
-    //TODO/question: -> should we check service for whether artifact already exists in some way for PUT update?
+    // TODO/question: -> should we check service for whether artifact already exists in some way for PUT update?
     onClose();
   }
 
-  //This function is needed because, if I were to include this functionality where I call it,
-  // then it would appear on the modal which I don't want to happen
-  const setColor = (newColor: string) => {
-    currentColor = newColor;
-  };
-
   return (
-    <Modal opened={open} onClose={onClose} withCloseButton={false} mah={height * 0.6} size={width * 0.5} centered>
+    <Modal opened={open} onClose={onClose} withCloseButton={false} size="lg">
       <Stack>
-        <div>
-          <Group spacing="lg">
-            <Text size="xl" fw={700}>
-              {resource?.id && `Release ${resourceType}/${resource?.id}?`}
-            </Text>
-            <HoverCard width={620} shadow="md" withArrow openDelay={200} closeDelay={200}>
-              <HoverCard.Target>
-                <div>
-                  <InfoCircle size="1.5rem" style={{ opacity: 0.5 }} />
-                </div>
-              </HoverCard.Target>
-              <HoverCard.Dropdown>
-                <Group>
-                  <Avatar color="red" radius="xl">
-                    <Flame size="1.5rem" />
-                  </Avatar>
-                  <Stack spacing={5}>
-                    <Text size="sm" weight={700} sx={{ lineHeight: 1 }}>
-                      Learn More
-                    </Text>
-                    <Anchor
-                      target="_blank"
-                      href="https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release"
-                      color="dimmed"
-                      size="xs"
-                      sx={{ lineHeight: 1 }}
-                    >
-                      Release Draft Artifacts
-                    </Anchor>
-                  </Stack>
-                </Group>
-                <Space h="lg" />
-                <Blockquote cite="– Fhir Spec" sx={{ lineHeight: 2, fontSize: '15px' }}>
-                  The <i>release</i> operation supports updating the status of an existing draft artifact to active. The
-                  operation sets the date and status elements of the artifact, but is otherwise not allowed to change
-                  any other elements of the artifact. Child artifacts (i.e. artifacts that compose the existing
-                  artifact) are also released, recursively. To be released, an artifact is required to have a version
-                  specified.
-                </Blockquote>
-              </HoverCard.Dropdown>
-            </HoverCard>
+        <Center>
+          <Group spacing="xs">
+            Release {resourceType}/{id}?
+            <Tooltip
+              multiline
+              label="Releasing a draft artifact changes the artifact's status from 'draft' to 'active', adds the user specified version to the artifact, and sends the artifact to the Measure Repository. This action also deletes this draft artifact from the Authoring Repository."
+            >
+              <div>
+                <InfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
+              </div>
+            </Tooltip>
           </Group>
-        </div>
-      </Stack>
-      <Space h="md" />
-      <Divider size="sm" />
-      <Space h="lg" />
-      <List style={{ listStyle: 'none' }}>
-        {resource?.name && (
-          <>
-            {<DraftListItem header={'Name'} context={resource.name} originalColor={colorsArr[0]} />}
-            {setColor(colorsArr[0])}
-          </>
-        )}
-        {resource?.status && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'Status'} context={resource.status} originalColor={currentColor} />
-          </>
-        )}
-        {resource?.id && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'ID'} context={resource.id} originalColor={currentColor} />
-          </>
-        )}
-        {resource?.url && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'URL'} context={resource.url} originalColor={currentColor} />
-          </>
-        )}
-        {resource?.resourceType && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'Type'} context={resource.resourceType} originalColor={currentColor} />
-          </>
-        )}
-        {resource?.description && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'Description'} context={resource.description} originalColor={currentColor} />
-          </>
-        )}
-        {resource?.version && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'Version'} context={resource.version} originalColor={currentColor} />
-          </>
-        )}
-        {resource?.effectivePeriod && (
-          <>
-            {setColor(currentColor === colorsArr[0] ? colorsArr[1] : colorsArr[0])}
-            <DraftListItem header={'Effective Period'} date={resource.effectivePeriod} originalColor={currentColor} />
-          </>
-        )}
-      </List>
-      <Space h="lg" />
-      <Center>
-        <Stack>
-          {/* According to https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#draft,
-          creating a draft artifact from an existing artifact should result in the loss of it's version. 
-          So it is necessary to make the user add one because it should not have one to begin with*/}
-          <TextInput
-            mah={height * 0.8}
-            maw={width * 0.5}
-            style={{ width: '55rem' }}
-            radius="md"
-            withAsterisk
-            label="Add version"
-            value={version}
-            placeholder="1.0.0"
-            onChange={e => setVersion(e.target.value)}
-          />
-          <Group pt={8} position="center">
+        </Center>
+        <TextInput
+          label="Add version"
+          value={version}
+          onChange={e => setVersion(e.target.value)}
+          withAsterisk
+          description="An artifact must have a version before it can be released to the Measure Repository"
+        />
+        <Center>
+          <Group pt={8} position="right">
             <Button onClick={confirm} disabled={!version}>
               Release
             </Button>
@@ -257,8 +126,8 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
               Cancel
             </Button>
           </Group>
-        </Stack>
-      </Center>
+        </Center>
+      </Stack>
     </Modal>
   );
 }
