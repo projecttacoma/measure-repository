@@ -27,7 +27,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     onSuccess: () => {
       notifications.show({
         title: `Draft ${resource?.resourceType} released!`,
-        message: `Draft ${resource?.resourceType}/${resource?.id} successfully released to the Measure Repository!`,
+        message: `Draft ${resource?.resourceType}/${resource?.id} successfully released to the Publishable Measure Repository!`,
         icon: <CircleCheck />,
         color: 'green'
       });
