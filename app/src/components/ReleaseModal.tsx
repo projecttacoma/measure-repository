@@ -115,7 +115,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           value={version}
           onChange={e => setVersion(e.target.value)}
           withAsterisk
-          description="An artifact must have a version before it can be released to the Measure Repository"
+          description="An artifact must have a version before it can be released to the Publishable Measure Repository"
         />
         <Center>
           <Group pt={8} position="right">
