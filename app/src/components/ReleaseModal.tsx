@@ -102,7 +102,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
             Release {resourceType}/{id}?
             <Tooltip
               multiline
-              label="Releasing a draft artifact changes the artifact's status from 'draft' to 'active', adds the user specified version to the artifact, and sends the artifact to the Measure Repository. This action also deletes this draft artifact from the Authoring Repository."
+              label="Releasing a draft artifact changes the artifact's status from 'draft' to 'active', adds the user-specified version to the artifact, and sends the artifact to the Publishable Measure Repository. This action also deletes this draft artifact from the Authoring Measure Repository."
             >
               <div>
                 <InfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
