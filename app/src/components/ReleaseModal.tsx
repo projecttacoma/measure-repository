@@ -1,6 +1,6 @@
 import { trpc } from '@/util/trpc';
 import { ArtifactResourceType } from '@/util/types/fhir';
-import { Button, Center, Group, Modal, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Button, Center, Group, Modal, Stack, TextInput, Text, Tooltip } from '@mantine/core';
 import { DateTime } from 'luxon';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -63,7 +63,12 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
       body: JSON.stringify(resource)
     });
 
-    const location = res.headers.get('Location')?.substring(5); // remove 4_0_1 (version)
+    // Conditionally remove the base version if one is present
+    let location = res.headers.get('Location');
+    if (location?.substring(0, 4) === '4_0_1') {
+      location = location?.substring(5); // remove 4_0_1 (version)
+    }
+
     if (res.status !== 201) {
       console.error(res.statusText);
       notifications.show({
@@ -110,6 +115,9 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
             </Tooltip>
           </Group>
         </Center>
+        <Text size="xs" fw={700}>
+          NOTE: By releasing this artifact to the Publishable Measure Repository, this draft instance will be removed.
+        </Text>
         <TextInput
           label="Add version"
           value={version}
