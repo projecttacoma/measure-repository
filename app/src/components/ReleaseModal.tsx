@@ -95,7 +95,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
       // direct user to published artifact detail page
       router.push(location);
     }
-    // TODO/question: -> should we check service for whether artifact already exists in some way for PUT update?
     onClose();
   }
 
