@@ -7,6 +7,7 @@ import { notifications } from '@mantine/notifications';
 import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import ArtifactFieldInput from '@/components/ArtifactFieldInput';
+import ReleaseModal from '@/components/ReleaseModal';
 
 interface DraftArtifactUpdates {
   url?: string;
@@ -35,6 +36,8 @@ export default function ResourceAuthoringPage() {
     id: id as string,
     resourceType: resourceType as ArtifactResourceType
   });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // checks if the field inputs have been changed by the user by checking
   // that they are different from the saved field values on the draft artifact
@@ -226,29 +229,38 @@ export default function ResourceAuthoringPage() {
                 data={libOptions}
               />
             )}
-            <Button
-              w={120}
-              onClick={() => {
-                const [additions, deletions] = parseUpdate(
-                  url,
-                  identifierValue,
-                  identifierSystem,
-                  name,
-                  title,
-                  description,
-                  library
-                );
-                resourceUpdate.mutate({
-                  resourceType: resourceType as ArtifactResourceType,
-                  id: id as string,
-                  additions: additions,
-                  deletions: deletions
-                });
-              }}
-              disabled={!isChanged()} // only enable the submit button when a field has changed
-            >
-              Submit
-            </Button>
+            <Group>
+              <Button
+                w={120}
+                onClick={() => {
+                  const [additions, deletions] = parseUpdate(
+                    url,
+                    identifierValue,
+                    identifierSystem,
+                    name,
+                    title,
+                    description,
+                    library
+                  );
+                  resourceUpdate.mutate({
+                    resourceType: resourceType as ArtifactResourceType,
+                    id: id as string,
+                    additions: additions,
+                    deletions: deletions
+                  });
+                }}
+                disabled={!isChanged()} // only enable the submit button when a field has changed
+              >
+                Update
+              </Button>
+              <Button
+                w={120}
+                onClick={() => setIsModalOpen(true)}
+                //TODO/question: disabled={} any disable needed? any necessary fields?
+              >
+                Release
+              </Button>
+            </Group>
           </Stack>
         </Grid.Col>
         <Grid.Col span={6}>
@@ -262,6 +274,13 @@ export default function ResourceAuthoringPage() {
           </Paper>
         </Grid.Col>
       </Grid>
+
+      <ReleaseModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        id={id as string}
+        resourceType={resourceType as ArtifactResourceType}
+      />
     </div>
   );
 }
