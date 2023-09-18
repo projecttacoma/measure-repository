@@ -65,7 +65,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
 
     // Conditionally remove the base version if one is present
     let location = res.headers.get('Location');
-    if (location?.substring(0, 4) === '4_0_1') {
+    if (location?.substring(0, 5) === '4_0_1') {
       location = location?.substring(5); // remove 4_0_1 (version)
     }
 
