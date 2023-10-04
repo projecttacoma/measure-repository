@@ -447,16 +447,19 @@ describe('MeasureService', () => {
   });
 
   describe('$data-requirements', () => {
-    // spy on calculation function
-    const calc = jest.spyOn(Calculator, 'calculateDataRequirements').mockResolvedValue({
-      results: {
-        resourceType: 'Library',
-        type: {
-          coding: [{ code: 'module-definition', system: 'http://terminology.hl7.org/CodeSystem/library-type' }]
-        },
-        status: 'draft',
-        dataRequirement: []
-      }
+    let calc: any;
+    beforeEach(() => {
+      // spy on calculation function
+      calc = jest.spyOn(Calculator, 'calculateDataRequirements').mockResolvedValue({
+        results: {
+          resourceType: 'Library',
+          type: {
+            coding: [{ code: 'module-definition', system: 'http://terminology.hl7.org/CodeSystem/library-type' }]
+          },
+          status: 'draft',
+          dataRequirement: []
+        }
+      });
     });
 
     it('returns 200 and a Library for a simple measure with dependencies and no period params', async () => {
