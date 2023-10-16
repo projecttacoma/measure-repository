@@ -145,7 +145,7 @@ export class LibraryService implements Service<fhir4.Library> {
 
     // if data requirements were already calculated for this Library and params, return them
     if (dataReqs) {
-      logger.info('Successfully retrieved $data-requirements report');
+      logger.info('Successfully retrieved $data-requirements report from cache.');
       return dataReqs;
     }
 

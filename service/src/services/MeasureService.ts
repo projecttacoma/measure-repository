@@ -1,5 +1,11 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { findDataRequirementsWithQuery, findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import {
+  createResource,
+  findDataRequirementsWithQuery,
+  findResourceById,
+  findResourcesWithQuery,
+  updateResource
+} from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -14,7 +20,6 @@ import {
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
-import { createResource, updateResource } from '../db/dbOperations';
 import { Filter } from 'mongodb';
 import { FhirLibraryWithDR } from '../types/service-types';
 
@@ -139,7 +144,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     // if data requirements were already calculated for this Measure and params, return them
     if (dataReqs) {
-      logger.info('Successfully retrieved $data-requirements report');
+      logger.info('Successfully retrieved $data-requirements report from cache.');
       return dataReqs;
     }
 
