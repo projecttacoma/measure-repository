@@ -9,7 +9,7 @@ const logger = loggers.get('default');
  */
 export async function findResourceById<T extends fhir4.FhirResource>(id: string, resourceType: FhirResourceType) {
   const collection = Connection.db.collection(resourceType);
-  return collection.findOne<T>({ id: id, _dataRequirements: { $exists: false } }, { projection: { _id: 0 } });
+  return collection.findOne<T>({ id: id }, { projection: { _id: 0, _dataRequirements: 0 } });
 }
 
 /**
