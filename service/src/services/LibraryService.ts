@@ -1,12 +1,12 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  createResource,
   findDataRequirementsWithQuery,
   findResourceById,
   findResourcesWithQuery,
   updateResource
 } from '../db/dbOperations';
 import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
-import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -22,7 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 import { Filter } from 'mongodb';
-import { FhirResourceWithDR } from '../types/service-types';
+import { FhirLibraryWithDR } from '../types/service-types';
 
 /*
  * Implementation of a service for the `Library` resource
@@ -158,7 +158,7 @@ export class LibraryService implements Service<fhir4.Library> {
     });
 
     dataRequirements.results['id'] = uuidv4();
-    const results = { ...dataRequirements.results } as FhirResourceWithDR;
+    const results = { ...dataRequirements.results } as FhirLibraryWithDR;
 
     // add the data requirements query params to the data requirements Library resource and add to the Library collection
     results['_dataRequirements'] = dataReqsQuery;

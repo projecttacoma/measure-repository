@@ -16,7 +16,7 @@ import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseReque
 import { v4 as uuidv4 } from 'uuid';
 import { createResource, updateResource } from '../db/dbOperations';
 import { Filter } from 'mongodb';
-import { FhirResourceWithDR } from '../types/service-types';
+import { FhirLibraryWithDR } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -157,7 +157,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     });
 
     dataRequirements.results['id'] = uuidv4();
-    const results = { ...dataRequirements.results } as FhirResourceWithDR;
+    const results = { ...dataRequirements.results } as FhirLibraryWithDR;
 
     results['_dataRequirements'] = dataReqsQuery;
 
