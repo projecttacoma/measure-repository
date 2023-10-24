@@ -1,7 +1,12 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery, updateResource } from '../db/dbOperations';
+import {
+  createResource,
+  findDataRequirementsWithQuery,
+  findResourceById,
+  findResourcesWithQuery,
+  updateResource
+} from '../db/dbOperations';
 import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
-import { createResource } from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -16,6 +21,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
+import { Filter } from 'mongodb';
+import { FhirLibraryWithDR } from '../types/service-types';
 
 /*
  * Implementation of a service for the `Library` resource
@@ -124,15 +131,40 @@ export class LibraryService implements Service<fhir4.Library> {
     const query = extractIdentificationForQuery(args, params);
     const parsedParams = parseRequestSchema({ ...params, ...query }, LibraryDataRequirementsArgs);
 
+    // check to see if data requirements were already calculated for this Library and params
+    const dataReqsQuery: Filter<any> = {};
+    Object.entries(parsedParams).forEach(p => {
+      if (p[0] === 'id') {
+        dataReqsQuery.resourceId = p[1] as string;
+      } else {
+        dataReqsQuery[p[0]] = p[1] as string;
+      }
+    });
+
+    const dataReqs = await findDataRequirementsWithQuery(dataReqsQuery);
+
+    // if data requirements were already calculated for this Library and params, return them
+    if (dataReqs) {
+      logger.info('Successfully retrieved $data-requirements report from cache.');
+      return dataReqs;
+    }
+
     logger.info(`${req.method} ${req.path}`);
 
     const { libraryBundle, rootLibRef } = await createLibraryPackageBundle(query, parsedParams);
 
-    const { results } = await Calculator.calculateLibraryDataRequirements(libraryBundle, {
+    const dataRequirements = await Calculator.calculateLibraryDataRequirements(libraryBundle, {
       ...(rootLibRef && { rootLibRef })
     });
 
+    dataRequirements.results['id'] = uuidv4();
+
+    // add the data requirements query params to the data requirements Library resource and add to the Library collection
+    const results = { ...dataRequirements.results } as FhirLibraryWithDR;
+    results['_dataRequirements'] = dataReqsQuery;
+    createResource(results, 'Library');
+
     logger.info('Successfully generated $data-requirements report');
-    return results;
+    return dataRequirements.results;
   }
 }

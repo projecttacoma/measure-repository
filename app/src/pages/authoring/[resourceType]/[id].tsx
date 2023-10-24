@@ -253,11 +253,7 @@ export default function ResourceAuthoringPage() {
               >
                 Update
               </Button>
-              <Button
-                w={120}
-                onClick={() => setIsModalOpen(true)}
-                //TODO/question: disabled={} any disable needed? any necessary fields?
-              >
+              <Button w={120} onClick={() => setIsModalOpen(true)}>
                 Release
               </Button>
             </Group>

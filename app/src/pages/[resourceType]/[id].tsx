@@ -14,7 +14,7 @@ import {
   TextInput
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
@@ -67,75 +67,22 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     window.addEventListener('resize', handleResize);
   }, []);
 
-  const { data: dataRequirements, isSuccess } = trpc.service.getDataRequirements.useQuery(
-    { resourceType: jsonData.resourceType, id: jsonData.id as string },
+  const { data: dataRequirements } = trpc.service.getDataRequirements.useQuery(
+    {
+      resourceType: jsonData.resourceType,
+      id: jsonData.id as string
+    },
     {
       enabled: true,
       retry: 0
     }
   );
 
-  //Sorts dependencies alphabetically based on their display property. If the
-  //dependency is a library/measure, however, it will always take precedence in sorting to ensure all
-  //dependencies with links are always shown first
-  const sortDependencies = useCallback(() => {
-    if (dataRequirements?.relatedArtifact) {
-      dataRequirements.relatedArtifact.sort((firstElement, secondElement) => {
-        const displayFirst = firstElement.display?.toUpperCase();
-        const displaySecond = secondElement.display?.toUpperCase();
-        const resourceFirst = firstElement.resource?.toUpperCase();
-        const resourceSecond = secondElement.resource?.toUpperCase();
-        if (displayFirst && displaySecond) {
-          if (
-            (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) &&
-            (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure'))
-          ) {
-            if (displayFirst < displaySecond) {
-              return -1;
-            }
-            if (displayFirst > displaySecond) {
-              return 1;
-            }
-          }
-          if (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) {
-            return 1;
-          } else if (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure')) {
-            return 1;
-          }
-          if (displayFirst < displaySecond) {
-            return -1;
-          }
-          if (displayFirst > displaySecond) {
-            return 1;
-          }
-          //If a related artifact doesn't have a display property it will instead sort by the resource
-        } else if (resourceFirst && resourceSecond) {
-          if (resourceFirst < resourceSecond) {
-            return -1;
-          }
-          if (resourceFirst > resourceSecond) {
-            return 1;
-          }
-        }
-        return 0;
-      });
-    }
-  }, [dataRequirements?.relatedArtifact]);
-
-  //This useEffect is intended to handle the rendering for specific situations having
-  //to do with the dependencies
   useEffect(() => {
-    setSearchValue('');
-    if (!isSuccess) {
-      setActiveTab('json');
-    } else {
-      if (dataRequirements.relatedArtifact) {
-        setSearchValue('');
-        sortDependencies();
-        setSortedDependencies(dataRequirements.relatedArtifact);
-      }
+    if (dataRequirements?.relatedArtifact) {
+      setSortedDependencies(sortDependencies(dataRequirements.relatedArtifact));
     }
-  }, [jsonData.id, isSuccess, dataRequirements?.relatedArtifact, sortDependencies]);
+  }, [dataRequirements]);
 
   const draftMutation = trpc.draft.createDraft.useMutation({
     onSuccess: data => {
@@ -159,12 +106,11 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
   });
 
   const createDraftOfArtifact = () => {
-    const draftOfArtifact = modifyResourceToDraft(jsonData);
+    const draftOfArtifact = modifyResourceToDraft({ ...jsonData });
     draftMutation.mutate({ resourceType, draft: draftOfArtifact });
   };
 
   const clickHandler = () => {
-    sortDependencies();
     const filteredDependencies = dataRequirements?.relatedArtifact?.filter(function (dependency) {
       return (
         dependency.display?.toUpperCase().includes(searchValue.toUpperCase()) ||
@@ -172,7 +118,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       );
     });
     if (filteredDependencies) {
-      setSortedDependencies(filteredDependencies);
+      setSortedDependencies(sortDependencies(filteredDependencies));
     }
   };
 
@@ -270,7 +216,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               </ScrollArea.Autosize>
             </Tabs.Panel>
           )}
-          {dataRequirements?.relatedArtifact && (
+          {sortedDependencies && (
             <Tabs.Panel value="dependencies">
               <Space h="md" />
               <Text c="dimmed">
@@ -314,6 +260,53 @@ function decode(link: string, jsonData: FhirArtifact) {
   if (jsonData.resourceType === 'Measure') return null;
   const encodedLanguage = (jsonData as fhir4.Library).content?.find(e => e.contentType === link)?.data;
   return encodedLanguage ? Buffer.from(encodedLanguage, 'base64').toString() : null;
+}
+
+/**
+ * Function that sorts dependencies alphabetically based on their display property. If the
+ * dependency is a library/measure, however, it will always take precedence in sorting to ensure all
+ * dependencies with links are always shown first
+ */
+function sortDependencies(relatedArtifacts: fhir4.RelatedArtifact[]) {
+  return [...relatedArtifacts].sort((firstElement, secondElement) => {
+    const displayFirst = firstElement.display?.toUpperCase();
+    const displaySecond = secondElement.display?.toUpperCase();
+    const resourceFirst = firstElement.resource?.toUpperCase();
+    const resourceSecond = secondElement.resource?.toUpperCase();
+    if (displayFirst && displaySecond) {
+      if (
+        (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) &&
+        (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure'))
+      ) {
+        if (displayFirst < displaySecond) {
+          return -1;
+        }
+        if (displayFirst > displaySecond) {
+          return 1;
+        }
+      }
+      if (firstElement.resource?.includes('Library') || firstElement.resource?.includes('Measure')) {
+        return 1;
+      } else if (secondElement.resource?.includes('Library') || secondElement.resource?.includes('Measure')) {
+        return 1;
+      }
+      if (displayFirst < displaySecond) {
+        return -1;
+      }
+      if (displayFirst > displaySecond) {
+        return 1;
+      }
+      //If a related artifact doesn't have a display property it will instead sort by the resource
+    } else if (resourceFirst && resourceSecond) {
+      if (resourceFirst < resourceSecond) {
+        return -1;
+      }
+      if (resourceFirst > resourceSecond) {
+        return 1;
+      }
+    }
+    return 0;
+  });
 }
 
 /**

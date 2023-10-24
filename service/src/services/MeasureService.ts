@@ -1,5 +1,11 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
-import { findResourceById, findResourcesWithQuery } from '../db/dbOperations';
+import {
+  createResource,
+  findDataRequirementsWithQuery,
+  findResourceById,
+  findResourcesWithQuery,
+  updateResource
+} from '../db/dbOperations';
 import { Service } from '../types/service';
 import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
@@ -14,7 +20,8 @@ import {
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
-import { createResource, updateResource } from '../db/dbOperations';
+import { Filter } from 'mongodb';
+import { FhirLibraryWithDR } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -121,8 +128,25 @@ export class MeasureService implements Service<fhir4.Measure> {
     const params = gatherParams(req.query, args.resource);
     validateParamIdSource(req.params.id, params.id);
     const query = extractIdentificationForQuery(args, params);
-
     const parsedParams = parseRequestSchema({ ...params, ...query }, MeasureDataRequirementsArgs);
+
+    // check to see if data requirements were already calculated for this Measure and params
+    const dataReqsQuery: Filter<any> = {};
+    Object.entries(parsedParams).forEach(p => {
+      if (p[0] === 'id') {
+        dataReqsQuery.resourceId = p[1] as string;
+      } else {
+        dataReqsQuery[p[0]] = p[1] as string;
+      }
+    });
+
+    const dataReqs = await findDataRequirementsWithQuery(dataReqsQuery);
+
+    // if data requirements were already calculated for this Measure and params, return them
+    if (dataReqs) {
+      logger.info('Successfully retrieved $data-requirements report from cache.');
+      return dataReqs;
+    }
 
     logger.info(`${req.method} ${req.path}`);
 
@@ -132,12 +156,19 @@ export class MeasureService implements Service<fhir4.Measure> {
     // periodStart and periodEnd should be optional. Right now, fqm-execution will default it to 2019.
     // This will be handled in a separate task
     // TODO: Update the fqm-execution dependency and delete this comment block once periodStart/End can safely be excluded
-    const { results } = await Calculator.calculateDataRequirements(measureBundle, {
+    const dataRequirements = await Calculator.calculateDataRequirements(measureBundle, {
       ...(parsedParams.periodStart && { measurementPeriodStart: parsedParams.periodStart }),
       ...(parsedParams.periodEnd && { measurementPeriodEnd: parsedParams.periodEnd })
     });
 
+    dataRequirements.results['id'] = uuidv4();
+
+    // add the data requirements query params to the data requirements Library resource and add to the Library collection
+    const results = { ...dataRequirements.results } as FhirLibraryWithDR;
+    results['_dataRequirements'] = dataReqsQuery;
+    createResource(results, 'Library');
+
     logger.info('Successfully generated $data-requirements report');
-    return results;
+    return dataRequirements.results;
   }
 }
