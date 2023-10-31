@@ -60,40 +60,37 @@ function Dependencies(props: myComponentProps) {
     dependencyInfo = { type: 'Measure', link: resourceArr[0] };
   }
 
-  return (
-    display &&
-    resourceLink && (
-      <>
-        <Center>
-          <Paper className={classes.card} shadow="sm" p="md">
-            <Grid align="center">
-              <Grid.Col span={10}>
-                <div>
-                  <Text size="lg" fw={700}>
-                    {display}
-                  </Text>
-                </div>
-                <div>
-                  <Text size="sm" fw={500}>
-                    {resourceLink}
-                  </Text>
-                </div>
-              </Grid.Col>
-              {dependencyInfo.type && (
-                <Link href={`/${dependencyInfo.link}`}>
-                  <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
-                    <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-                      {<SquareArrowRight size="24" />}
-                    </ActionIcon>
-                  </Tooltip>
-                </Link>
-              )}
-            </Grid>
-          </Paper>
-        </Center>
-      </>
-    )
-  );
+  return display && resourceLink ? (
+    <>
+      <Center>
+        <Paper className={classes.card} shadow="sm" p="md">
+          <Grid align="center">
+            <Grid.Col span={10}>
+              <div>
+                <Text size="lg" fw={700}>
+                  {display}
+                </Text>
+              </div>
+              <div>
+                <Text size="sm" fw={500}>
+                  {resourceLink}
+                </Text>
+              </div>
+            </Grid.Col>
+            {dependencyInfo.type && (
+              <Link href={`/${dependencyInfo.link}`}>
+                <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
+                  <ActionIcon radius="md" size="md" variant="subtle" color="gray">
+                    {<SquareArrowRight size="24" />}
+                  </ActionIcon>
+                </Tooltip>
+              </Link>
+            )}
+          </Grid>
+        </Paper>
+      </Center>
+    </>
+  ) : null;
 }
 
 export default Dependencies;
