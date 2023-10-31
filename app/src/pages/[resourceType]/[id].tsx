@@ -80,7 +80,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 
   useEffect(() => {
     if (dataRequirements?.relatedArtifact) {
-      setSortedDependencies(sortDependencies(dataRequirements.relatedArtifact.filter(r => r.resource)));
+      setSortedDependencies(sortDependencies(dataRequirements.relatedArtifact));
     }
   }, [dataRequirements]);
 
