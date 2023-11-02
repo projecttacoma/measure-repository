@@ -42,7 +42,7 @@ const useStyles = createStyles(theme => ({
 function Dependencies(props: myComponentProps) {
   const { classes } = useStyles();
   const display = props.relatedArtifact.display;
-  const resourceLink = props.relatedArtifact.resource;
+  const resourceLink = props.relatedArtifact.resource || props.relatedArtifact.url;
 
   let dependencyInfo: DependencyInformation = {};
 
@@ -50,7 +50,7 @@ function Dependencies(props: myComponentProps) {
   //Canonicals for FHIR resources should be formatted in such a way that this code will work
   //to get the proper url that routes the user to the new page.
   // However, they can technically be anything and so we should potentially add
-  //some logic that handles viewing resource details using the canoncical URL of the resource as
+  //some logic that handles viewing resource details using the canonical URL of the resource as
   //the identifying information
   if (resourceLink?.includes('Library')) {
     const resourceArr: string[] = resourceLink.substring(resourceLink.indexOf('Library')).split('|');
@@ -60,7 +60,7 @@ function Dependencies(props: myComponentProps) {
     dependencyInfo = { type: 'Measure', link: resourceArr[0] };
   }
 
-  return (
+  return resourceLink ? (
     <>
       <Center>
         <Paper className={classes.card} shadow="sm" p="md">
@@ -77,6 +77,7 @@ function Dependencies(props: myComponentProps) {
                 </Text>
               </div>
             </Grid.Col>
+            {/* TODO: we want to have the link refer to <resourceType>/<id>, so we need a way to find the id of the resource, and make that the link if it exists */}
             {dependencyInfo.type && (
               <Link href={`/${dependencyInfo.link}`}>
                 <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
@@ -90,7 +91,7 @@ function Dependencies(props: myComponentProps) {
         </Paper>
       </Center>
     </>
-  );
+  ) : null;
 }
 
 export default Dependencies;

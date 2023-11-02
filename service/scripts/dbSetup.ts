@@ -2,6 +2,7 @@ import { Connection } from '../src/db/Connection';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
+import { v4 as uuidv4 } from 'uuid';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -54,6 +55,9 @@ async function loadBundle(filePath: string) {
           (res?.resource?.resourceType === 'Library' || res?.resource?.resourceType === 'Measure')
         ) {
           try {
+            if (!res.resource.id) {
+              res.resource.id = uuidv4();
+            }
             const collection = Connection.db.collection<fhir4.FhirResource>(res.resource.resourceType);
             console.log(`Inserting ${res?.resource?.resourceType}/${res.resource.id} into database`);
             await collection.insertOne(res.resource);

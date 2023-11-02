@@ -25,7 +25,7 @@ import { useRouter } from 'next/router';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
 import DataReqs from '@/components/DataRequirements';
-import Dependency from '@/components/DependencyCards';
+import Dependencies from '@/components/DependencyCards';
 
 /**
  * Component which displays the JSON/ELM/CQL/narrative/Data Requirements content of an individual resource using
@@ -239,7 +239,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               <Space h="md" />
               <ScrollArea.Autosize mah={height * 0.8} type="hover">
                 {sortedDependencies.map(relatedArtifact => (
-                  <Dependency key={relatedArtifact.resource} relatedArtifact={relatedArtifact} />
+                  <Dependencies key={relatedArtifact.resource} relatedArtifact={relatedArtifact} />
                 ))}
               </ScrollArea.Autosize>
               <Space h="md" />
