@@ -42,7 +42,7 @@ const useStyles = createStyles(theme => ({
 function Dependencies(props: myComponentProps) {
   const { classes } = useStyles();
   const display = props.relatedArtifact.display;
-  const resourceLink = props.relatedArtifact.resource;
+  const resourceLink = props.relatedArtifact.resource || props.relatedArtifact.url;
 
   let dependencyInfo: DependencyInformation = {};
 
@@ -60,7 +60,7 @@ function Dependencies(props: myComponentProps) {
     dependencyInfo = { type: 'Measure', link: resourceArr[0] };
   }
 
-  return display && resourceLink ? (
+  return resourceLink ? (
     <>
       <Center>
         <Paper className={classes.card} shadow="sm" p="md">
@@ -77,6 +77,7 @@ function Dependencies(props: myComponentProps) {
                 </Text>
               </div>
             </Grid.Col>
+            {/* TODO: we want to have the link refer to <resourceType>/<id>, so we need a way to find the id of the resource, and make that the link if it exists */}
             {dependencyInfo.type && (
               <Link href={`/${dependencyInfo.link}`}>
                 <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
