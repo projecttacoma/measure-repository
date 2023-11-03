@@ -240,10 +240,10 @@ describe('LibraryService', () => {
     });
   });
 
-  describe('$package', () => {
+  describe('$cqfm.package', () => {
     it('returns a Bundle including the Library when the Library has no dependencies and id passed through args', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Library/testLibraryWithNoDeps/$package')
+        .get('/4_0_1/Library/testLibraryWithNoDeps/$cqfm.package')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
@@ -254,7 +254,7 @@ describe('LibraryService', () => {
 
     it('returns a Bundle including the Library when the Library has no dependencies and id passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithNoDeps' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
@@ -267,7 +267,7 @@ describe('LibraryService', () => {
 
     it('returns a Bundle including the Library and its dependent libraries when the Library has dependencies and id passed through args', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Library/testLibraryWithDeps/$package')
+        .get('/4_0_1/Library/testLibraryWithDeps/$cqfm.package')
         .expect(200)
         .expect(200)
         .then(response => {
@@ -285,7 +285,7 @@ describe('LibraryService', () => {
 
     it('returns a Bundle including the Library and its dependent libraries when the Library has dependencies and id passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
@@ -304,7 +304,7 @@ describe('LibraryService', () => {
 
     it('returns a Bundle including just the Library when the Library has no dependencies and identifier with just idenifier.value passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [{ name: 'identifier', valueString: 'libraryWithIdentifierValue' }]
@@ -320,7 +320,7 @@ describe('LibraryService', () => {
 
     it('returns a Bundle including just the Library when the Library has no dependencies and identifier with just identifier.system passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [{ name: 'identifier', valueString: 'http://example.com/libraryWithIdentifierSystem|' }]
@@ -336,7 +336,7 @@ describe('LibraryService', () => {
 
     it('returns a Bundle including just the Library when the Library has no dependencies and identifier with both identifier.system and identifier.value passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [
@@ -359,7 +359,7 @@ describe('LibraryService', () => {
 
     it('throws a 400 error when only an identifier system is included in the body but there are two libraries with that identifier.system', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [
@@ -374,14 +374,14 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Multiple resources found in collection: Library, with identifier: http://example.com/libraryWithSameSystem|. /Library/$package operation must specify a single Library'
+            'Multiple resources found in collection: Library, with identifier: http://example.com/libraryWithSameSystem|. /Library/$cqfm.package operation must specify a single Library'
           );
         });
     });
 
     it('throws a 400 error when no url or id included in request', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [] })
         .set('content-type', 'application/fhir+json')
         .expect(400)
@@ -395,7 +395,7 @@ describe('LibraryService', () => {
 
     it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/testLibraryWithDeps/$package')
+        .post('/4_0_1/Library/testLibraryWithDeps/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testLibraryWithDeps' }] })
         .set('content-type', 'application/fhir+json')
         .expect(400)
@@ -409,7 +409,7 @@ describe('LibraryService', () => {
 
     it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Library/testLibraryWithDeps/$package')
+        .get('/4_0_1/Library/testLibraryWithDeps/$cqfm.package')
         .query({ id: 'testLibraryWithDeps' })
         .set('content-type', 'application/fhir+json')
         .expect(400)
@@ -423,7 +423,7 @@ describe('LibraryService', () => {
 
     it('throws a 404 error when both the library id and url are specified but one of them is invalid', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [
@@ -443,7 +443,7 @@ describe('LibraryService', () => {
 
     it('throws a 404 error when no library matching id and url can be found', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Library/$package')
+        .post('/4_0_1/Library/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [

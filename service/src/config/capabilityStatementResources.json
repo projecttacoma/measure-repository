@@ -141,7 +141,7 @@
             }
           ],
           "name": "package",
-          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package"
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
         },
         {
           "extension": [
@@ -297,7 +297,7 @@
             }
           ],
           "name": "package",
-          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package"
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
         },
         {
           "extension": [

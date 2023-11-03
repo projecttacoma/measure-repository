@@ -47,7 +47,7 @@ export async function createMeasurePackageBundle(
     throw new BadRequestError(
       `Multiple resources found in collection: Measure, with ${Object.keys(query)
         .map(key => `${key}: ${query[key]}`)
-        .join(' and ')}. /Measure/$package operation must specify a single Measure`
+        .join(' and ')}. /Measure/$cqfm.package operation must specify a single Measure`
     );
   }
 
@@ -95,7 +95,7 @@ export async function createLibraryPackageBundle(
     throw new BadRequestError(
       `Multiple resources found in collection: Library, with ${Object.keys(query)
         .map(key => `${key}: ${query[key]}`)
-        .join(' and ')}. /Library/$package operation must specify a single Library`
+        .join(' and ')}. /Library/$cqfm.package operation must specify a single Library`
     );
   }
   const libraryForPackaging = library[0];
@@ -114,7 +114,7 @@ export async function createLibraryPackageBundle(
 }
 
 /**
- * Takes in the main library from either Measure/$package or Library/$package
+ * Takes in the main library from either Measure/$cqfm.package or Library/$cqfm.package
  * and returns a bundle of all the dependent libraries
  */
 export async function createDepLibraryBundle(

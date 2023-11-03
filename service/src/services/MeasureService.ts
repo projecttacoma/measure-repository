@@ -91,7 +91,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
   /**
    * result of sending a POST or GET request to:
-   * {BASE_URL}/4_0_1/Measure/$package or {BASE_URL}/4_0_1/Measure/:id/$package
+   * {BASE_URL}/4_0_1/Measure/$cqfm.package or {BASE_URL}/4_0_1/Measure/:id/$cqfm.package
    * creates a bundle of the measure (specified by parameters) and all dependent libraries
    * requires parameters id and/or url and/or identifier, but also supports version as supplemental (optional)
    */

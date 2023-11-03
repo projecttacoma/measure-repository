@@ -229,10 +229,10 @@ describe('MeasureService', () => {
     });
   });
 
-  describe('$package', () => {
+  describe('$cqfm.package', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through args', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLib/$package')
+        .get('/4_0_1/Measure/testWithRootLib/$cqfm.package')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
@@ -245,7 +245,7 @@ describe('MeasureService', () => {
 
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueUrl: 'testWithRootLib' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
@@ -260,7 +260,7 @@ describe('MeasureService', () => {
 
     it('returns a Bundle including the root lib, Measure and dependent libraries when root lib has dependencies and id passed through args', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLibAndDeps/$package')
+        .get('/4_0_1/Measure/testWithRootLibAndDeps/$cqfm.package')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
@@ -277,7 +277,7 @@ describe('MeasureService', () => {
 
     it('returns a Bundle including the root lib, Measure, and dependent libraries when root lib has dependencies and id passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLibAndDeps' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
@@ -296,7 +296,7 @@ describe('MeasureService', () => {
 
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and identifier with just identifier.value passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [{ name: 'identifier', valueString: 'measureWithIdentifierValueRootLib' }]
@@ -317,7 +317,7 @@ describe('MeasureService', () => {
 
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and identifier with just identifier.system passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [{ name: 'identifier', valueString: 'http://example.com/measureWithIdentifierSystemRootLib|' }]
@@ -338,7 +338,7 @@ describe('MeasureService', () => {
 
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and identifier with both identifier.system and identifier.value passed through body', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [
@@ -365,7 +365,7 @@ describe('MeasureService', () => {
 
     it('throws a 404 error when both the Measure id and url are specified but one of them is invalid', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [
@@ -385,7 +385,7 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when no url or id included in request', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [] })
         .set('content-type', 'application/fhir+json')
         .expect(400)
@@ -399,7 +399,7 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/testWithRootLib/$package')
+        .post('/4_0_1/Measure/testWithRootLib/$cqfm.package')
         .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
         .set('content-type', 'application/fhir+json')
         .expect(400)
@@ -413,7 +413,7 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLib/$package')
+        .get('/4_0_1/Measure/testWithRootLib/$cqfm.package')
         .query({ id: 'testWithRootLib' })
         .set('content-type', 'application/fhir+json')
         .expect(400)
@@ -427,7 +427,7 @@ describe('MeasureService', () => {
 
     it('throws a 404 error when no measure matching id and url can be found', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/$package')
+        .post('/4_0_1/Measure/$cqfm.package')
         .send({
           resourceType: 'Parameters',
           parameter: [

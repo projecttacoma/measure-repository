@@ -4,17 +4,21 @@ import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
 const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
 
-// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#package
+// Operation Definition: http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html
 const UNSUPPORTED_PACKAGE_ARGS = [
+  'canonicalVersion',
   'capability',
-  'check-system-version',
+  'checkCanonicalVersion',
+  // TODO: check whether it's supposed to be content or contact
+  'contactEndpoint',
+  'contentEndpoint',
   'count',
-  'force-system-version',
-  'include-components',
-  'include-dependencies',
+  'forceCanonicalVersion',
+  'include',
   'manifest',
   'offset',
-  'system-version'
+  'packageOnly',
+  'terminologyEndpoint'
 ];
 
 // Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#requirements
@@ -117,12 +121,15 @@ export const IdentifyingParameters = z
   .partial();
 
 export const PackageArgs = IdentifyingParameters.extend({
+  // TODO: add the other, now supported params here?
   capability: z.string(),
+  // TODO: do more thorough check to see if the version params still exist
   'check-system-version': z.string(),
   count: stringToNumber,
   'force-system-version': z.string(),
   'include-components': stringToBool,
   'include-dependencies': stringToBool,
+  // TODO: check whether this is still defined... we have support for it
   'include-terminology': stringToBool,
   manifest: z.string(),
   offset: stringToNumber,

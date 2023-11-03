@@ -40,27 +40,27 @@ export const serverConfig: ServerConfig = {
       operation: [
         {
           name: 'package',
-          route: '/$package',
+          route: '/$cqfm.package',
           method: 'GET',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'package',
-          route: '/$package',
+          route: '/$cqfm.package',
           method: 'POST',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'package',
-          route: '/:id/$package',
+          route: '/:id/$cqfm.package',
           method: 'GET',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'package',
-          route: '/:id/$package',
+          route: '/:id/$cqfm.package',
           method: 'POST',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'dataRequirements',
@@ -94,27 +94,27 @@ export const serverConfig: ServerConfig = {
       operation: [
         {
           name: 'package',
-          route: '/$package',
+          route: '/$cqfm.package',
           method: 'GET',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'package',
-          route: '/$package',
+          route: '/$cqfm.package',
           method: 'POST',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'package',
-          route: '/:id/$package',
+          route: '/:id/$cqfm.package',
           method: 'GET',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'package',
-          route: '/:id/$package',
+          route: '/:id/$cqfm.package',
           method: 'POST',
-          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package'
+          reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
           name: 'dataRequirements',

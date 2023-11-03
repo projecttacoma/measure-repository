@@ -87,12 +87,14 @@ The Measure Repository Service server supports `Library` and `Measure` resource 
 
 ### Package
 
-The Measure Repository Service server supports the `Library` and `Measure` `$package` operation with the `id` and `identifier` parameters and SHALL parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). Accepted parameters are:
+The Measure Repository Service server supports the `Library` and `Measure` `$cqfm-package` operation with the `id` and `identifier` parameters and SHALL parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). Accepted parameters are:
 
 - id
 - url
 - identifier
 - version
+
+See the [`$cqfm-package` OperationDefinition](http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html) for more information.
 
 ### Data Requirements
 
