@@ -9,8 +9,8 @@ const UNSUPPORTED_PACKAGE_ARGS = [
   'canonicalVersion',
   'capability',
   'checkCanonicalVersion',
-  // TODO: check whether it's supposed to be content or contact
-  'contactEndpoint',
+  // TODO: Both 'contentEndpoint' and 'contactEndpoint' are listed throughout the documentation.
+  // Default to 'contentEndpoint' for now since it is defined in the OperationDefinition.
   'contentEndpoint',
   'count',
   'forceCanonicalVersion',
@@ -121,18 +121,20 @@ export const IdentifyingParameters = z
   .partial();
 
 export const PackageArgs = IdentifyingParameters.extend({
-  // TODO: add the other, now supported params here?
+  canonicalVersion: z.string(),
   capability: z.string(),
-  // TODO: do more thorough check to see if the version params still exist
-  'check-system-version': z.string(),
+  contentEndpoint: z.string(),
+  checkCanonicalVersion: z.string(),
   count: stringToNumber,
-  'force-system-version': z.string(),
-  'include-components': stringToBool,
-  'include-dependencies': stringToBool,
-  // TODO: check whether this is still defined... we have support for it
+  forceCanonicalVersion: z.string(),
+  include: z.string(),
+  // The 'include-terminology' parameter is not defined in the OperationDefinition but we support it
+  // TODO: check if the 'include' param should encompass the 'include-terminology' functionality
   'include-terminology': stringToBool,
   manifest: z.string(),
   offset: stringToNumber,
+  packageOnly: stringToBool,
+  terminologyEndpoint: z.string(),
   'system-version': z.string()
 })
   .partial()
