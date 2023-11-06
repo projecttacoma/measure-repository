@@ -43,6 +43,35 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     }
   });
 
+  const releaseMutation = trpc.service.releaseArtifactById.useMutation({
+    onSuccess: data => {
+      if (!data.location) {
+        console.error('No resource location for released artifact');
+        notifications.show({
+          title: `Release Failed!`,
+          message: `No resource location exists for draft artifact`,
+          icon: <AlertCircle />,
+          color: 'red'
+        });
+      } else if (data.status !== 201) {
+        console.error(data.status);
+        notifications.show({
+          title: `Release Failed!`,
+          message: `Server unable to process request`,
+          icon: <AlertCircle />,
+          color: 'red'
+        });
+      } else {
+        router.push(data.location);
+        deleteMutation.mutate({
+          resourceType: resourceType,
+          id: id
+        });
+      }
+      onClose();
+    }
+  });
+
   async function confirm() {
     // requirements:
     // https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release
@@ -52,47 +81,11 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
       resource.date = DateTime.now().toISO() || '';
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json+fhir'
-      },
-      body: JSON.stringify(resource)
+    releaseMutation.mutate({
+      resourceType: resourceType,
+      id: id,
+      version: version
     });
-
-    // Conditionally remove the base version if one is present
-    let location = res.headers.get('Location');
-    if (location?.substring(0, 5) === '4_0_1') {
-      location = location?.substring(5); // remove 4_0_1 (version)
-    }
-
-    if (res.status !== 201) {
-      console.error(res.statusText);
-      notifications.show({
-        title: `Release Failed!`,
-        message: `Server unable to process request`,
-        icon: <AlertCircle />,
-        color: 'red'
-      });
-    } else if (!location) {
-      console.error('No resource location for released artifact');
-      notifications.show({
-        title: `Release Failed!`,
-        message: `No resource location exists for draft artifact`,
-        icon: <AlertCircle />,
-        color: 'red'
-      });
-    } else {
-      // delete draft
-      deleteMutation.mutate({
-        resourceType: resourceType,
-        id: id
-      });
-
-      // direct user to published artifact detail page
-      router.push(location);
-    }
-    onClose();
   }
 
   return (

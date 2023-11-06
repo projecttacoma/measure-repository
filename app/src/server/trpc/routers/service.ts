@@ -1,9 +1,10 @@
 import { publicProcedure, router } from '../trpc';
-import { createDraft } from '@/server/db/dbOperations';
+import { createDraft, getDraftById } from '@/server/db/dbOperations';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { DateTime } from 'luxon';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
@@ -70,5 +71,28 @@ export const serviceRouter = router({
 
       const res = await createDraft(input.resourceType, draftArtifact);
       return { draftId: draftArtifact.id, ...res };
+    }),
+
+  releaseArtifactById: publicProcedure
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string(), version: z.string() }))
+    .mutation(async ({ input }) => {
+      const draftRes = await getDraftById(input.id, input.resourceType);
+      if (draftRes) {
+        draftRes.version = input.version;
+        draftRes.status = 'active';
+        draftRes.date = DateTime.now().toISO() || '';
+      }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json+fhir'
+        },
+        body: JSON.stringify(draftRes)
+      });
+      let location = res.headers.get('Location');
+      if (location?.substring(0, 5) === '4_0_1') {
+        location = location?.substring(5); // remove 4_0_1 (version)
+      }
+      return { location: location, status: res.status };
     })
 });
