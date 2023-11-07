@@ -39,25 +39,25 @@ export const serverConfig: ServerConfig = {
       versions: [constants.VERSIONS['4_0_1']],
       operation: [
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/$cqfm.package',
           method: 'GET',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/$cqfm.package',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/:id/$cqfm.package',
           method: 'GET',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/:id/$cqfm.package',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
@@ -93,25 +93,25 @@ export const serverConfig: ServerConfig = {
       versions: [constants.VERSIONS['4_0_1']],
       operation: [
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/$cqfm.package',
           method: 'GET',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/$cqfm.package',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/:id/$cqfm.package',
           method: 'GET',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
         },
         {
-          name: 'cqfm.package',
+          name: 'package',
           route: '/:id/$cqfm.package',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package'
