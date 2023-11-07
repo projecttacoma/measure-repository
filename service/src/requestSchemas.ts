@@ -121,6 +121,9 @@ export const IdentifyingParameters = z
   .partial();
 
 export const PackageArgs = IdentifyingParameters.extend({
+  // TODO: The canonical version parameters are generalizations of the system version parameters.
+  // Check that the canonical version params are preferred and that the system version params
+  // are no longer supported by the measure repository service
   canonicalVersion: z.string(),
   capability: z.string(),
   contentEndpoint: z.string(),

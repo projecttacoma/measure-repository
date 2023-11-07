@@ -140,7 +140,7 @@
               "valueCode": "SHALL"
             }
           ],
-          "name": "package",
+          "name": "cqfm-package",
           "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
         },
         {
