@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import { useRouter } from 'next/router';
 import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
+import { release } from 'os';
 
 export interface ReleaseModalProps {
   open: boolean;
@@ -43,9 +44,9 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     }
   });
 
-  const releaseMutation = trpc.service.releaseArtifactById.useMutation({
+  const releaseMutation = trpc.service.releaseChildren.useMutation({
     onSuccess: data => {
-      if (!data.location) {
+      if (!data[0].location) {
         console.error('No resource location for released artifact');
         notifications.show({
           title: `Release Failed!`,
@@ -53,8 +54,8 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           icon: <AlertCircle />,
           color: 'red'
         });
-      } else if (data.status !== 201) {
-        console.error(data.status);
+      } else if (data[0].res.status !== 201) {
+        console.error(data[0].res.status);
         notifications.show({
           title: `Release Failed!`,
           message: `Server unable to process request`,
@@ -62,7 +63,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           color: 'red'
         });
       } else {
-        router.push(data.location);
+        router.push(data[0].location);
         deleteMutation.mutate({
           resourceType: resourceType,
           id: id
