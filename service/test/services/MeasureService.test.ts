@@ -248,6 +248,42 @@ describe('MeasureService', () => {
         });
     });
 
+    it('returns 200 status with populated location for a Measure that contains a version of 1.1.0 when provided correct headers and a FHIR Measure with a version of 1.1', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/exampleId')
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active', version: '1.1' })
+        .set('content-type', 'application/json+fhir')
+        .expect(200)
+        .then(async response => {
+          const location = response.headers.location as string;
+          await supertest(server.app)
+            .get(`/${location}`)
+            .set('Accept', 'application/json+fhir')
+            .expect(200)
+            .then(response => {
+              expect(response.body.version).toEqual('1.1.0');
+            });
+        });
+    });
+
+    it('returns 201 status with populated location for a Measure that contains a version of 1.1.1 when provided correct headers and a FHIR Measure with a version of 1.1.001', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/newId2')
+        .send({ resourceType: 'Measure', id: 'newId2', status: 'draft', version: '1.1.001' })
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(async response => {
+          const location = response.headers.location as string;
+          await supertest(server.app)
+            .get(`/${location}`)
+            .set('Accept', 'application/json+fhir')
+            .expect(200)
+            .then(response => {
+              expect(response.body.version).toEqual('1.1.1');
+            });
+        });
+    });
+
     it('returns 400 when the argument id does not match the id in the body', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/invalidId')
