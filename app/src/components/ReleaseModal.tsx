@@ -1,9 +1,8 @@
 import { trpc } from '@/util/trpc';
 import { ArtifactResourceType } from '@/util/types/fhir';
-import { Button, Center, Group, Modal, Stack, TextInput, Text, Tooltip } from '@mantine/core';
+import { Button, Center, Group, Modal, Stack, Text, Tooltip } from '@mantine/core';
 import { DateTime } from 'luxon';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
 
@@ -16,7 +15,6 @@ export interface ReleaseModalProps {
 
 export default function ReleaseModal({ open = true, onClose, id, resourceType }: ReleaseModalProps) {
   const router = useRouter();
-  const [version, setVersion] = useState('');
 
   const { data: resource } = trpc.draft.getDraftById.useQuery({
     id: id,
@@ -50,7 +48,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     // https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release
     // TODO: release recursively all children (ignore for now).
     if (resource) {
-      resource.version = version;
       resource.status = 'active';
       resource.date = DateTime.now().toISO() || '';
     }
@@ -106,7 +103,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
             Release {resourceType}/{id}?
             <Tooltip
               multiline
-              label="Releasing a draft artifact changes the artifact's status from 'draft' to 'active', adds the user-specified version to the artifact, and sends the artifact to the Publishable Measure Repository. This action also deletes this draft artifact from the Authoring Measure Repository."
+              label="Releasing a draft artifact changes the artifact's status from 'draft' to 'active' and sends the artifact to the Publishable Measure Repository. This action also deletes this draft artifact from the Authoring Measure Repository."
             >
               <div>
                 <InfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
@@ -117,18 +114,9 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         <Text size="xs" fw={700}>
           NOTE: By releasing this artifact to the Publishable Measure Repository, this draft instance will be removed.
         </Text>
-        <TextInput
-          label="Add version"
-          value={version}
-          onChange={e => setVersion(e.target.value)}
-          withAsterisk
-          description="An artifact must have a version before it can be released to the Publishable Measure Repository"
-        />
         <Center>
           <Group pt={8} position="right">
-            <Button onClick={confirm} disabled={!version}>
-              Release
-            </Button>
+            <Button onClick={confirm}>Release</Button>
             <Button variant="default" onClick={onClose}>
               Cancel
             </Button>
