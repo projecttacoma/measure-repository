@@ -8,6 +8,5 @@ import { v4 as uuidv4 } from 'uuid';
 export function modifyResourceToDraft(artifact: FhirArtifact) {
   artifact.id = uuidv4();
   artifact.status = 'draft';
-  delete artifact.version;
   return { id: artifact.id, ...artifact };
 }

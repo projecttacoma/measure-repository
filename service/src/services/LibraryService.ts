@@ -8,7 +8,7 @@ import {
 } from '../db/dbOperations';
 import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { Service } from '../types/service';
-import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
+import { createLibraryPackageBundle, createSearchsetBundle, handleVersionFormat } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import {
@@ -58,7 +58,8 @@ export class LibraryService implements Service<fhir4.Library> {
 
   /**
    * result of sending a POST request to {BASE_URL}/4_0_1/Library
-   * creates a new Library resource, generates an id for it, and adds it to the database
+   * creates a new Library resource, generates an id for it, adds a semantic version,
+   * and adds it to the database
    */
   async create(_: RequestArgs, { req }: RequestCtx) {
     logger.info(`POST /Library`);
@@ -67,13 +68,19 @@ export class LibraryService implements Service<fhir4.Library> {
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Library');
     resource['id'] = uuidv4();
+    if (resource['version']) {
+      resource['version'] = handleVersionFormat(resource['version']);
+    } else {
+      resource['version'] = '0.0.1';
+    }
     return createResource(resource, 'Library');
   }
 
   /**
    * result of sending a PUT request to {BASE_URL}/4_0_1/Library/{id}
-   * updates the library with the passed in id using the passed in data
-   * or creates a library with passed in id if it does not exist in the database
+   * updates the library with the passed in id using the passed in data with a semantic version
+   * or creates a library with passed in id and semantic version if it
+   * does not exist in the database
    */
   async update(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`PUT /Library/${args.id}`);
@@ -84,6 +91,11 @@ export class LibraryService implements Service<fhir4.Library> {
     // Throw error if the id arg in the url does not match the id in the request body
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
+    }
+    if (resource['version']) {
+      resource['version'] = handleVersionFormat(resource['version']);
+    } else {
+      resource['version'] = '0.0.1';
     }
     return updateResource(args.id, resource, 'Library');
   }
