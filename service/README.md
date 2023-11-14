@@ -73,10 +73,6 @@ This server currently supports the following CRUD operations:
 - Update resource (Library or Measure) with `PUT` to endpoint: `4_0_1/<resourceType>/<resourceId>`
   _More functionality coming soon!_
 
-### Artifact Versioning
-
-This server currently only supports Artifacts whose versions follow [semantic versioning](https://semver.org) (this is a SHOULD in the current [Measure Repository Service Specification](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#artifact-versioning)). Artifacts whose version is either of a format that can be coerced to semantic versioning or is of a x.x.xxx format can be uploaded to the server, but their versions will be modified to follow semantic versioning if necessary.
-
 ### Search
 
 The Measure Repository Service server supports `Library` and `Measure` resource search by the parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#shareable-measure-repository). These parameters are:
