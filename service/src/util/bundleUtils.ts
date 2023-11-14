@@ -8,7 +8,6 @@ import { PackageArgs } from '../requestSchemas';
 import fs from 'fs';
 import { getMongoQueryFromRequest } from './queryUtils';
 import { z } from 'zod';
-import { coerce } from 'semver';
 
 const logger = loggers.get('default');
 
@@ -284,44 +283,4 @@ export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir
   results.push(...allDeps.flat());
 
   return results;
-}
-
-/**
- * Convert an Artifact version of format x.x.xxx to Semantic versioning (x.x.x)
- */
-function convertToSemantic(version: string): string {
-  const versionParts = version.split('.');
-
-  // throw an error if the version is not in x.x.xxx format
-  if (versionParts.length !== 3) {
-    throw new Error('Invalid version format for this server. Semantic versioning and x.x.xxx format only.');
-  }
-
-  const major = parseInt(versionParts[0], 10);
-  const minor = parseInt(versionParts[1], 10);
-  const patch = parseInt(versionParts[2], 10);
-
-  // throw an error if any of the version parts are NaN
-  if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
-    throw new Error('Invalid version format for this server. Semantic versioning and x.x.xxx format only.');
-  }
-
-  return `${major}.${minor}.${patch}`;
-}
-
-/**
- * Takes in an Artifact version and converts it to Semantic versioning (x.x.x) format
- * if it is not in it already and errors out if it cannot be converted
- */
-export function handleVersionFormat(version: string): string {
-  const coerced = coerce(version);
-  let finalVersion = '';
-
-  if (coerced !== null) {
-    finalVersion = coerced.raw;
-  } else {
-    finalVersion = convertToSemantic(version);
-  }
-
-  return finalVersion;
 }
