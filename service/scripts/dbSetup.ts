@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import { handleVersionFormat } from '../src/util/bundleUtils';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -58,11 +57,6 @@ async function loadBundle(filePath: string) {
           try {
             if (!res.resource.id) {
               res.resource.id = uuidv4();
-            }
-            if (res.resource.version) {
-              res.resource.version = handleVersionFormat(res.resource.version);
-            } else {
-              res.resource.version = '0.0.1';
             }
             const collection = Connection.db.collection<fhir4.FhirResource>(res.resource.resourceType);
             console.log(`Inserting ${res?.resource?.resourceType}/${res.resource.id} into database`);

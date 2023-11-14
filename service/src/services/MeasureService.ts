@@ -7,7 +7,7 @@ import {
   updateResource
 } from '../db/dbOperations';
 import { Service } from '../types/service';
-import { createMeasurePackageBundle, createSearchsetBundle, handleVersionFormat } from '../util/bundleUtils';
+import { createMeasurePackageBundle, createSearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import {
@@ -59,8 +59,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
   /**
    * result of sending a POST request to {BASE_URL}/4_0_1/Measure
-   * creates a new Measure resource, generates an id for it, adds a semantic version,
-   * and adds it to the database
+   * creates a new Measure resource, generates an id for it, and adds it to the database
    */
   async create(_: RequestArgs, { req }: RequestCtx) {
     logger.info('POST /Measure');
@@ -69,19 +68,13 @@ export class MeasureService implements Service<fhir4.Measure> {
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Measure');
     resource['id'] = uuidv4();
-    if (resource['version']) {
-      resource['version'] = handleVersionFormat(resource['version']);
-    } else {
-      resource['version'] = '0.0.1';
-    }
     return createResource(resource, 'Measure');
   }
 
   /**
    * result of sending a PUT request to {BASE_URL}/4_0_1/Measure/{id}
-   * updates the measure with the passed in id using the passed in data with a semantic version
-   * or creates a measure with passed in id  and semantic version if it
-   * does not exist in the database
+   * updates the measure with the passed in id using the passed in data
+   * or creates a measure with passed in id if it does not exist in the database
    */
   async update(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`PUT /Measure/${args.id}`);
@@ -92,11 +85,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     // Throw error if the id arg in the url does not match the id in the request body
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
-    }
-    if (resource['version']) {
-      resource['version'] = handleVersionFormat(resource['version']);
-    } else {
-      resource['version'] = '0.0.1';
     }
     return updateResource(args.id, resource, 'Measure');
   }

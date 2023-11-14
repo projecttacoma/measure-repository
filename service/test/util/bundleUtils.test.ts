@@ -5,8 +5,7 @@ import {
   createMeasurePackageBundle,
   getAllDependentLibraries,
   getDependentValueSets,
-  getQueryFromReference,
-  handleVersionFormat
+  getQueryFromReference
 } from '../../src/util/bundleUtils';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 
@@ -312,27 +311,6 @@ describe('bundleUtils', () => {
 
       expect(vs).toHaveLength(2);
       expect(vs).toEqual(expect.arrayContaining([MOCK_VS_1, MOCK_VS_2]));
-    });
-  });
-
-  describe('handleVersionFormat', () => {
-    it('should return 1.0.1 when the input is 1.0.1 (already in semantic versioning format)', () => {
-      const version = handleVersionFormat('1.0.1');
-      expect(version).toEqual('1.0.1');
-    });
-
-    it('should return 1.0.1 when the input is 1.0.001 (in x.x.xxx format)', () => {
-      const version = handleVersionFormat('1.0.001');
-      expect(version).toEqual('1.0.1');
-    });
-
-    it('should return 1.1.0 when the input is 1.1 (can be coerced)', () => {
-      const version = handleVersionFormat('1.1');
-      expect(version).toEqual('1.1.0');
-    });
-
-    it('should error out when the input cannot be coerced nor is it in x.x.xxx format', () => {
-      expect(() => handleVersionFormat('a.b.c')).toThrowError();
     });
   });
 

@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { createResource, updateResource } from '../db/dbOperations';
 import path from 'path';
 import { DetailedEntry, replaceReferences } from '../util/baseUtils';
-import { handleVersionFormat } from '../util/bundleUtils';
 
 const logger = loggers.get('default');
 
@@ -64,11 +63,6 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
  */
 async function insertBundleResources(entry: DetailedEntry) {
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
-    if (entry.resource.version) {
-      entry.resource.version = handleVersionFormat(entry.resource.version);
-    } else {
-      entry.resource.version = '0.0.1';
-    }
     if (entry.isPost) {
       entry.resource.id = uuidv4();
       const { id } = await createResource(entry.resource, entry.resource.resourceType);
