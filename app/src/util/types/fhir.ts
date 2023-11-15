@@ -20,6 +20,6 @@ export interface ResourceInfo {
   identifier: string | null;
   name: string | null;
   url: string | null;
-  version: string | null;
+  version: string;
   status: string | null;
 }
