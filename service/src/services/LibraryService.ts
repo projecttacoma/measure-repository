@@ -90,7 +90,7 @@ export class LibraryService implements Service<fhir4.Library> {
 
   /**
    * result of sending a POST or GET request to:
-   * {BASE_URL}/4_0_1/Library/$package or {BASE_URL}/4_0_1/Library/:id/$package
+   * {BASE_URL}/4_0_1/Library/$cqfm.package or {BASE_URL}/4_0_1/Library/:id/$cqfm.package
    * creates a bundle of the library (specified by parameters) and all dependent libraries
    * requires parameters id, url, and/or identifier, but also supports version as supplemental (optional)
    */

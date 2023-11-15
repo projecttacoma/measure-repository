@@ -11,7 +11,7 @@ export function gatherParams(query: RequestQuery, parameters?: fhir4.Parameters)
   if (parameters?.parameter) {
     parameters.parameter.reduce((params, bodyParam) => {
       if (!bodyParam.resource) {
-        // Currently value types needed by $package (add others as needed)
+        // Currently value types needed by $cqfm.package (add others as needed)
         params[bodyParam.name as string] =
           bodyParam.valueUrl ||
           bodyParam.valueString ||

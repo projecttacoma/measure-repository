@@ -4,17 +4,21 @@ import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
 const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
 
-// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#package
+// Operation Definition: http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html
 const UNSUPPORTED_PACKAGE_ARGS = [
+  'canonicalVersion',
   'capability',
-  'check-system-version',
+  'checkCanonicalVersion',
+  // TODO: Both 'contentEndpoint' and 'contactEndpoint' are listed throughout the documentation.
+  // Default to 'contentEndpoint' for now since it is defined in the OperationDefinition.
+  'contentEndpoint',
   'count',
-  'force-system-version',
-  'include-components',
-  'include-dependencies',
+  'forceCanonicalVersion',
+  'include',
   'manifest',
   'offset',
-  'system-version'
+  'packageOnly',
+  'terminologyEndpoint'
 ];
 
 // Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#requirements
@@ -117,15 +121,23 @@ export const IdentifyingParameters = z
   .partial();
 
 export const PackageArgs = IdentifyingParameters.extend({
+  // TODO: The canonical version parameters are generalizations of the system version parameters.
+  // Check that the canonical version params are preferred and that the system version params
+  // are no longer supported by the measure repository service
+  canonicalVersion: z.string(),
   capability: z.string(),
-  'check-system-version': z.string(),
+  contentEndpoint: z.string(),
+  checkCanonicalVersion: z.string(),
   count: stringToNumber,
-  'force-system-version': z.string(),
-  'include-components': stringToBool,
-  'include-dependencies': stringToBool,
+  forceCanonicalVersion: z.string(),
+  include: z.string(),
+  // The 'include-terminology' parameter is not defined in the OperationDefinition but we support it
+  // TODO: check if the 'include' param should encompass the 'include-terminology' functionality
   'include-terminology': stringToBool,
   manifest: z.string(),
   offset: stringToNumber,
+  packageOnly: stringToBool,
+  terminologyEndpoint: z.string(),
   'system-version': z.string()
 })
   .partial()

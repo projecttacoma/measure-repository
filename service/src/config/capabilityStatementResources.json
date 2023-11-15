@@ -140,8 +140,8 @@
               "valueCode": "SHALL"
             }
           ],
-          "name": "package",
-          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-package"
+          "name": "cqfm-package",
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
         },
         {
           "extension": [
@@ -296,8 +296,8 @@
               "valueCode": "SHALL"
             }
           ],
-          "name": "package",
-          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-package"
+          "name": "cqfm-package",
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
         },
         {
           "extension": [
