@@ -12,13 +12,11 @@ export function modifyResourceToDraft(artifact: FhirArtifact) {
   artifact.status = 'draft';
   // we can only increment artifacts whose versions are either semantic, can be coerced
   // to semantic, or are in x.x.xxx format. Every other kind of version will become 0.0.1
-  // TODO: right now we have FhirArtifact set to fhir4.Measure | fhir4.Library, those
-  // resources are defined with a version property whose cardinality is 0..1. The
-  // CQFMMeasure and CQFMLibrary resources have a version whose cardinality is 1..1.
-  // Do we want to change/modify this typing?
   if (artifact.version) {
-    if (coerce(artifact.version) !== null) {
-      artifact.version = inc(artifact.version, 'patch') ?? '';
+    const coerced = coerce(artifact.version);
+    const incVersion = coerced !== null ? inc(coerced, 'patch') : null;
+    if (incVersion !== null) {
+      artifact.version = incVersion;
       // if we can't coerce the version to semver, then check that it is x.x.xxx
       // format and increment manually
     } else if (checkVersionFormat(artifact.version)) {
