@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Helper function that takes an artifact and returns it with a new id,
- * draft status, and no version
+ * draft status, and increments the version if it has one or sets it to
+ * 0.0.1 if it does not
  */
 export function modifyResourceToDraft(artifact: FhirArtifact) {
   artifact.id = uuidv4();
@@ -17,11 +18,13 @@ export function modifyResourceToDraft(artifact: FhirArtifact) {
   // Do we want to change/modify this typing?
   if (artifact.version) {
     if (coerce(artifact.version) !== null) {
-      console.log('hi', artifact.version);
       artifact.version = inc(artifact.version, 'patch') ?? '';
+      // if we can't coerce the version to semver, then check that it is x.x.xxx
+      // format and increment manually
     } else if (checkVersionFormat(artifact.version)) {
       artifact.version = incrementArtifactVersion(artifact.version);
     } else {
+      // if it cannot be coerced and is not x.x.xxx format, then set to 0.0.1
       artifact.version = '0.0.1';
     }
   }
