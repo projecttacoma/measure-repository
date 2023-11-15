@@ -6,7 +6,7 @@ interface SidebarButtonListProps {
   routePrefix?: string;
 }
 
-function SidebarButtonList({ buttonData, routePrefix = '/' }: SidebarButtonListProps) {
+function SidebarButtonList({ buttonData, routePrefix = '' }: SidebarButtonListProps) {
   return (
     <>
       {Object.keys(buttonData).map(k => (
