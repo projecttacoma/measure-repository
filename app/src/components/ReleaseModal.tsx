@@ -1,11 +1,9 @@
 import { trpc } from '@/util/trpc';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import { Button, Center, Group, Modal, Stack, Text, Tooltip } from '@mantine/core';
-import { DateTime } from 'luxon';
 import { useRouter } from 'next/router';
 import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
 import { notifications } from '@mantine/notifications';
-import { release } from 'os';
 
 export interface ReleaseModalProps {
   open: boolean;
@@ -44,9 +42,9 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     }
   });
 
-  const releaseMutation = trpc.service.releaseChildren.useMutation({
+  const releaseMutation = trpc.service.releaseArtifactByUrl.useMutation({
     onSuccess: data => {
-      if (!data[0].location) {
+      if (!data.location) {
         console.error('No resource location for released artifact');
         notifications.show({
           title: `Release Failed!`,
@@ -54,8 +52,8 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           icon: <AlertCircle />,
           color: 'red'
         });
-      } else if (data[0].res.status !== 201) {
-        console.error(data[0].res.status);
+      } else if (data.status !== 201) {
+        console.error(data.status);
         notifications.show({
           title: `Release Failed!`,
           message: `Server unable to process request`,
@@ -63,7 +61,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           color: 'red'
         });
       } else {
-        router.push(data[0].location);
+        router.push(data.location);
         deleteMutation.mutate({
           resourceType: resourceType,
           id: id
@@ -78,15 +76,12 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     // https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release
     // TODO: release recursively all children (ignore for now).
     if (resource) {
-      resource.status = 'active';
-      resource.date = DateTime.now().toISO() || '';
+      releaseMutation.mutate({
+        resourceType: resourceType,
+        id: id,
+        version: resource.version
+      });
     }
-
-    releaseMutation.mutate({
-      resourceType: resourceType,
-      id: id,
-      version: version
-    });
   }
 
   return (

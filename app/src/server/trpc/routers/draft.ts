@@ -6,7 +6,8 @@ import {
   getDraftById,
   getDraftCount,
   updateDraft,
-  deleteDraft
+  deleteDraft,
+  getDraftByUrl
 } from '../../db/dbOperations';
 import { publicProcedure, router } from '../trpc';
 
@@ -31,6 +32,20 @@ export const draftRouter = router({
     .query(async ({ input }) =>
       input.id && input.resourceType ? getDraftById<FhirArtifact>(input.id, input.resourceType) : null
     ),
+
+  getDraftByUrl: publicProcedure
+    .input(
+      z.object({
+        url: z.string().optional(),
+        version: z.string().optional(),
+        resourceType: z.enum(['Measure', 'Library']).optional()
+      })
+    )
+    .query(async ({ input }) => {
+      input.url && input.resourceType && input.version
+        ? getDraftByUrl<FhirArtifact>(input.url, input.version, input.resourceType)
+        : null;
+    }),
 
   createDraft: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), draft: z.any() }))

@@ -1,49 +1,25 @@
 import { publicProcedure, router } from '../trpc';
-import { createDraft, getDraftById } from '@/server/db/dbOperations';
+import { createDraft, getDraftById, getDraftByUrl } from '@/server/db/dbOperations';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
-import { FhirArtifact } from '@/util/types/fhir';
+import { ArtifactResourceType, FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
 
+export interface ReleaseArtifactInfo extends ArtifactInfo {
+  res: Response;
+  location: string | null;
+}
+
 export type ArtifactInfo = {
   resourceType: 'Measure' | 'Library';
   id: string;
-  res: Response;
-  location: string | null;
 };
 
-async function releaseChildren(
-  resourceType: 'Measure' | 'Library',
-  id: string,
-  version: string,
-  artifacts: ArtifactInfo[]
-) {
-  console.log('HELLO', id);
-  const draftRes = await getDraftById(id, resourceType);
-  if (draftRes) {
-    draftRes.version = version;
-    draftRes.status = 'active';
-    draftRes.date = DateTime.now().toISO() || '';
-  }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json+fhir'
-    },
-    body: JSON.stringify(draftRes)
-  });
+async function draftChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
+  let result: ArtifactInfo[] = [];
 
-  let location = res.headers.get('Location');
-  if (location?.substring(0, 5) === '4_0_1') {
-    location = location?.substring(5); // remove 4_0_1 (version)
-  }
-
-  artifacts.push({ resourceType: resourceType, id: id, res: res, location: location });
-
-  console.log('draftRes', draftRes);
-
-  draftRes?.relatedArtifact?.forEach(ra => {
+  for (const ra of relatedArtifacts) {
     if (
       ra.type === 'composed-of' &&
       ra.resource &&
@@ -51,12 +27,95 @@ async function releaseChildren(
         e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
       )
     ) {
-      const url = ra.resource?.split('|')[0];
-      const id = url.split('Library/')[1];
-      console.log('hello', url, id);
-      releaseChildren('Library', id, version, artifacts);
+      let raType: ArtifactResourceType;
+      if (ra.resource?.includes('Measure')) {
+        raType = 'Measure';
+      } else {
+        raType = 'Library';
+      }
+
+      const [url, version] = ra.resource.split('|');
+
+      // fetch the artifact by URL and version
+      const artifactBundle = await fetch(
+        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${raType}?` + new URLSearchParams({ url: url, version: version })
+      ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
+
+      const draftRes = artifactBundle.entry?.[0].resource;
+
+      // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
+      const draftArtifact = modifyResourceToDraft(draftRes as FhirArtifact);
+
+      // create a draft of the modified relatedArtifact
+      await createDraft(raType, draftArtifact);
+
+      result.push({ resourceType: raType, id: draftArtifact.id });
+
+      if (draftArtifact.relatedArtifact) {
+        const nested = await draftChildren(draftArtifact.relatedArtifact);
+        result = result.concat(nested);
+      }
     }
-  });
+  }
+  return result;
+}
+
+async function releaseChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
+  let result: ReleaseArtifactInfo[] = [];
+
+  for (const ra of relatedArtifacts) {
+    if (
+      ra.type === 'composed-of' &&
+      ra.resource &&
+      ra.extension?.some(
+        e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+      )
+    ) {
+      let raType: ArtifactResourceType;
+      if (ra.resource?.includes('Measure')) {
+        raType = 'Measure';
+      } else {
+        raType = 'Library';
+      }
+
+      const [url, version] = ra.resource.split('|');
+
+      // get the draft by its URL and version
+      const draftRes = await getDraftByUrl(url, version, raType);
+
+      // modify the draft to be active, etc.
+      if (draftRes) {
+        draftRes.version = version;
+        draftRes.status = 'active';
+        draftRes.date = DateTime.now().toISO() || '';
+      }
+
+      // send to server
+      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${raType}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json+fhir'
+        },
+        body: JSON.stringify(draftRes)
+      });
+
+      let location = res.headers.get('Location');
+      if (location?.substring(0, 5) === '4_0_1') {
+        location = location?.substring(5); // remove 4_0_1 (version)
+      }
+
+      // add response to array
+      result.push({ resourceType: raType, id: url, res: res, location: location });
+
+      // call releaseChildren
+      if (draftRes?.relatedArtifact) {
+        const nested = await releaseChildren(draftRes.relatedArtifact);
+        result = result.concat(nested);
+      }
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -120,13 +179,17 @@ export const serviceRouter = router({
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {
       const draftRes = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
-      const draftArtifact = modifyResourceToDraft((await draftRes.json()) as FhirArtifact);
+      const draftJson = (await draftRes.json()) as FhirArtifact;
 
+      const children = draftJson.relatedArtifact ? await draftChildren(draftJson.relatedArtifact) : [];
+
+      const draftArtifact = modifyResourceToDraft({ ...draftJson });
       const res = await createDraft(input.resourceType, draftArtifact);
-      return { draftId: draftArtifact.id, ...res };
+
+      return { draftId: draftArtifact.id, children: children, ...res };
     }),
 
-  releaseArtifactById: publicProcedure
+  releaseArtifactByUrl: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string(), version: z.string() }))
     .mutation(async ({ input }) => {
       const draftRes = await getDraftById(input.id, input.resourceType);
@@ -146,16 +209,9 @@ export const serviceRouter = router({
       if (location?.substring(0, 5) === '4_0_1') {
         location = location?.substring(5); // remove 4_0_1 (version)
       }
-      return { location: location, status: res.status };
-    }),
 
-  releaseChildren: publicProcedure
-    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string(), version: z.string() }))
-    .mutation(async ({ input }) => {
-      const artifacts: ArtifactInfo[] = [];
-      await releaseChildren(input.resourceType, input.id, input.version, artifacts);
-      console.log('ARTIFACTS', artifacts);
+      const children = draftRes?.relatedArtifact ? await releaseChildren(draftRes.relatedArtifact) : [];
 
-      return artifacts;
+      return { location: location, status: res.status, children: children };
     })
 });
