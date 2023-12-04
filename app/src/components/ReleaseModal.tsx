@@ -20,11 +20,12 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     resourceType: resourceType
   });
   const ctx = trpc.useContext();
+
   const deleteMutation = trpc.draft.deleteDraft.useMutation({
-    onSuccess: () => {
+    onSuccess: data => {
       notifications.show({
-        title: `Draft ${resource?.resourceType} released!`,
-        message: `Draft ${resource?.resourceType}/${resource?.id} successfully released to the Publishable Measure Repository!`,
+        title: `Draft ${data.resourceType} released!`,
+        message: `Draft ${data.resourceType}/${data.draftId} successfully released to the Publishable Measure Repository!`,
         icon: <CircleCheck />,
         color: 'green'
       });
@@ -35,7 +36,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
       console.error(e);
       notifications.show({
         title: `Release Failed!`,
-        message: `Attempt to release ${resourceType} failed with message: ${e.message}`,
+        message: `Attempt to release artifact failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
@@ -65,6 +66,12 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         deleteMutation.mutate({
           resourceType: resourceType,
           id: id
+        });
+        data.children.forEach(childArtifact => {
+          deleteMutation.mutate({
+            resourceType: childArtifact.resourceType,
+            id: childArtifact.id
+          });
         });
       }
       onClose();

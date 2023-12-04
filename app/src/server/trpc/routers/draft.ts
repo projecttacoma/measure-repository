@@ -65,6 +65,7 @@ export const draftRouter = router({
   deleteDraft: publicProcedure
     .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
     .mutation(async ({ input }) => {
-      return deleteDraft(input.resourceType, input.id);
+      const res = await deleteDraft(input.resourceType, input.id);
+      return { draftId: input.id, resourceType: input.resourceType, ...res };
     })
 });

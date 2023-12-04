@@ -84,33 +84,33 @@ async function releaseChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
       const draftRes = await getDraftByUrl(url, version, raType);
 
       // modify the draft to be active, etc.
-      if (draftRes) {
+      if (draftRes && draftRes.id) {
         draftRes.version = version;
         draftRes.status = 'active';
         draftRes.date = DateTime.now().toISO() || '';
-      }
 
-      // send to server
-      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${raType}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json+fhir'
-        },
-        body: JSON.stringify(draftRes)
-      });
+        // send to server
+        const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${raType}/${draftRes.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json+fhir'
+          },
+          body: JSON.stringify(draftRes)
+        });
 
-      let location = res.headers.get('Location');
-      if (location?.substring(0, 5) === '4_0_1') {
-        location = location?.substring(5); // remove 4_0_1 (version)
-      }
+        let location = res.headers.get('Location');
+        if (location?.substring(0, 5) === '4_0_1') {
+          location = location?.substring(5); // remove 4_0_1 (version)
+        }
 
-      // add response to array
-      result.push({ resourceType: raType, id: url, res: res, location: location });
+        // add response to array
+        result.push({ resourceType: raType, id: draftRes.id, res: res, location: location });
 
-      // call releaseChildren
-      if (draftRes?.relatedArtifact) {
-        const nested = await releaseChildren(draftRes.relatedArtifact);
-        result = result.concat(nested);
+        // call releaseChildren
+        if (draftRes?.relatedArtifact) {
+          const nested = await releaseChildren(draftRes.relatedArtifact);
+          result = result.concat(nested);
+        }
       }
     }
   }
@@ -198,8 +198,9 @@ export const serviceRouter = router({
         draftRes.status = 'active';
         draftRes.date = DateTime.now().toISO() || '';
       }
-      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}`, {
-        method: 'POST',
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json+fhir'
         },

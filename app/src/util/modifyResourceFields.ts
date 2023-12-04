@@ -40,7 +40,7 @@ export function modifyResourceToDraft(artifact: FhirArtifact) {
       }
     });
   }
-  return { id: artifact.id, ...artifact };
+  return artifact;
 }
 
 /**
