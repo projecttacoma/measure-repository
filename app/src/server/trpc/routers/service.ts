@@ -16,29 +16,38 @@ export type ArtifactInfo = {
   id: string;
 };
 
+function getChildFromRelatedArtifact(relatedArtifact: fhir4.RelatedArtifact) {
+  if (
+    relatedArtifact.type === 'composed-of' &&
+    relatedArtifact.resource &&
+    relatedArtifact.extension?.some(
+      e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+    )
+  ) {
+    let resourceType: ArtifactResourceType;
+    if (relatedArtifact.resource?.includes('Measure')) {
+      resourceType = 'Measure';
+    } else {
+      resourceType = 'Library';
+    }
+
+    const [url, version] = relatedArtifact.resource.split('|');
+
+    return { resourceType, url, version };
+  }
+}
+
 async function draftChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
   let result: ArtifactInfo[] = [];
 
   for (const ra of relatedArtifacts) {
-    if (
-      ra.type === 'composed-of' &&
-      ra.resource &&
-      ra.extension?.some(
-        e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
-      )
-    ) {
-      let raType: ArtifactResourceType;
-      if (ra.resource?.includes('Measure')) {
-        raType = 'Measure';
-      } else {
-        raType = 'Library';
-      }
+    const relatedArtifact = getChildFromRelatedArtifact(ra);
 
-      const [url, version] = ra.resource.split('|');
-
+    if (relatedArtifact) {
       // fetch the artifact by URL and version
       const artifactBundle = await fetch(
-        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${raType}?` + new URLSearchParams({ url: url, version: version })
+        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${relatedArtifact.resourceType}?` +
+          new URLSearchParams({ url: relatedArtifact.url, version: relatedArtifact.version })
       ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
 
       const draftRes = artifactBundle.entry?.[0].resource;
@@ -47,9 +56,9 @@ async function draftChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
       const draftArtifact = modifyResourceToDraft(draftRes as FhirArtifact);
 
       // create a draft of the modified relatedArtifact
-      await createDraft(raType, draftArtifact);
+      await createDraft(relatedArtifact.resourceType, draftArtifact);
 
-      result.push({ resourceType: raType, id: draftArtifact.id });
+      result.push({ resourceType: relatedArtifact.resourceType, id: draftArtifact.id });
 
       if (draftArtifact.relatedArtifact) {
         const nested = await draftChildren(draftArtifact.relatedArtifact);
@@ -64,39 +73,29 @@ async function releaseChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
   let result: ReleaseArtifactInfo[] = [];
 
   for (const ra of relatedArtifacts) {
-    if (
-      ra.type === 'composed-of' &&
-      ra.resource &&
-      ra.extension?.some(
-        e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
-      )
-    ) {
-      let raType: ArtifactResourceType;
-      if (ra.resource?.includes('Measure')) {
-        raType = 'Measure';
-      } else {
-        raType = 'Library';
-      }
+    const relatedArtifact = getChildFromRelatedArtifact(ra);
 
-      const [url, version] = ra.resource.split('|');
-
-      // get the draft by its URL and version
-      const draftRes = await getDraftByUrl(url, version, raType);
+    if (relatedArtifact) {
+      // get the draft by its URL and version, assume unique url on draft resources
+      const draftRes = await getDraftByUrl(relatedArtifact.url, relatedArtifact.version, relatedArtifact.resourceType);
 
       // modify the draft to be active, etc.
-      if (draftRes && draftRes.id) {
-        draftRes.version = version;
+      if (draftRes) {
+        draftRes.version = relatedArtifact.version;
         draftRes.status = 'active';
         draftRes.date = DateTime.now().toISO() || '';
 
         // send to server
-        const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${raType}/${draftRes.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json+fhir'
-          },
-          body: JSON.stringify(draftRes)
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_MRS_SERVER}/${relatedArtifact.resourceType}/${draftRes.id}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json+fhir'
+            },
+            body: JSON.stringify(draftRes)
+          }
+        );
 
         let location = res.headers.get('Location');
         if (location?.substring(0, 5) === '4_0_1') {
@@ -104,7 +103,7 @@ async function releaseChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
         }
 
         // add response to array
-        result.push({ resourceType: raType, id: draftRes.id, res: res, location: location });
+        result.push({ resourceType: relatedArtifact.resourceType, id: draftRes.id, res: res, location: location });
 
         // call releaseChildren
         if (draftRes?.relatedArtifact) {
