@@ -49,31 +49,53 @@ async function loadBundle(filePath: string) {
       let resourcesUploaded = 0;
       let notUploaded = 0;
       const uploads = bundle.entry.map(async res => {
-        // Get the main library from the Measure and add the isOwned extension on that library's 
+        // Get the main library from the Measure and add the isOwned extension on that library's
         // entry in the relatedArtifacts of the measure
         if (res?.resource?.resourceType && res?.resource?.resourceType === 'Measure' && res?.resource?.library) {
           // get the main library of the measure from the library property and the version
           const mainLibrary = res.resource.library?.[0];
           const mainLibraryVersion = res.resource.version;
 
-          // append the version to the end of the library 
+          // append the version to the end of the library
           const mainLibraryUrl = mainLibraryVersion ? mainLibrary.concat('|', mainLibraryVersion) : mainLibrary;
-    
+
           // check if relatedArtifacts property exists on the measure, add it if it doesn't
           if (res.resource.relatedArtifact === undefined) {
             res.resource.relatedArtifact = [];
           }
 
           // check if the main library already exists in the relatedArtifacts
-          const mainLibraryRA = res.resource.relatedArtifact.find(ra => ra.url === mainLibraryUrl || ra.resource === mainLibraryUrl);
+          const mainLibraryRA = res.resource.relatedArtifact.find(
+            ra => (ra.url === mainLibraryUrl || ra.resource === mainLibraryUrl) && ra.type === 'composed-of'
+          );
 
           if (mainLibraryRA) {
-            mainLibraryRA.extension = [{ url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", valueBoolean: true }]
+            // check if the main library's extension array exists and create it if it doesn't
+            if (mainLibraryRA.extension) {
+              // if it does exist, check that the isOwned extension is not already on it, add it if not
+              if (
+                mainLibraryRA.extension.find(
+                  e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+                ) === undefined
+              )
+                mainLibraryRA.extension.push({
+                  url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+                  valueBoolean: true
+                });
+            } else {
+              mainLibraryRA.extension = [
+                { url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }
+              ];
+            }
           } else {
-            res.resource.relatedArtifact.push({type: 'composed-of', resource: mainLibraryUrl, extension: [{url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", valueBoolean: true}]})
+            res.resource.relatedArtifact.push({
+              type: 'composed-of',
+              resource: mainLibraryUrl,
+              extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }]
+            });
           }
         }
-        
+
         // Only upload Library or Measure resources
         if (
           res?.resource?.resourceType &&
