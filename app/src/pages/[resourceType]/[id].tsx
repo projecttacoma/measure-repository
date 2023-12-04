@@ -22,7 +22,6 @@ import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
-import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
 import DataReqs from '@/components/DataRequirements';
 import Dependencies from '@/components/DependencyCards';
@@ -84,30 +83,45 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   }, [dataRequirements]);
 
-  const draftMutation = trpc.draft.createDraft.useMutation({
+  const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
+    const message = createdFromArtifact
+      ? `Draft of ${jsonData.resourceType}/${jsonData.id} successfully created`
+      : `${resourceType} successfully created`;
+    notifications.show({
+      title: `${resourceType} Created!`,
+      message: message,
+      icon: <CircleCheck />,
+      color: 'green'
+    });
+    router.push(`/authoring/${resourceType}/${data.draftId}`);
+    ctx.draft.getDraftCounts.invalidate();
+  };
+
+  const errorNotification = (errorMessage: string, createdFromArtifact: boolean) => {
+    const message = createdFromArtifact
+      ? `Attempt to create draft of ${resourceType}/${jsonData.id} failed with message: ${errorMessage}`
+      : `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
+    notifications.show({
+      title: `${resourceType} Creation Failed!`,
+      message: message,
+      icon: <AlertCircle />,
+      color: 'red'
+    });
+  };
+
+  const draftFromArtifactMutation = trpc.service.convertArtifactById.useMutation({
     onSuccess: data => {
-      notifications.show({
-        title: `Draft ${jsonData.resourceType} Created!`,
-        message: `Draft ${jsonData.resourceType}/${jsonData.id} successfully created`,
-        icon: <CircleCheck />,
-        color: 'green'
-      });
-      router.push(`/authoring/${jsonData.resourceType}/${data.draftId}`);
-      ctx.draft.getDraftCounts.invalidate();
+      successNotification(data, true);
     },
     onError: e => {
-      notifications.show({
-        title: `Draft ${jsonData.resourceType} Creation Failed!`,
-        message: `Attempt to create draft of ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
-        color: 'red'
-      });
+      errorNotification(e.message, true);
     }
   });
 
   const createDraftOfArtifact = () => {
-    const draftOfArtifact = modifyResourceToDraft({ ...jsonData });
-    draftMutation.mutate({ resourceType, draft: draftOfArtifact });
+    if (jsonData.id) {
+      draftFromArtifactMutation.mutate({ resourceType, id: jsonData.id });
+    }
   };
 
   const clickHandler = () => {
@@ -130,7 +144,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+            <Button w={240} loading={draftFromArtifactMutation.isLoading} onClick={createDraftOfArtifact}>
               Create Draft of {jsonData.resourceType}
             </Button>
           </Group>
