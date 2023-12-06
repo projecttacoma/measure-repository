@@ -75,7 +75,7 @@ async function loadBundle(filePath: string) {
               // if it does exist, check that the isOwned extension is not already on it, add it if not
               if (
                 mainLibraryRA.extension.find(
-                  e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+                  e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned'
                 ) === undefined
               )
                 mainLibraryRA.extension.push({
