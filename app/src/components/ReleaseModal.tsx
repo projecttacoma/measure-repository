@@ -23,28 +23,54 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
 
   const deleteMutation = trpc.draft.deleteDraft.useMutation({
     onSuccess: data => {
-      notifications.show({
-        title: `Draft ${data.resourceType} released!`,
-        message: `Draft ${data.resourceType}/${data.draftId} successfully released to the Publishable Measure Repository!`,
-        icon: <CircleCheck />,
-        color: 'green'
-      });
-      ctx.draft.getDraftCounts.invalidate();
-      ctx.draft.getDrafts.invalidate();
+      console.log(`Successfully delete ${data.resourceType}/${data.draftId} from the database.`);
     },
     onError: e => {
       console.error(e);
+    }
+  });
+
+  const releaseChildMutation = trpc.service.releaseChild.useMutation({
+    onSuccess: (data, variables) => {
+      if (data.status !== 201) {
+        console.error(data.status);
+        console.log(data.status);
+        notifications.show({
+          title: `Release Failed!`,
+          message: `Server unable to process request`,
+          icon: <AlertCircle />,
+          color: 'red'
+        });
+      } else {
+        notifications.show({
+          title: `Draft ${variables.resourceType} released!`,
+          message: `Child draft ${variables.resourceType}/${data.id} successfully released to the Publishable Measure Repository!`,
+          icon: <CircleCheck />,
+          color: 'green'
+        });
+        ctx.draft.getDraftCounts.invalidate();
+        ctx.draft.getDrafts.invalidate();
+
+        // delete draft child artifact from the draft database now that it has been released
+        deleteMutation.mutate({
+          resourceType: variables.resourceType,
+          id: data.id
+        });
+      }
+    },
+    onError: (e, variables) => {
+      console.error(e);
       notifications.show({
         title: `Release Failed!`,
-        message: `Attempt to release artifact failed with message: ${e.message}`,
+        message: `Attempt to release ${variables.resourceType} failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
     }
   });
 
-  const releaseMutation = trpc.service.releaseArtifactByUrl.useMutation({
-    onSuccess: data => {
+  const releaseMutation = trpc.service.releaseParent.useMutation({
+    onSuccess: (data, variables) => {
       if (!data.location) {
         console.error('No resource location for released artifact');
         notifications.show({
@@ -62,15 +88,28 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           color: 'red'
         });
       } else {
+        notifications.show({
+          title: `Draft ${variables.resourceType} released!`,
+          message: `Draft ${variables.resourceType}/${variables.id} successfully released to the Publishable Measure Repository!`,
+          icon: <CircleCheck />,
+          color: 'green'
+        });
+        ctx.draft.getDraftCounts.invalidate();
+        ctx.draft.getDrafts.invalidate();
         router.push(data.location);
+
+        // delete draft artifact from the draft database now that it has been released
         deleteMutation.mutate({
           resourceType: resourceType,
           id: id
         });
+
+        // go through all of the recursively found child artifacts and release them
         data.children.forEach(childArtifact => {
-          deleteMutation.mutate({
+          releaseChildMutation.mutate({
             resourceType: childArtifact.resourceType,
-            id: childArtifact.id
+            url: childArtifact.url,
+            version: childArtifact.version
           });
         });
       }

@@ -6,115 +6,59 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
 
-export interface ReleaseArtifactInfo extends ArtifactInfo {
-  res: Response;
-  location: string | null;
-}
-
-export type ArtifactInfo = {
+export type ChildArtifactInfo = {
   resourceType: 'Measure' | 'Library';
-  id: string;
+  url: string;
+  version: string;
 };
 
-function getChildFromRelatedArtifact(relatedArtifact: fhir4.RelatedArtifact) {
-  if (
-    relatedArtifact.type === 'composed-of' &&
-    relatedArtifact.resource &&
-    relatedArtifact.extension?.some(
-      e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
-    )
-  ) {
-    let resourceType: ArtifactResourceType;
-    if (relatedArtifact.resource?.includes('Measure')) {
-      resourceType = 'Measure';
-    } else {
-      resourceType = 'Library';
-    }
-
-    const [url, version] = relatedArtifact.resource.split('|');
-
-    return { resourceType, url, version };
-  }
-}
-
-async function draftChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
-  let result: ArtifactInfo[] = [];
+/**
+ * Helper function that takes an array of related artifacts and recursively
+ * finds all of the child artifacts (related artifacts whose type is composed-of
+ * and has the isOwned extension)
+ */
+async function getChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
+  let children: ChildArtifactInfo[] = [];
 
   for (const ra of relatedArtifacts) {
-    const relatedArtifact = getChildFromRelatedArtifact(ra);
+    if (
+      ra.type === 'composed-of' &&
+      ra.resource &&
+      ra.extension?.some(
+        e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+      )
+    ) {
+      let resourceType: ArtifactResourceType;
+      if (ra.resource.includes('Measure')) {
+        resourceType = 'Measure';
+      } else {
+        resourceType = 'Library';
+      }
 
-    if (relatedArtifact) {
-      // fetch the artifact by URL and version
+      const [url, version] = ra.resource.split('|');
+
+      // add child artifact info to the array of child artifact info
+      children.push({ resourceType, url, version });
+
+      // search for the related artifact in the published measure repository
       const artifactBundle = await fetch(
-        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${relatedArtifact.resourceType}?` +
-          new URLSearchParams({ url: relatedArtifact.url, version: relatedArtifact.version })
+        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}?` + new URLSearchParams({ url: url, version: version })
       ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
 
-      const draftRes = artifactBundle.entry?.[0].resource;
+      // if the related artifact exists in the published measure repository, then we
+      // want to recursively look for its child artifacts as well
+      if (artifactBundle.entry?.[0]?.resource) {
+        const draftRes = artifactBundle.entry?.[0].resource as FhirArtifact;
 
-      // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
-      const draftArtifact = modifyResourceToDraft(draftRes as FhirArtifact);
-
-      // create a draft of the modified relatedArtifact
-      await createDraft(relatedArtifact.resourceType, draftArtifact);
-
-      result.push({ resourceType: relatedArtifact.resourceType, id: draftArtifact.id });
-
-      if (draftArtifact.relatedArtifact) {
-        const nested = await draftChildren(draftArtifact.relatedArtifact);
-        result = result.concat(nested);
-      }
-    }
-  }
-  return result;
-}
-
-async function releaseChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
-  let result: ReleaseArtifactInfo[] = [];
-
-  for (const ra of relatedArtifacts) {
-    const relatedArtifact = getChildFromRelatedArtifact(ra);
-
-    if (relatedArtifact) {
-      // get the draft by its URL and version, assume unique url on draft resources
-      const draftRes = await getDraftByUrl(relatedArtifact.url, relatedArtifact.version, relatedArtifact.resourceType);
-
-      // modify the draft to be active, etc.
-      if (draftRes) {
-        draftRes.version = relatedArtifact.version;
-        draftRes.status = 'active';
-        draftRes.date = DateTime.now().toISO() || '';
-
-        // send to server
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_MRS_SERVER}/${relatedArtifact.resourceType}/${draftRes.id}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json+fhir'
-            },
-            body: JSON.stringify(draftRes)
-          }
-        );
-
-        let location = res.headers.get('Location');
-        if (location?.substring(0, 5) === '4_0_1') {
-          location = location?.substring(5); // remove 4_0_1 (version)
-        }
-
-        // add response to array
-        result.push({ resourceType: relatedArtifact.resourceType, id: draftRes.id, res: res, location: location });
-
-        // call releaseChildren
-        if (draftRes?.relatedArtifact) {
-          const nested = await releaseChildren(draftRes.relatedArtifact);
-          result = result.concat(nested);
+        if (draftRes.relatedArtifact) {
+          const nested = await getChildren(draftRes.relatedArtifact);
+          children = children.concat(nested);
         }
       }
     }
   }
 
-  return result;
+  return children;
 }
 
 /**
@@ -174,30 +118,68 @@ export const serviceRouter = router({
       return resource as FhirArtifact;
     }),
 
-  convertArtifactById: publicProcedure
+  draftParent: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {
+      // fetch the artifact from the measure repository using its resource type and id
       const draftRes = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
       const draftJson = (await draftRes.json()) as FhirArtifact;
 
-      const children = draftJson.relatedArtifact ? await draftChildren(draftJson.relatedArtifact) : [];
+      // recursively get any child artifacts from the artifact if they exist
+      const children = draftJson.relatedArtifact ? await getChildren(draftJson.relatedArtifact) : [];
 
       const draftArtifact = modifyResourceToDraft({ ...draftJson });
+
+      // create a draft of the modified parent artifact
       const res = await createDraft(input.resourceType, draftArtifact);
 
-      return { draftId: draftArtifact.id, children: children, ...res };
+      return { draftId: draftArtifact.id, children, ...res };
     }),
 
-  releaseArtifactByUrl: publicProcedure
+  draftChild: publicProcedure
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), url: z.string(), version: z.string() }))
+    .mutation(async ({ input }) => {
+      // search the measure repository for an artifact of the same resource type, url, and version
+      // assume that artifacts will have unique urls and versions, so return the first entry in the bundle
+      const artifactBundle = await fetch(
+        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}?` +
+          new URLSearchParams({ url: input.url, version: input.version })
+      ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
+
+      if (!artifactBundle.entry || artifactBundle.entry.length === 0) {
+        throw new Error('No artifacts found in search');
+      }
+      const draftRes = artifactBundle.entry?.[0].resource;
+
+      // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
+      const draftChildArtifact = modifyResourceToDraft(draftRes as FhirArtifact);
+
+      // create a draft of the modified child artifact
+      const res = await createDraft(input.resourceType, draftChildArtifact);
+
+      return {
+        draftId: draftChildArtifact.id,
+        id: draftRes?.id,
+        resourceType: draftChildArtifact.resourceType,
+        ...res
+      };
+    }),
+
+  // new release procedures (separate release of parent and release of child)
+  releaseParent: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string(), version: z.string() }))
     .mutation(async ({ input }) => {
+      // get the parent draft artifact by id
       const draftRes = await getDraftById(input.id, input.resourceType);
+
+      // if a draft artifact of that resource type and id exists, then modify its content to be an active artifact
       if (draftRes) {
         draftRes.version = input.version;
         draftRes.status = 'active';
         draftRes.date = DateTime.now().toISO() || '';
       }
 
+      // release the parent draft artifact to the measure repository through a PUT operation to the server by id
       const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
         method: 'PUT',
         headers: {
@@ -205,13 +187,42 @@ export const serviceRouter = router({
         },
         body: JSON.stringify(draftRes)
       });
+
       let location = res.headers.get('Location');
       if (location?.substring(0, 5) === '4_0_1') {
         location = location?.substring(5); // remove 4_0_1 (version)
       }
 
-      const children = draftRes?.relatedArtifact ? await releaseChildren(draftRes.relatedArtifact) : [];
+      // recursively get any child artifacts from the artifact if they exist
+      const children = draftRes?.relatedArtifact ? await getChildren(draftRes.relatedArtifact) : [];
 
       return { location: location, status: res.status, children: children };
+    }),
+
+  releaseChild: publicProcedure
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), url: z.string(), version: z.string() }))
+    .mutation(async ({ input }) => {
+      // get the draft child artifact by its URL and version
+      const draftRes = await getDraftByUrl(input.url, input.version, input.resourceType);
+
+      // if a draft artifact of that resource type, url, and version exists, then modify its content to be an active artifact
+      if (draftRes) {
+        draftRes.version = input.version;
+        draftRes.status = 'active';
+        draftRes.date = DateTime.now().toISO() || '';
+      } else {
+        throw new Error('No draft artifact found for this resourceType, version, and URL');
+      }
+
+      // release the child draft artifact to the measure repository through a PUT operation to the server by id
+      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json+fhir'
+        },
+        body: JSON.stringify(draftRes)
+      });
+
+      return { id: draftRes.id, status: res.status };
     })
 });
