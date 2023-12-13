@@ -61,7 +61,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
       console.error(e);
       notifications.show({
         title: `Release Failed!`,
-        message: `Attempt to release ${variables.resourceType} failed with message: ${e.message}`,
+        message: `Attempt to release child ${variables.resourceType} with url ${variables.url} failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
