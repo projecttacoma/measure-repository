@@ -128,6 +128,9 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       successNotification(variables.resourceType, false, variables.id);
       router.push(`/authoring/${resourceType}/${data.draftId}`);
 
+      // child artifacts only get drafted if the draft of the parent was successful
+      // the success of the parent does not rely on the success of its child artifacts
+      // nor do the child artifacts rely on each other
       data.children.forEach(childArtifact => {
         draftChildMutation.mutate({
           resourceType: childArtifact.resourceType,

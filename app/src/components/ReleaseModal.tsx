@@ -104,6 +104,9 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         });
 
         // go through all of the recursively found child artifacts and release them
+        // child artifacts only get released if the release of the parent was successful
+        // the success of the parent does not rely on the success of its child artifacts
+        // nor do the child artifacts rely on each other
         data.children.forEach(childArtifact => {
           releaseChildMutation.mutate({
             resourceType: childArtifact.resourceType,
