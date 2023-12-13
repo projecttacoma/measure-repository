@@ -83,19 +83,12 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   }, [dataRequirements]);
 
-  const successNotification = (
-    resourceType: string,
-    createdFromArtifact: boolean,
-    childArtifact: boolean,
-    idOrUrl?: string
-  ) => {
+  const successNotification = (resourceType: string, childArtifact: boolean, idOrUrl?: string) => {
     let message;
     if (childArtifact) {
       message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully created`;
-    } else if (createdFromArtifact) {
-      message = `Draft of ${resourceType}/${idOrUrl} successfully created`;
     } else {
-      `${resourceType} successfully created`;
+      message = `Draft of ${resourceType}/${idOrUrl} successfully created`;
     }
     notifications.show({
       title: `${resourceType} Created!`,
@@ -106,20 +99,12 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     ctx.draft.getDraftCounts.invalidate();
   };
 
-  const errorNotification = (
-    resourceType: string,
-    errorMessage: string,
-    createdFromArtifact: boolean,
-    childArtifact: boolean,
-    idOrUrl?: string
-  ) => {
+  const errorNotification = (resourceType: string, errorMessage: string, childArtifact: boolean, idOrUrl?: string) => {
     let message;
     if (childArtifact) {
       message = `Attempt to create draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
-    } else if (createdFromArtifact) {
-      message = `Attempt to create draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
     } else {
-      message = `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
+      message = `Attempt to create draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
     }
     notifications.show({
       title: `${resourceType} Creation Failed!`,
@@ -131,16 +116,16 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 
   const draftChildMutation = trpc.service.draftChild.useMutation({
     onSuccess: (_, variables) => {
-      successNotification(variables.resourceType, true, true, variables.url);
+      successNotification(variables.resourceType, true, variables.url);
     },
     onError: (e, variables) => {
-      errorNotification(variables.resourceType, e.message, true, true, variables.url);
+      errorNotification(variables.resourceType, e.message, true, variables.url);
     }
   });
 
   const draftFromArtifactMutation = trpc.service.draftParent.useMutation({
     onSuccess: (data, variables) => {
-      successNotification(variables.resourceType, true, false, variables.id);
+      successNotification(variables.resourceType, false, variables.id);
       router.push(`/authoring/${resourceType}/${data.draftId}`);
 
       data.children.forEach(childArtifact => {
@@ -152,7 +137,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
       });
     },
     onError: (e, variables) => {
-      errorNotification(variables.resourceType, e.message, true, false, variables.id);
+      errorNotification(variables.resourceType, e.message, false, variables.id);
     }
   });
 

@@ -34,7 +34,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
     onSuccess: (data, variables) => {
       if (data.status !== 201) {
         console.error(data.status);
-        console.log(data.status);
         notifications.show({
           title: `Release Failed!`,
           message: `Server unable to process request`,
