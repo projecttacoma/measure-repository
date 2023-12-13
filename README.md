@@ -1,6 +1,14 @@
 # Measure Repository
 
-A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html) and associated frontend application.
+A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html) and associated frontend application. This repository is a monorepo that consists of: 
+- [FHIR Measure Repository Service](https://github.com/projecttacoma/measure-repository/tree/main/service#readme)
+  - Implements portions of the [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html) specification
+  - Acts as a FHIR server and shared source of truth for measures
+- [Measure Repository App](https://github.com/projecttacoma/measure-repository/blob/main/app/README.md)
+  - A prototype [Next.js](https://nextjs.org/) application that demonstrates potential interactions with a FHIR Measure Repository Service
+  - Includes a frontend, backend, and small database which acts as in-progress storage space for drafting measures
+
+![Screenshot of Measure Repository and App Interaction](./MRS-diagram.png)
 
 ## Installation
 
