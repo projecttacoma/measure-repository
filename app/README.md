@@ -79,7 +79,7 @@ The Authoring tab gives options for creating a new draft artifact from scratch o
 
 <img src="./static/draft-artifact.png" alt="Screenshot of create draft artifact" width="350"/>
 
-The left navigation resource type selection displays sets of artifacts that are in progress, being drafted for potential addition to the FHIR Measure Repository. Options allow for editing, reviewing, or deleting a draft resource.
+The left navigation resource type selection displays sets of artifacts that are in progress and being drafted for potential addition to the FHIR Measure Repository. Options allow for editing, reviewing, or deleting a draft resource.
 
 <img src="./static/authoring-options.png" alt="Screenshot of authoring options" width="120"/>
 
