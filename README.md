@@ -63,6 +63,13 @@ To run `lint` and `prettier` in both the frontend and backend and unit tests in 
 ```bash
 npm run check:all
 ```
+### Docker
+
+To start the app and repository service in parallel, run 
+
+```bash
+docker compose up
+```
 
 ## License
 

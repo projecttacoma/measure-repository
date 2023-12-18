@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  measure-service:
+    depends_on:
+      - mongo
+    build:
+      context: ./service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_HOST: localhost
+      SERVER_PORT: 3000
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: measure-repository
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./src:/usr/src/service/src
+    command: npm start
+    stdin_open: true
+    tty: true
+  
+  measure-app:
+    depends_on:
+      - mongo
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      SERVER_HOST: localhost
+      SERVER_PORT: 3001
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: draft-repository
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./src:/usr/src/app/src
+    command: npm dev -p 3001
+    stdin_open: true
+    tty: true
+
+  mongo:
+    image: mongo:4.4.4
+    ports:
+      - '27017'
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
