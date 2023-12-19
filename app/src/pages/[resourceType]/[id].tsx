@@ -22,7 +22,6 @@ import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
 import { AlertCircle, CircleCheck } from 'tabler-icons-react';
 import { useRouter } from 'next/router';
-import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { trpc } from '@/util/trpc';
 import DataReqs from '@/components/DataRequirements';
 import Dependencies from '@/components/DependencyCards';
@@ -84,30 +83,71 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     }
   }, [dataRequirements]);
 
-  const draftMutation = trpc.draft.createDraft.useMutation({
-    onSuccess: data => {
-      notifications.show({
-        title: `Draft ${jsonData.resourceType} Created!`,
-        message: `Draft ${jsonData.resourceType}/${jsonData.id} successfully created`,
-        icon: <CircleCheck />,
-        color: 'green'
-      });
-      router.push(`/authoring/${jsonData.resourceType}/${data.draftId}`);
-      ctx.draft.getDraftCounts.invalidate();
+  const successNotification = (resourceType: string, childArtifact: boolean, idOrUrl?: string) => {
+    let message;
+    if (childArtifact) {
+      message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully created`;
+    } else {
+      message = `Draft of ${resourceType}/${idOrUrl} successfully created`;
+    }
+    notifications.show({
+      title: `${resourceType} Created!`,
+      message: message,
+      icon: <CircleCheck />,
+      color: 'green'
+    });
+    ctx.draft.getDraftCounts.invalidate();
+  };
+
+  const errorNotification = (resourceType: string, errorMessage: string, childArtifact: boolean, idOrUrl?: string) => {
+    let message;
+    if (childArtifact) {
+      message = `Attempt to create draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
+    } else {
+      message = `Attempt to create draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
+    }
+    notifications.show({
+      title: `${resourceType} Creation Failed!`,
+      message: message,
+      icon: <AlertCircle />,
+      color: 'red'
+    });
+  };
+
+  const draftChildMutation = trpc.service.draftChild.useMutation({
+    onSuccess: (_, variables) => {
+      successNotification(variables.resourceType, true, variables.url);
     },
-    onError: e => {
-      notifications.show({
-        title: `Draft ${jsonData.resourceType} Creation Failed!`,
-        message: `Attempt to create draft of ${jsonData.resourceType}/${jsonData.id} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
-        color: 'red'
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, true, variables.url);
+    }
+  });
+
+  const draftFromArtifactMutation = trpc.service.draftParent.useMutation({
+    onSuccess: (data, variables) => {
+      successNotification(variables.resourceType, false, variables.id);
+      router.push(`/authoring/${resourceType}/${data.draftId}`);
+
+      // child artifacts only get drafted if the draft of the parent was successful
+      // the success of the parent does not rely on the success of its child artifacts
+      // nor do the child artifacts rely on each other
+      data.children.forEach(childArtifact => {
+        draftChildMutation.mutate({
+          resourceType: childArtifact.resourceType,
+          url: childArtifact.url,
+          version: childArtifact.version
+        });
       });
+    },
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, false, variables.id);
     }
   });
 
   const createDraftOfArtifact = () => {
-    const draftOfArtifact = modifyResourceToDraft({ ...jsonData });
-    draftMutation.mutate({ resourceType, draft: draftOfArtifact });
+    if (jsonData.id) {
+      draftFromArtifactMutation.mutate({ resourceType, id: jsonData.id });
+    }
   };
 
   const clickHandler = () => {
@@ -130,7 +170,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button w={240} loading={draftMutation.isLoading} onClick={createDraftOfArtifact}>
+            <Button w={240} loading={draftFromArtifactMutation.isLoading} onClick={createDraftOfArtifact}>
               Create Draft of {jsonData.resourceType}
             </Button>
           </Group>

@@ -26,7 +26,21 @@ export function modifyResourceToDraft(artifact: FhirArtifact) {
       artifact.version = '0.0.1';
     }
   }
-  return { id: artifact.id, ...artifact };
+  if (artifact.relatedArtifact) {
+    artifact.relatedArtifact.forEach(ra => {
+      if (
+        ra.type === 'composed-of' &&
+        ra.resource &&
+        ra.extension?.some(
+          e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+        )
+      ) {
+        const url = ra.resource.split('|')[0];
+        ra.resource = url + '|' + artifact.version;
+      }
+    });
+  }
+  return artifact;
 }
 
 /**

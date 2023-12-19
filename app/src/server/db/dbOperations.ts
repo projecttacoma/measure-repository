@@ -20,6 +20,19 @@ export async function getDraftById<T extends FhirArtifact>(id: string, resourceT
 }
 
 /**
+ * Retrieves the draft resource of the given type with the given url and version
+ */
+export async function getDraftByUrl<T extends FhirArtifact>(
+  url: string,
+  version: string,
+  resourceType: ArtifactResourceType
+) {
+  const client = await clientPromise;
+  const collection = client.db().collection(resourceType);
+  return collection.findOne<T>({ url, version }, { projection: { _id: 0 } });
+}
+
+/**
  * Creates a new draft resource of the given type
  */
 export async function createDraft(resourceType: ArtifactResourceType, draft: any) {

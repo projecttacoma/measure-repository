@@ -39,24 +39,44 @@ export default function AuthoringPage() {
   const { classes } = useStyles();
   const router = useRouter();
 
-  const successNotification = (data: { draftId: string }, createdFromArtifact: boolean) => {
-    const message = createdFromArtifact
-      ? `Draft of ${resourceType}/${selectedArtifact} successfully created`
-      : `${resourceType} successfully created`;
+  const successNotification = (
+    resourceType: string,
+    createdFromArtifact: boolean,
+    childArtifact: boolean,
+    idOrUrl?: string
+  ) => {
+    let message;
+    if (childArtifact) {
+      message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully created`;
+    } else if (createdFromArtifact) {
+      message = `Draft of ${resourceType}/${idOrUrl} successfully created`;
+    } else {
+      `${resourceType} successfully created`;
+    }
     notifications.show({
       title: `${resourceType} Created!`,
       message: message,
       icon: <CircleCheck />,
       color: 'green'
     });
-    router.push(`authoring/${resourceType}/${data.draftId}`);
     ctx.draft.getDraftCounts.invalidate();
   };
 
-  const errorNotification = (errorMessage: string, createdFromArtifact: boolean) => {
-    const message = createdFromArtifact
-      ? `Attempt to create draft of ${resourceType}/${selectedArtifact} failed with message: ${errorMessage}`
-      : `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
+  const errorNotification = (
+    resourceType: string,
+    errorMessage: string,
+    createdFromArtifact: boolean,
+    childArtifact: boolean,
+    idOrUrl?: string
+  ) => {
+    let message;
+    if (childArtifact) {
+      message = `Attempt to create draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
+    } else if (createdFromArtifact) {
+      message = `Attempt to create draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
+    } else {
+      message = `Attempt to create ${resourceType} failed with message: ${errorMessage}`;
+    }
     notifications.show({
       title: `${resourceType} Creation Failed!`,
       message: message,
@@ -66,20 +86,42 @@ export default function AuthoringPage() {
   };
 
   const draftMutation = trpc.draft.createDraft.useMutation({
-    onSuccess: data => {
-      successNotification(data, false);
+    onSuccess: (data, variables) => {
+      successNotification(variables.resourceType, false, false);
+      router.push(`authoring/${resourceType}/${data.draftId}`);
     },
-    onError: e => {
-      errorNotification(e.message, false);
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, false, false);
     }
   });
 
-  const draftFromArtifactMutation = trpc.service.convertArtifactById.useMutation({
-    onSuccess: data => {
-      successNotification(data, true);
+  const draftChildMutation = trpc.service.draftChild.useMutation({
+    onSuccess: (_, variables) => {
+      successNotification(variables.resourceType, true, true, variables.url);
     },
-    onError: e => {
-      errorNotification(e.message, true);
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, true, true, variables.url);
+    }
+  });
+
+  const draftFromArtifactMutation = trpc.service.draftParent.useMutation({
+    onSuccess: (data, variables) => {
+      successNotification(variables.resourceType, true, false, variables.id);
+      router.push(`authoring/${resourceType}/${data.draftId}`);
+
+      // child artifacts only get drafted if the draft of the parent was successful
+      // the success of the parent does not rely on the success of its child artifacts
+      // nor do the child artifacts rely on each other
+      data.children.forEach(childArtifact => {
+        draftChildMutation.mutate({
+          resourceType: childArtifact.resourceType,
+          url: childArtifact.url,
+          version: childArtifact.version
+        });
+      });
+    },
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, true, false, variables.id);
     }
   });
 

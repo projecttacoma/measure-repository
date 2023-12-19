@@ -1,8 +1,10 @@
 export interface CQFMMeasure extends fhir4.Measure {
+  id: string;
   version: string;
 }
 
 export interface CQFMLibrary extends fhir4.Library {
+  id: string;
   version: string;
 }
 
