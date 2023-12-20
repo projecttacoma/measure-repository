@@ -5,6 +5,7 @@ FROM node:18
 WORKDIR /usr/src/service
 
 
+# COPY ../tsconfig-base.json ./
 # TODO: do we still need this? ...probably for MITRE systems
 # Run a custom ssl_setup script if available
 # We need to copy package.json here as it allows us to conditionally copy the setup script
