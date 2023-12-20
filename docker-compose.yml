@@ -18,6 +18,8 @@ services:
     command: npm start
     stdin_open: true
     tty: true
+    networks:
+      - blueberry
   
   # measure-app:
   #   depends_on:
@@ -42,15 +44,14 @@ services:
   mongo:
     image: mongo:6.0
     ports:
-      - '27017'
+      - '27017:27017'
     volumes:
       - mongo_data:/data/db
     networks:
-      - mongo
+      - blueberry
 
 volumes:
   mongo_data:
 
 networks:
-  mongo:
-    name: mongo
+  blueberry:
