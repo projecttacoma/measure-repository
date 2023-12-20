@@ -12,14 +12,14 @@ services:
       HOST: localhost
       DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
     ports:
-      - '3000:3000'
+      - "3000:3000"
     volumes:
       - ./src:/usr/src/service/src
     command: npm start
     stdin_open: true
     tty: true
-    networks:
-      - blueberry
+    # networks:
+    #   - blueberry
   
   # measure-app:
   #   depends_on:
@@ -42,16 +42,16 @@ services:
   #   tty: true
 
   mongo:
-    image: mongo:6.0
-    ports:
-      - '27017:27017'
+    image: mongo:7.0
+    expose:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
-    networks:
-      - blueberry
+    # networks:
+    #   - blueberry
 
 volumes:
   mongo_data:
 
-networks:
-  blueberry:
+# networks:
+#   blueberry:
