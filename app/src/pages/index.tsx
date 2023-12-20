@@ -86,7 +86,7 @@ export const getServerSideProps: GetServerSideProps<{
   capabilityStatement: fhir4.CapabilityStatement | null;
 }> = async () => {
   // Fetch CapabilityStatement
-  const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`);
+  const res = await fetch(`${process.env.MRS_SERVER}/metadata`);
   const capabilityStatement = res.status === 200 ? ((await res.json()) as fhir4.CapabilityStatement) : null;
 
   // Pass to the page via props

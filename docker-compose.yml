@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     environment:
       PORT: 3000
-      HOST: localhost
+      HOST: "0.0.0.0"
       DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
     ports:
       - "3000:3000"
@@ -18,28 +18,25 @@ services:
     command: npm start
     stdin_open: true
     tty: true
-    # networks:
-    #   - blueberry
   
-  # measure-app:
-  #   depends_on:
-  #     - mongo
-  #   build:
-  #     context: ./app
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     SERVER_HOST: localhost
-  #     SERVER_PORT: 3001
-  #     DB_HOST: mongo
-  #     DB_PORT: 27017
-  #     DB_NAME: draft-repository
-  #   ports:
-  #     - '3001:3001'
-  #   volumes:
-  #     - ./src:/usr/src/app/src
-  #   command: npm dev -p 3001
-  #   stdin_open: true
-  #   tty: true
+  measure-app:
+    depends_on:
+      - mongo
+      - measure-service
+    build:
+      context: ./
+      dockerfile: app/Dockerfile
+    environment:
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: 3001
+      NEXT_PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
+      MRS_SERVER: http://measure-service:3000/4_0_1
+      MONGODB_URI: mongodb://mongo:27017/draft-repository
+    ports:
+      - '3001:3001'
+#    command: npm start --workspace=app
+    stdin_open: true
+    tty: true
 
   mongo:
     image: mongo:7.0
@@ -47,11 +44,6 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
-    # networks:
-    #   - blueberry
 
 volumes:
   mongo_data:
-
-# networks:
-#   blueberry:

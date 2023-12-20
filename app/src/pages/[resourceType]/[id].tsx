@@ -356,7 +356,7 @@ function sortDependencies(relatedArtifacts: fhir4.RelatedArtifact[]) {
 export const getServerSideProps: GetServerSideProps<{ jsonData: FhirArtifact }> = async context => {
   const { resourceType, id } = context.query;
   // Fetch resource data
-  const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}/${id}`);
+  const res = await fetch(`${process.env.MRS_SERVER}/${resourceType}/${id}`);
   const resource = (await res.json()) as FhirArtifact;
   // pass JSON data to the page via props
   return { props: { jsonData: resource } };

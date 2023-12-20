@@ -13,8 +13,8 @@ import { getChildren } from '@/util/serviceUtils';
 export const serviceRouter = router({
   getArtifactCounts: publicProcedure.query(async () => {
     const [measureBundle, libraryBundle] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Measure`),
-      fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Library`)
+      fetch(`${process.env.MRS_SERVER}/Measure`),
+      fetch(`${process.env.MRS_SERVER}/Library`)
     ]).then(([resMeasure, resLibrary]) =>
       Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
     );
@@ -28,10 +28,9 @@ export const serviceRouter = router({
   getArtifactsByType: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']) }))
     .query(async ({ input }) => {
-      const artifactBundle = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}`).then(
+      const artifactBundle = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}`).then(
         resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
       );
-
       const artifactList = artifactBundle.entry?.map(entry => ({
         label: entry.resource?.name || entry.resource?.id || '',
         value: entry.resource?.id || `${entry.resource?.resourceType}` || ''
@@ -43,9 +42,7 @@ export const serviceRouter = router({
   getDataRequirements: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .query(async ({ input }) => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
-      );
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`);
       const resource = await res.json();
       if (resource?.resourceType === 'OperationOutcome') {
         throw new TRPCError({
@@ -59,7 +56,7 @@ export const serviceRouter = router({
   getArtifactById: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .query(async ({ input }) => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = await res.json();
       return resource as FhirArtifact;
     }),
