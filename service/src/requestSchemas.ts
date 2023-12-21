@@ -175,7 +175,6 @@ export const CoreSearchArgs = z
   .object({
     'composed-of': z.string(),
     context: z.string(),
-    'context-quantity': z.string(),
     'context-type': z.string(),
     'context-type-quantity': z.string(),
     'context-type-value': z.string(),
