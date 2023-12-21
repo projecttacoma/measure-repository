@@ -1,15 +1,9 @@
-FROM node:18
+FROM node:18 as base
 
-# TODO: need to mkdir? need different dir from frontend
-# Create service directory
-WORKDIR /usr/src/service
+FROM base as deps
 
-
-# COPY ../tsconfig-base.json ./
-# TODO: do we still need this? ...probably for MITRE systems
 # Run a custom ssl_setup script if available
-# We need to copy package.json here as it allows us to conditionally copy the setup script
-COPY package.json ./docker_ssl_setup.sh* ./
+COPY ./docker_ssl_setup.sh* ./
 RUN chmod +x ./docker_ssl_setup.sh; exit 0
 RUN ./docker_ssl_setup.sh; exit 0
 ENV NODE_EXTRA_CA_CERTS="/etc/ssl/certs/ca-certificates.crt"
@@ -17,14 +11,29 @@ ENV NODE_EXTRA_CA_CERTS="/etc/ssl/certs/ca-certificates.crt"
 # We're using this because root user can't run any post-install scripts
 USER node
 WORKDIR /home/node/app
-# Copy all app files
-COPY --chown=node:node . .
+
+# Copy just package and package.lock of all parts of the project for just grabbing deps
+COPY --chown=node:node package.json package-lock.json ./
+RUN mkdir app
+COPY --chown=node:node app/package.json ./app/
+RUN mkdir service
+COPY --chown=node:node service/package.json ./service/
 # Install dependencies
 RUN npm install
 
 
+FROM deps as build
 
+# copy over all source and build just app
+COPY --chown=node:node service service
+COPY --chown=node:node tsconfig-base.json .
+RUN npm run build --workspace=service
+RUN npm run db:setup --workspace=service
+
+FROM build as runner
 
 # Start app
 EXPOSE 3000
-CMD [ "npm", "start" ]
+ENV PORT 3000
+ENV HOST "0.0.0.0"
+CMD [ "npm", "start", "--workspace=service"]

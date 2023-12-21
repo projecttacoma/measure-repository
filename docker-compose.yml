@@ -5,8 +5,8 @@ services:
     depends_on:
       - mongo
     build:
-      context: ./service
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: service/Dockerfile
     environment:
       PORT: 3000
       HOST: "0.0.0.0"
@@ -15,7 +15,6 @@ services:
       - "3000:3000"
     volumes:
       - ./src:/usr/src/service/src
-    command: npm start
     stdin_open: true
     tty: true
   
@@ -34,7 +33,6 @@ services:
       MONGODB_URI: mongodb://mongo:27017/draft-repository
     ports:
       - '3001:3001'
-#    command: npm start --workspace=app
     stdin_open: true
     tty: true
 
