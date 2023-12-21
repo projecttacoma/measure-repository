@@ -64,7 +64,9 @@ export default function Home({ capabilityStatement }: InferGetServerSidePropsTyp
       <Divider my="sm" variant="dotted" />
       <Title order={2}>Service Location:</Title>
       <div style={{ marginTop: '18px', marginBottom: '18px' }}>
-        <Anchor href={`${process.env.NEXT_PUBLIC_MRS_SERVER}`}>{process.env.NEXT_PUBLIC_MRS_SERVER}</Anchor>
+        <Anchor
+          href={`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`}
+        >{`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`}</Anchor>
       </div>
       <Divider my="sm" variant="dotted" />
       <Title order={2}>Service Capabilities:</Title>
