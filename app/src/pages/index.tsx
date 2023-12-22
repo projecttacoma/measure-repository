@@ -52,11 +52,22 @@ export default function Home({ capabilityStatement }: InferGetServerSidePropsTyp
     <div>
       <Text>
         This application is an interface for a prototype implementation of a{' '}
-        <Anchor href="https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html">
+        <Anchor href="http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html">
           FHIR Measure Repository Service
         </Anchor>{' '}
-        with Measure and Library authoring capabilities.
+        with Measure and Library authoring capabilities. See the{' '}
+        <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/README.md">
+          Measure Repository README
+        </Anchor>{' '}
+        for technical details.
       </Text>
+      <Divider my="sm" variant="dotted" />
+      <Title order={2}>Service Location:</Title>
+      <div style={{ marginTop: '18px', marginBottom: '18px' }}>
+        <Anchor
+          href={`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`}
+        >{`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`}</Anchor>
+      </div>
       <Divider my="sm" variant="dotted" />
       <Title order={2}>Service Capabilities:</Title>
       <div style={{ marginTop: '18px', marginBottom: '18px' }}>{renderCapabilityTable()}</div>
