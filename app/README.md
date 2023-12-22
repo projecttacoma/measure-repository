@@ -1,6 +1,6 @@
 # Measure Repository Service App
 
-A frontend application for a prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html).
+A frontend application for a prototype implementation of a [FHIR Measure Repository Service](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html).
 
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
@@ -69,7 +69,7 @@ The Repository tab displays sets of artifacts from the FHIR Measure Repository S
 ### Viewing
 -	Measure: Resource details show the JSON as well as options to see the Narrative, Data Requirements, and Dependencies, if they exist.          
 -	Library: Resource details show the JSON as well as options to see the ELM, CQL, Narrative, Data Requirements, and Dependencies, if they exist.  
--	Drafting: Both resource views allow the user to create a draft from the artifact. This action copies the existing artifact and any children it owns to the draft Authoring space with a draft status and an incremented version to logically differentiate it from the original artifact. See the [draft operation specification](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#draft).
+-	Drafting: Both resource views allow the user to create a draft from the artifact. This action copies the existing artifact and any children it owns to the draft Authoring space with a draft status and an incremented version to logically differentiate it from the original artifact. See the [draft operation specification](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#draft).
 
 ### Reviewing
 Reviewing a resource provides options for viewing existing comments on the resource or adding a new comment. (Note: this is currently partially implemented and requires updates for viewing comments.)
@@ -92,7 +92,7 @@ The left navigation resource type selection displays sets of artifacts that are 
     - title
     - description
     - library (Measure only)
-- Releasing: Both resource types may be released from the editing page. This action publishes the draft artifact and any children it owns to the Repository space, adding them to the FHIR Measure Repository and giving them an active status. The draft artifact(s) will be removed from the Authoring space. See the [release operation specification](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release).
+- Releasing: Both resource types may be released from the editing page. This action publishes the draft artifact and any children it owns to the Repository space, adding them to the FHIR Measure Repository and giving them an active status. The draft artifact(s) will be removed from the Authoring space. See the [release operation specification](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#release).
 
 ### Reviewing
 Reviewing a resource provides options for viewing existing comments on the resource or adding a new comment.

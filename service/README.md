@@ -1,6 +1,6 @@
 # Measure Repository Service
 
-A prototype implementation of a [FHIR Measure Repository Service](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html)
+A prototype implementation of a [FHIR Measure Repository Service](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html)
 
 ## Installation
 
@@ -75,7 +75,7 @@ This server currently supports the following CRUD operations:
 
 ### Search
 
-The Measure Repository Service server supports `Library` and `Measure` resource search by the parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#shareable-measure-repository). These parameters are:
+The Measure Repository Service server supports `Library` and `Measure` resource search by the parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#shareable-measure-repository). These parameters are:
 
 - description
 - identifier
@@ -87,7 +87,7 @@ The Measure Repository Service server supports `Library` and `Measure` resource 
 
 ### Package
 
-The Measure Repository Service server supports the `Library` and `Measure` `$cqfm-package` operation with the `id` and `identifier` parameters and SHALL parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). Accepted parameters are:
+The Measure Repository Service server supports the `Library` and `Measure` `$cqfm-package` operation with the `id` and `identifier` parameters and SHALL parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#publishable-measure-repository). Accepted parameters are:
 
 - id
 - url
@@ -98,7 +98,7 @@ See the [`$cqfm-package` OperationDefinition](http://hl7.org/fhir/us/cqfmeasures
 
 ### Data Requirements
 
-The Measure Repository Service server supports the `Measure` and `Library` `$data-requirements` operations with the SHALL parameters specified in the publishable measure repository section of the [HL7 Measure Repository Docs](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository). SHALL parameters are:
+The Measure Repository Service server supports the `Measure` and `Library` `$data-requirements` operations with the SHALL parameters specified in the publishable measure repository section of the [HL7 Measure Repository Docs](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#publishable-measure-repository). SHALL parameters are:
 
 - id
 - url

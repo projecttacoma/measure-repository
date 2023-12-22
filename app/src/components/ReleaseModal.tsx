@@ -121,8 +121,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
 
   async function confirm() {
     // requirements:
-    // https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#release
-    // TODO: release recursively all children (ignore for now).
+    // http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#release
     if (resource) {
       releaseMutation.mutate({
         resourceType: resourceType,

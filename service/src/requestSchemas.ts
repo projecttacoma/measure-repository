@@ -21,7 +21,7 @@ const UNSUPPORTED_PACKAGE_ARGS = [
   'terminologyEndpoint'
 ];
 
-// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#requirements
+// Operation Definition: http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#requirements
 const UNSUPPORTED_DATA_REQ_ARGS = [
   'expression',
   'include-components',
@@ -30,7 +30,7 @@ const UNSUPPORTED_DATA_REQ_ARGS = [
   'parameters'
 ];
 
-// Operation Definition: https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#search
+// Operation Definition: http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#search
 const UNSUPPORTED_CORE_SEARCH_ARGS = [
   'composed-of',
   'context',
