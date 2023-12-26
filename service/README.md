@@ -52,6 +52,19 @@ To load a measure bundle and related library artifacts, run:
 npm run db:loadBundle <path to measure bundle>
 ```
 
+To load multiple bundles from a directory, run the same script with the desired directory path:
+
+```
+npm run db:loadBundle <path to directory>
+```
+
+### Bundle Upload Details
+Upon uploading a Measure resource, an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html) will be added to the measure's `relatedArtifact` array. The isOwned extension references the Measure's main library.
+
+Note that the measure repository service only supports Measure and Library resources. All other resource types will be ignored during bundle upload.
+
+If a resource does not have an id, it will be assigned a unique id during the upload process.
+
 ## Usage
 
 Once MongoDB is running on your machine, run the `npm start` command in this directory to start up the Measure Repository Service server at `localhost:3000`.
