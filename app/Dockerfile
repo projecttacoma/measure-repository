@@ -29,10 +29,20 @@ COPY --chown=node:node app app
 COPY --chown=node:node tsconfig-base.json .
 RUN npm run build --workspace=app
 
-FROM build as runner
+FROM node:18-slim as runner
+
+USER node
+WORKDIR /home/node/app
+
+COPY --from=build /home/node/app/app/public ./app/public
+RUN mkdir .next
+RUN chown node:node .next
+
+COPY --from=build --chown=node:node /home/node/app/app/.next/standalone ./
+COPY --from=build --chown=node:node /home/node/app/app/.next/static ./app/.next/static
 
 # Start app
 EXPOSE 3001
 ENV PORT 3001
 ENV HOSTNAME "0.0.0.0"
-CMD [ "npm", "start", "--workspace=app"]
+CMD [ "node", "app/server.js"]

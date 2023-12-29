@@ -30,10 +30,23 @@ COPY --chown=node:node tsconfig-base.json .
 RUN npm run build --workspace=service
 RUN npm run db:setup --workspace=service
 
-FROM build as runner
+RUN rm -rf node_modules
+
+RUN npm prune --omit=dev
+
+FROM node:18-slim as runner
+
+USER node
+WORKDIR /home/node/app
+RUN mkdir node_modules
+RUN chown node:node node_modules
+
+COPY --from=build --chown=node:node /home/node/app/service/dist* ./dist
+COPY --from=build --chown=node:node /home/node/app/node_modules ./node_modules
+
 
 # Start app
 EXPOSE 3000
 ENV PORT 3000
 ENV HOST "0.0.0.0"
-CMD [ "npm", "start", "--workspace=service"]
+CMD [ "node", "dist/index.js"]

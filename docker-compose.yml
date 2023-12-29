@@ -7,6 +7,7 @@ services:
     build:
       context: ./
       dockerfile: service/Dockerfile
+    image: tacoma/measure-repository-service
     environment:
       PORT: 3000
       HOST: "0.0.0.0"
@@ -18,13 +19,14 @@ services:
     stdin_open: true
     tty: true
   
-  measure-app:
+  measure-service-app:
     depends_on:
       - mongo
       - measure-service
     build:
       context: ./
       dockerfile: app/Dockerfile
+    image: tacoma/measure-repository-app
     environment:
       SERVER_HOST: "0.0.0.0"
       SERVER_PORT: 3001
@@ -40,6 +42,8 @@ services:
     image: mongo:7.0
     expose:
       - "27017:27017"
+    ports:
+      - "2701:27017"
     volumes:
       - mongo_data:/data/db
 
