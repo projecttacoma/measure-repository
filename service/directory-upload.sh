@@ -50,8 +50,7 @@ echo Using Server URL: $server and directory path: $directory_path
 
 upload_bundle() {
   echo "Uploading resources for bundle $1"
-    # TODO: update the url or even make that an input...?
-    curl_command="curl -X POST -H 'Content-Type: application/json+fhir' -d @\"$1\" $server"
+    curl_command="curl -X POST -H 'Content-Type: application/json+fhir' -d @\"$1\" $server -o /dev/null"
     # execute the curl command
     eval "$curl_command"
 
