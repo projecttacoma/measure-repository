@@ -85,6 +85,7 @@ async function insertBundleResources(entry: DetailedEntry) {
       }
     }
   } else {
+    // TODO: update this to be a warning instead? see if you are allowed to skip resources in txn upload/update status
     throw new BadRequestError(
       entry.resource
         ? `All resource entries must be of either resourceType 'Measure' or 'Library'. Received resourceType ${entry.resource?.resourceType}.`

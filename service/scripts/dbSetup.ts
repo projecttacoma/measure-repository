@@ -82,6 +82,8 @@ async function uploadBundleResources(filePath: string) {
         // Get the main library from the Measure and add the isOwned extension on that library's
         // entry in the relatedArtifacts of the measure
         if (res?.resource?.resourceType && res?.resource?.resourceType === 'Measure' && res?.resource?.library) {
+
+          // TODO: should we throw an error when the status is not 'active'? or coerce to 'active'?
           // get the main library of the measure from the library property and the version
           const mainLibrary = res.resource.library?.[0];
           const mainLibraryVersion = res.resource.version;
