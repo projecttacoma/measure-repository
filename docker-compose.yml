@@ -9,13 +9,9 @@ services:
       dockerfile: service/Dockerfile
     image: tacoma/measure-repository-service
     environment:
-      PORT: 3000
-      HOST: "0.0.0.0"
       DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
     ports:
       - "3000:3000"
-    volumes:
-      - ./src:/usr/src/service/src
     stdin_open: true
     tty: true
   
@@ -28,8 +24,6 @@ services:
       dockerfile: app/Dockerfile
     image: tacoma/measure-repository-app
     environment:
-      SERVER_HOST: "0.0.0.0"
-      SERVER_PORT: 3001
       NEXT_PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
       MRS_SERVER: http://measure-service:3000/4_0_1
       MONGODB_URI: mongodb://mongo:27017/draft-repository
@@ -42,8 +36,6 @@ services:
     image: mongo:7.0
     expose:
       - "27017:27017"
-    ports:
-      - "2701:27017"
     volumes:
       - mongo_data:/data/db
 

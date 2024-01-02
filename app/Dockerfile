@@ -44,5 +44,5 @@ COPY --from=build --chown=node:node /home/node/app/app/.next/static ./app/.next/
 # Start app
 EXPOSE 3001
 ENV PORT 3001
-ENV HOSTNAME "0.0.0.0"
+ENV HOST "0.0.0.0"
 CMD [ "node", "app/server.js"]
