@@ -28,7 +28,6 @@ FROM deps as build
 COPY --chown=node:node service service
 COPY --chown=node:node tsconfig-base.json .
 RUN npm run build --workspace=service
-RUN npm run db:setup --workspace=service
 
 RUN rm -rf node_modules
 

@@ -6,7 +6,10 @@ services:
       - mongo
     build:
       context: ./
-      dockerfile: service/Dockerfile
+      dockerfile: service.Dockerfile
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64"
     image: tacoma/measure-repository-service
     environment:
       DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
@@ -21,7 +24,10 @@ services:
       - measure-service
     build:
       context: ./
-      dockerfile: app/Dockerfile
+      dockerfile: app.Dockerfile
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64"
     image: tacoma/measure-repository-app
     environment:
       NEXT_PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
