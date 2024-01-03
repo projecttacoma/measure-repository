@@ -21,7 +21,7 @@ interface Parameter {
  * SearchComponent is a component for displaying search inputs for a resource
  */
 export default function SearchComponent({ resourceType }: SearchComponentProps) {
-  const publicUrl = trpc.service.getPublicUrl.useQuery()
+  const publicUrl = trpc.service.getPublicUrl.useQuery();
 
   const emptyInputs = ArtifactSearchParams[resourceType].map(p => ({
     name: p.param,
