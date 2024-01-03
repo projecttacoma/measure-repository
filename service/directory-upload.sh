@@ -12,7 +12,7 @@ Options:
         Provides directory path to parse for upload.
 "
 
-while getopts ':h:s:d:' option;
+while getopts ':hs:d:' option;
 do
   case "$option" in
     h)

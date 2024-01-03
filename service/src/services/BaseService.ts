@@ -63,6 +63,12 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
  */
 async function insertBundleResources(entry: DetailedEntry) {
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
+    if (entry.resource.status != 'active') {
+      entry.resource.status = 'active';
+      // TODO: should we update status text with coercion information? -> warning operation outcome?
+      console.warn(`Resource ${entry.resource.resourceType}/${entry.resource.id} status has been coerced to 'active'.`);
+    }
+
     if (entry.isPost) {
       entry.resource.id = uuidv4();
       const { id } = await createResource(entry.resource, entry.resource.resourceType);
@@ -85,7 +91,6 @@ async function insertBundleResources(entry: DetailedEntry) {
       }
     }
   } else {
-    // TODO: update this to be a warning instead? see if you are allowed to skip resources in txn upload/update status
     throw new BadRequestError(
       entry.resource
         ? `All resource entries must be of either resourceType 'Measure' or 'Library'. Received resourceType ${entry.resource?.resourceType}.`
