@@ -8,8 +8,8 @@ Options:
         Displays help menu.
     -s [server baseUrl]
         Specifies the base URL of the FHIR server to access.
-    -d
-        Provides directory path to parse for upload.
+    -d [path]
+        Provides directory or file path to parse for upload.
 "
 
 while getopts ':hs:d:' option;
