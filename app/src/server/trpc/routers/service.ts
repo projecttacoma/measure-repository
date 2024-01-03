@@ -11,6 +11,10 @@ import { getChildren } from '@/util/serviceUtils';
  * Endpoints dealing with outgoing calls to the central measure repository service
  */
 export const serviceRouter = router({
+  getPublicUrl: publicProcedure.query(async () => {
+    return process.env.PUBLIC_MRS_SERVER;
+  }),
+
   getArtifactCounts: publicProcedure.query(async () => {
     const [measureBundle, libraryBundle] = await Promise.all([
       fetch(`${process.env.MRS_SERVER}/Measure`),

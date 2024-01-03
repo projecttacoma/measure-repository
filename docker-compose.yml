@@ -30,7 +30,7 @@ services:
         - "linux/arm64"
     image: tacoma/measure-repository-app
     environment:
-      NEXT_PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
+      PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
       MRS_SERVER: http://measure-service:3000/4_0_1
       MONGODB_URI: mongodb://mongo:27017/draft-repository
     ports:

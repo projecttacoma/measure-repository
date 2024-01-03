@@ -15,6 +15,8 @@ export interface ReleaseModalProps {
 export default function ReleaseModal({ open = true, onClose, id, resourceType }: ReleaseModalProps) {
   const router = useRouter();
 
+  const publicUrl = trpc.service.getPublicUrl.useQuery()
+
   const { data: resource } = trpc.draft.getDraftById.useQuery({
     id: id,
     resourceType: resourceType
