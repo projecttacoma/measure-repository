@@ -68,12 +68,65 @@ npm run check:all
 To start the app and repository service in parallel, run 
 
 ```bash
-docker compose up
+docker compose up --build
 ```
+
+#### Deploying/Running with Docker Prebuilt Images
+
+If you wish to run pre-built images from Docker Hub. Create a docker-compose.yml in your environment with the content below:
+
+```
+version: '3'
+
+services:
+  measure-service:
+    depends_on:
+      - mongo
+    image: tacoma/measure-repository-service
+    environment:
+      DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+  measure-service-app:
+    depends_on:
+      - mongo
+      - measure-service
+    image: tacoma/measure-repository-app
+    environment:
+      # Change this for public location of measure-service
+      PUBLIC_MRS_SERVER: https://abacus-test.example.org/mrs/4_0_1
+      MRS_SERVER: http://measure-service:3000/4_0_1
+      MONGODB_URI: mongodb://mongo:27017/draft-repository
+    ports:
+      - '3001:3001'
+    stdin_open: true
+    tty: true
+
+  mongo:
+    image: mongo:7.0
+    expose:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+```
+
+Make sure to change the `PUBLIC_MRS_SERVER` environment variable in this file to match the location of where the FHIR server application will be accessible, this will be `http://localhost:3000/4_0_1` when connecting directly to the container running locally.
+
+When configuring an application proxy for this, make sure the `app` is routed to `/mrs` instead of the root of the server.
+
+#### Building new Docker Images
+
+If you have permission to push to the tacoma organization on Docker Hub. Simply run `docker-build.sh` to build a multi-platform image and push to docker hub tagged as `latest`.
 
 ## License
 
-Copyright 2022-2023 The MITRE Corporation
+Copyright 2022-2024 The MITRE Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
