@@ -63,7 +63,7 @@ Upon uploading a Measure resource, an [isOwned extension](https://build.fhir.org
 
 Note that the measure repository service only supports Measure and Library resources. All other resource types will be ignored during bundle upload.
 
-If a resource does not have an id, it will be assigned a unique id during the upload process.
+If a resource does not have an id, it will be assigned a unique id during the upload process. If a resource is not in `active` status, it will be coerced to `active`.
 
 ### Transaction Bundle Upload
 The server supports transaction bundle uploads via the `:/base_version/` endpoint (ex. `/4_0_1/`).
@@ -74,6 +74,7 @@ The server supports transaction bundle uploads via the `:/base_version/` endpoin
 
 For ease of use, the `service/directory-upload.sh` script can be used to run the transaction bundle upload on an input directory. Details are as follows:
 
+- The `-h` option can be used to view usage.
 - A server URL must be supplied via the `-s` option.
 - A directory path must be supplied via the `-d` option.
 - The script can support nested directories (one level deep).
