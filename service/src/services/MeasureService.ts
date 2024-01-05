@@ -68,6 +68,10 @@ export class MeasureService implements Service<fhir4.Measure> {
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Measure');
     resource['id'] = uuidv4();
+    if (resource.status != 'active') {
+      resource.status = 'active';
+      logger.warn(`Resource ${resource.id} has been coerced to active`);
+    }
     return createResource(resource, 'Measure');
   }
 
@@ -85,6 +89,10 @@ export class MeasureService implements Service<fhir4.Measure> {
     // Throw error if the id arg in the url does not match the id in the request body
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
+    }
+    if (resource.status != 'active') {
+      resource.status = 'active';
+      logger.warn(`Resource ${resource.id} has been coerced to active`);
     }
     return updateResource(args.id, resource, 'Measure');
   }
