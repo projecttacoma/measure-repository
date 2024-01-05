@@ -69,7 +69,7 @@ export const serviceRouter = router({
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {
       // fetch the artifact from the measure repository using its resource type and id
-      const draftRes = await fetch(`${process.env.PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const draftRes = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const draftJson = (await draftRes.json()) as FhirArtifact;
 
       // recursively get any child artifacts from the artifact if they exist
@@ -89,7 +89,7 @@ export const serviceRouter = router({
       // search the measure repository for an artifact of the same resource type, url, and version
       // assume that artifacts will have unique urls and versions, so return the first entry in the bundle
       const artifactBundle = await fetch(
-        `${process.env.PUBLIC_MRS_SERVER}/${input.resourceType}?` +
+        `${process.env.MRS_SERVER}/${input.resourceType}?` +
           new URLSearchParams({ url: input.url, version: input.version })
       ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
 
@@ -127,7 +127,7 @@ export const serviceRouter = router({
       }
 
       // release the parent draft artifact to the measure repository through a PUT operation to the server by id
-      const res = await fetch(`${process.env.PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json+fhir'
@@ -162,7 +162,7 @@ export const serviceRouter = router({
       }
 
       // release the child draft artifact to the measure repository through a PUT operation to the server by id
-      const res = await fetch(`${process.env.PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes.id}`, {
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${draftRes.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json+fhir'
