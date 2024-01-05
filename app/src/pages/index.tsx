@@ -2,7 +2,10 @@ import { Anchor, Button, Center, Divider, Group, Table, Text, Title } from '@man
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Link from 'next/link';
 
-export default function Home({ capabilityStatement }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Home({
+  capabilityStatement,
+  serviceUri
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const renderCapabilityTable = () => {
     return capabilityStatement ? (
       <Table>
@@ -64,9 +67,7 @@ export default function Home({ capabilityStatement }: InferGetServerSidePropsTyp
       <Divider my="sm" variant="dotted" />
       <Title order={2}>Service Location:</Title>
       <div style={{ marginTop: '18px', marginBottom: '18px' }}>
-        <Anchor
-          href={`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`}
-        >{`${process.env.NEXT_PUBLIC_MRS_SERVER}/metadata`}</Anchor>
+        <Anchor href={`${serviceUri}/metadata`}>{`${serviceUri}/metadata`}</Anchor>
       </div>
       <Divider my="sm" variant="dotted" />
       <Title order={2}>Service Capabilities:</Title>
@@ -84,11 +85,12 @@ export default function Home({ capabilityStatement }: InferGetServerSidePropsTyp
 
 export const getServerSideProps: GetServerSideProps<{
   capabilityStatement: fhir4.CapabilityStatement | null;
+  serviceUri: string | undefined;
 }> = async () => {
   // Fetch CapabilityStatement
   const res = await fetch(`${process.env.MRS_SERVER}/metadata`);
   const capabilityStatement = res.status === 200 ? ((await res.json()) as fhir4.CapabilityStatement) : null;
 
   // Pass to the page via props
-  return { props: { capabilityStatement } };
+  return { props: { capabilityStatement, serviceUri: process.env.PUBLIC_MRS_SERVER } };
 };
