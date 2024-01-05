@@ -59,7 +59,7 @@ npm run db:loadBundle <path to directory>
 ```
 
 ### Bundle Upload Details
-Upon uploading a Measure resource, an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html) will be added to the measure's `relatedArtifact` array. The isOwned extension references the Measure's main library.
+Upon uploading a Measure resource, the Measure's main library is added to the `relatedArtifact` array with an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html).
 
 Note that the measure repository service only supports Measure and Library resources. All other resource types will be ignored during bundle upload.
 
@@ -69,7 +69,7 @@ If a resource does not have an id, it will be assigned a unique id during the up
 The server supports transaction bundle uploads via the `:/base_version/` endpoint (ex. `/4_0_1/`).
 
 - The request method must be `POST`.
-- The request body must be a FHIR bundle of type "transaction."
+- The request body must be a FHIR bundle of type `transaction`.
 - The entries SHALL be of resource type "Measure" or "Library." An error will be thrown otherwise.
 
 For ease of use, the `service/directory-upload.sh` script can be used to run the transaction bundle upload on an input directory. Details are as follows:

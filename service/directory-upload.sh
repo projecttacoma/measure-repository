@@ -54,7 +54,7 @@ upload_bundle() {
     # execute the curl command
     eval "$curl_command"
 
-    echo "Bundle successfully uploaded."
+    echo "Finished bundle upload."
     echo ""
 }
 
