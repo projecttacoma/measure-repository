@@ -52,6 +52,33 @@ To load a measure bundle and related library artifacts, run:
 npm run db:loadBundle <path to measure bundle>
 ```
 
+To load multiple bundles from a directory, run the same script with the desired directory path:
+
+```
+npm run db:loadBundle <path to directory>
+```
+
+### Bundle Upload Details
+Upon uploading a Measure resource, the Measure's main library is added to the `relatedArtifact` array with an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html).
+
+Note that the measure repository service only supports Measure and Library resources. All other resource types will be ignored during bundle upload.
+
+If a resource does not have an id, it will be assigned a unique id during the upload process. If a resource is not in `active` status, it will be coerced to `active`.
+
+### Transaction Bundle Upload
+The server supports transaction bundle uploads via the `:/base_version/` endpoint (ex. `/4_0_1/`).
+
+- The request method must be `POST`.
+- The request body must be a FHIR bundle of type `transaction`.
+- The entries SHALL be of resource type "Measure" or "Library." An error will be thrown otherwise.
+
+For ease of use, the `service/directory-upload.sh` script can be used to run the transaction bundle upload on an input directory. Details are as follows:
+
+- The `-h` option can be used to view usage.
+- A server URL must be supplied via the `-s` option.
+- A directory path must be supplied via the `-d` option.
+- The script can support nested directories (one level deep).
+
 ## Usage
 
 Once MongoDB is running on your machine, run the `npm start` command in this directory to start up the Measure Repository Service server at `localhost:3000`.

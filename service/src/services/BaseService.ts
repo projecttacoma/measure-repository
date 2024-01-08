@@ -63,6 +63,21 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
  */
 async function insertBundleResources(entry: DetailedEntry) {
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
+    if (entry.resource.status != 'active') {
+      entry.resource.status = 'active';
+      entry.outcome = {
+        resourceType: 'OperationOutcome',
+        issue: [
+          {
+            severity: 'warning',
+            code: 'value', // code from: https://build.fhir.org/valueset-issue-type.html
+            details: { text: 'Artifact status has been coerced to active to meet server specifications' },
+            expression: [`${entry.resource.resourceType}.status`]
+          }
+        ]
+      };
+    }
+
     if (entry.isPost) {
       entry.resource.id = uuidv4();
       const { id } = await createResource(entry.resource, entry.resource.resourceType);
@@ -116,6 +131,8 @@ function makeTransactionResponseBundle(
     if (result.status === 200 || result.status === 201) {
       entry.response.location = `${baseVersion}/${result.resource?.resourceType}/${result.resource?.id}`;
     }
+    entry.response.outcome = result.outcome;
+
     entries.push(entry);
   });
 

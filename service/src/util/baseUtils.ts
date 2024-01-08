@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { loggers } from '@projecttacoma/node-fhir-server-core';
+import { OperationOutcome } from 'fhir/r4';
 
 const logger = loggers.get('default');
 
@@ -10,6 +11,7 @@ export type DetailedEntry = fhir4.BundleEntry & {
   status?: number;
   statusText?: string;
   data?: string;
+  outcome?: OperationOutcome;
 };
 
 /**

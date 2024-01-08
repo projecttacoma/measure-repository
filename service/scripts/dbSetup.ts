@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -33,11 +34,40 @@ async function deleteCollections() {
 }
 
 /*
- * Loads all measure or library resources found in the bundle located at param filePath
+ * Gathers necessary file path(s) for bundle(s) to upload, then uploads all measure and
+ * library resources found in the bundle(s).
  */
-async function loadBundle(filePath: string) {
+async function loadBundle(fileOrDirectoryPath: string) {
   await Connection.connect(DB_URL);
   console.log(`Connected to ${DB_URL}`);
+  const status = fs.statSync(fileOrDirectoryPath);
+  if (status.isDirectory()) {
+    const filePaths: string[] = [];
+    fs.readdirSync(fileOrDirectoryPath, { withFileTypes: true }).forEach(ent => {
+      // if this item is a directory, look for .json files under it
+      if (ent.isDirectory()) {
+        fs.readdirSync(path.join(fileOrDirectoryPath, ent.name), { withFileTypes: true }).forEach(subEnt => {
+          if (!subEnt.isDirectory() && subEnt.name.endsWith('.json')) {
+            filePaths.push(path.join(fileOrDirectoryPath, ent.name, subEnt.name));
+          }
+        });
+      } else if (ent.name.endsWith('.json')) {
+        filePaths.push(path.join(fileOrDirectoryPath, ent.name));
+      }
+    });
+
+    for (const filePath of filePaths) {
+      await uploadBundleResources(filePath);
+    }
+  } else {
+    await uploadBundleResources(fileOrDirectoryPath);
+  }
+}
+
+/*
+ * Loads all measure or library resources found in the bundle located at param filePath
+ */
+async function uploadBundleResources(filePath: string) {
   console.log(`Loading bundle from path ${filePath}`);
 
   const data = fs.readFileSync(filePath, 'utf8');
@@ -105,6 +135,12 @@ async function loadBundle(filePath: string) {
             if (!res.resource.id) {
               res.resource.id = uuidv4();
             }
+            if (res.resource.status != 'active') {
+              res.resource.status = 'active';
+              console.warn(
+                `Resource ${res?.resource?.resourceType}/${res.resource.id} status has been coerced to 'active'.`
+              );
+            }
             const collection = Connection.db.collection<fhir4.FhirResource>(res.resource.resourceType);
             console.log(`Inserting ${res?.resource?.resourceType}/${res.resource.id} into database`);
             await collection.insertOne(res.resource);
@@ -129,7 +165,7 @@ async function loadBundle(filePath: string) {
       });
       await Promise.all(uploads);
       console.log(`${resourcesUploaded} resources uploaded.`);
-      console.log(`${notUploaded} non-Measure/non-Library resources skipped.`);
+      console.log(`${notUploaded} non-Measure/non-Library resources skipped.\n`);
     } else {
       console.error('Unable to identify bundle entries.');
     }
