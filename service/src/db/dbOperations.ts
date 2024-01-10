@@ -21,7 +21,20 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
 ) {
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
+  query._summary = { $exists: false };
   return collection.find<T>(query, { projection: { _id: 0, _dataRequirements: 0 } }).toArray();
+}
+
+/**
+ *
+ * searches the database for all resources of the given type that match the given query
+ * but only returns the number of matches
+ */
+export async function findResourceCountWithQuery(query: Filter<any>, resourceType: FhirResourceType) {
+  const collection = Connection.db.collection(resourceType);
+  query._dataRequirements = { $exists: false };
+  query._summary = { $exists: false };
+  return collection.countDocuments(query);
 }
 
 /**

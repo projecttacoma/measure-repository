@@ -3,12 +3,13 @@ import {
   createResource,
   findDataRequirementsWithQuery,
   findResourceById,
+  findResourceCountWithQuery,
   findResourcesWithQuery,
   updateResource
 } from '../db/dbOperations';
 import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
 import { Service } from '../types/service';
-import { createLibraryPackageBundle, createSearchsetBundle } from '../util/bundleUtils';
+import { createLibraryPackageBundle, createSearchsetBundle, createSummarySearchsetBundle } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import {
@@ -39,8 +40,16 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.debug(`Request Query: ${JSON.stringify(query, null, 2)}`);
     const parsedQuery = parseRequestSchema(query, LibrarySearchArgs);
     const mongoQuery = getMongoQueryFromRequest(parsedQuery);
-    const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
-    return createSearchsetBundle(entries);
+
+    // if the _summary parameter with a value of count is included, then
+    // return a searchset bundle that excludes the entries
+    if (parsedQuery._summary && parsedQuery._summary === 'count') {
+      const count = await findResourceCountWithQuery(mongoQuery, 'Library');
+      return createSummarySearchsetBundle<fhir4.Library>(count);
+    } else {
+      const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
+      return createSearchsetBundle(entries);
+    }
   }
 
   /**

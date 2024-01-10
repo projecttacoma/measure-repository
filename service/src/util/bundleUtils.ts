@@ -27,6 +27,20 @@ export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]
 }
 
 /**
+ *
+ * Takes in a number of FHIR resources and creates a FHIR searchset Bundle without entries
+ */
+export function createSummarySearchsetBundle<T extends fhir4.FhirResource>(count: number): fhir4.Bundle<T> {
+  return {
+    resourceType: 'Bundle',
+    meta: { lastUpdated: new Date().toISOString() },
+    id: v4(),
+    type: 'searchset',
+    total: count
+  };
+}
+
+/**
  * Takes in a mongo query, finds a Measure based on the query and all dependent
  * Library resources and bundles them together with the Measure in a collection bundle
  */

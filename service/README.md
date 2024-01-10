@@ -59,6 +59,7 @@ npm run db:loadBundle <path to directory>
 ```
 
 ### Bundle Upload Details
+
 Upon uploading a Measure resource, the Measure's main library is added to the `relatedArtifact` array with an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html).
 
 Note that the measure repository service only supports Measure and Library resources. All other resource types will be ignored during bundle upload.
@@ -66,6 +67,7 @@ Note that the measure repository service only supports Measure and Library resou
 If a resource does not have an id, it will be assigned a unique id during the upload process. If a resource is not in `active` status, it will be coerced to `active`.
 
 ### Transaction Bundle Upload
+
 The server supports transaction bundle uploads via the `:/base_version/` endpoint (ex. `/4_0_1/`).
 
 - The request method must be `POST`.
@@ -111,6 +113,10 @@ The Measure Repository Service server supports `Library` and `Measure` resource 
 - title
 - url
 - version (can appear only in combination with a url search)
+
+The Measure Repository Service server also supports the `_summary` search parameter specified in the [HL7 FHIR Search Docs](https://www.hl7.org/fhir/search.html#_summary). The server currently supports the following `_summary` parameter values:
+
+- count
 
 ### Package
 
