@@ -18,8 +18,9 @@ services:
       - measure-service
     image: tacoma/measure-repository-app
     environment:
-      # Change this for public location of measure-service
-      PUBLIC_MRS_SERVER: https://abacus-test.example.org/mrs/4_0_1
+      # Change this for public location of measure-service this should be the FQDN and location of where the
+      # measure-service container is made public to users with `4_0_1` appended.
+      PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
       MRS_SERVER: http://measure-service:3000/4_0_1
       MONGODB_URI: mongodb://mongo:27017/draft-repository
     ports:

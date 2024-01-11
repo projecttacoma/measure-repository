@@ -73,7 +73,7 @@ docker compose up --build
 
 #### Deploying/Running with Docker Prebuilt Images
 
-If you wish to run pre-built images from [Docker Hub](https://hub.docker.com/u/tacoma), create a `docker-compose.yml` in your environment with the content below. This file is also found at docker-compose.example.yml.
+If you wish to run pre-built images from [Docker Hub](https://hub.docker.com/u/tacoma), create a `docker-compose.yml` in your environment with the content below. This file is also found at `docker-compose.example.yml`.
 
 ```
 version: '3'
@@ -96,8 +96,9 @@ services:
       - measure-service
     image: tacoma/measure-repository-app
     environment:
-      # Change this for public location of measure-service
-      PUBLIC_MRS_SERVER: https://abacus-test.example.org/mrs/4_0_1
+      # Change this for public location of measure-service this should be the FQDN and location of where the
+      # measure-service container is made public to users with `4_0_1` appended. ex. https://abacus.example.com/mrs/4_0_1
+      PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
       MRS_SERVER: http://measure-service:3000/4_0_1
       MONGODB_URI: mongodb://mongo:27017/draft-repository
     ports:
