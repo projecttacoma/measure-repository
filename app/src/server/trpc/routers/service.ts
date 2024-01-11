@@ -17,8 +17,8 @@ export const serviceRouter = router({
 
   getArtifactCounts: publicProcedure.query(async () => {
     const [measureBundle, libraryBundle] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Measure?_summary=count`),
-      fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Library?_summary=count`)
+      fetch(`${process.env.MRS_SERVER}/Measure?_summary=count`),
+      fetch(`${process.env.MRS_SERVER}/Library?_summary=count`)
     ]).then(([resMeasure, resLibrary]) =>
       Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
     );
