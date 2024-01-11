@@ -5,3 +5,5 @@ cache
 dist
 ecqm-content-r4-2021
 *.env
+*.env.*
+docker_ssl_setup.sh

@@ -60,7 +60,7 @@ export const getServerSideProps: GetServerSideProps<{
   const checkedResourceType = resourceType as ArtifactResourceType;
 
   const url = context.resolvedUrl.split('search-result')[1];
-  const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}${url}`);
+  const res = await fetch(`${process.env.MRS_SERVER}/${resourceType}${url}`);
   const json = await res.json();
 
   if (json.resourceType === 'OperationOutcome') {

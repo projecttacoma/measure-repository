@@ -24,3 +24,8 @@ Connection.connect(dbUrl)
     logger.error(e.message);
     process.exit(1);
   });
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down.');
+  process.exit(0);
+});

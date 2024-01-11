@@ -17,9 +17,10 @@
     "lint:fix": "eslint \"./src/**/*.{js,ts}\" --fix",
     "prettier": "prettier --check \"./src/**/*.{js,ts}\"",
     "prettier:fix": "prettier --write \"src/**/*.{js,ts}\"",
-    "start": "ts-node ./src/index.ts",
-    "start:watch": "nodemon ./src/index.ts",
-    "start:clean": "npm run db:reset && npm run start",
+    "dev": "ts-node ./src/index.ts",
+    "dev:watch": "nodemon ./src/index.ts",
+    "dev:clean": "npm run db:reset && npm run dev",
+    "start": "node ./dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch"
   },

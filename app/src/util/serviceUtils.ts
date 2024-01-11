@@ -36,7 +36,7 @@ export async function getChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
 
       // search for the related artifact in the published measure repository
       const artifactBundle = await fetch(
-        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}?` + new URLSearchParams({ url: url, version: version })
+        `${process.env.MRS_SERVER}/${resourceType}?` + new URLSearchParams({ url: url, version: version })
       ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
 
       // if the related artifact exists in the published measure repository, then we

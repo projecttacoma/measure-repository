@@ -41,8 +41,7 @@ To run just the frontend from the root directory:
 npm run start:app
 ```
 
-You can open the Measure Repository Service frontend application by navigating to [http://localhost:3001](http://localhost:3001) in your browser.
-
+You can open the Measure Repository Service frontend application by navigating to [http://localhost:3001/mrs](http://localhost:3001/mrs) in your browser.
 
 # Frontend Features
 
@@ -59,9 +58,11 @@ Within these tabs, the left panel navigation allows for selecting artifact types
 <img src="./static/navigation.png" alt="Screenshot of navigation" width="250"/>
 
 ## Landing Page
+
 The landing page can be accessed on first load or by clicking the Measure Repository home button in the top left corner. This page links to resources to learn more about the Measure Repository and shows existing FHIR service capabilities.
 
 ## Repository Tab
+
 The Repository tab displays sets of artifacts from the FHIR Measure Repository Service. Options allow for viewing resource details or reviewing the resource.
 
 <img src="./static/repository-options.png" alt="Screenshot of repository options" width="75"/>
@@ -72,10 +73,12 @@ The Repository tab displays sets of artifacts from the FHIR Measure Repository S
 -	Drafting: Both resource views allow the user to create a draft from the artifact. This action copies the existing artifact and any children it owns to the draft Authoring space with a draft status and an incremented version to logically differentiate it from the original artifact. See the [draft operation specification](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#draft).
 
 ### Reviewing
+
 Reviewing a resource provides options for viewing existing comments on the resource or adding a new comment. (Note: this is currently partially implemented and requires updates for viewing comments.)
 
 ## Authoring Tab
-The Authoring tab gives options for creating a new draft artifact from scratch or starting from a copy of an existing artifact from the FHIR Measure Repository. 
+
+The Authoring tab gives options for creating a new draft artifact from scratch or starting from a copy of an existing artifact from the FHIR Measure Repository.
 
 <img src="./static/draft-artifact.png" alt="Screenshot of create draft artifact" width="350"/>
 
@@ -95,7 +98,9 @@ The left navigation resource type selection displays sets of artifacts that are 
 - Releasing: Both resource types may be released from the editing page. This action publishes the draft artifact and any children it owns to the Repository space, adding them to the FHIR Measure Repository and giving them an active status. The draft artifact(s) will be removed from the Authoring space. See the [release operation specification](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#release).
 
 ### Reviewing
+
 Reviewing a resource provides options for viewing existing comments on the resource or adding a new comment.
 
 ### Deleting
+
 Deleting an artifact will permanently remove it from the draft database.

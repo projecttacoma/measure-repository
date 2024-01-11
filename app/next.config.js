@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true
+  reactStrictMode: true,
+  basePath: '/mrs',
+  output: 'standalone'
 };
 
 module.exports = nextConfig;

@@ -11,10 +11,14 @@ import { getChildren } from '@/util/serviceUtils';
  * Endpoints dealing with outgoing calls to the central measure repository service
  */
 export const serviceRouter = router({
+  getPublicUrl: publicProcedure.query(async () => {
+    return process.env.PUBLIC_MRS_SERVER;
+  }),
+
   getArtifactCounts: publicProcedure.query(async () => {
     const [measureBundle, libraryBundle] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Measure`),
-      fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/Library`)
+      fetch(`${process.env.MRS_SERVER}/Measure`),
+      fetch(`${process.env.MRS_SERVER}/Library`)
     ]).then(([resMeasure, resLibrary]) =>
       Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
     );
@@ -28,10 +32,9 @@ export const serviceRouter = router({
   getArtifactsByType: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']) }))
     .query(async ({ input }) => {
-      const artifactBundle = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}`).then(
+      const artifactBundle = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}`).then(
         resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
       );
-
       const artifactList = artifactBundle.entry?.map(entry => ({
         label: entry.resource?.name || entry.resource?.id || '',
         value: entry.resource?.id || `${entry.resource?.resourceType}` || ''
@@ -43,9 +46,7 @@ export const serviceRouter = router({
   getDataRequirements: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .query(async ({ input }) => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`
-      );
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$data-requirements`);
       const resource = await res.json();
       if (resource?.resourceType === 'OperationOutcome') {
         throw new TRPCError({
@@ -59,7 +60,7 @@ export const serviceRouter = router({
   getArtifactById: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .query(async ({ input }) => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = await res.json();
       return resource as FhirArtifact;
     }),
@@ -68,7 +69,7 @@ export const serviceRouter = router({
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {
       // fetch the artifact from the measure repository using its resource type and id
-      const draftRes = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const draftRes = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const draftJson = (await draftRes.json()) as FhirArtifact;
 
       // recursively get any child artifacts from the artifact if they exist
@@ -88,7 +89,7 @@ export const serviceRouter = router({
       // search the measure repository for an artifact of the same resource type, url, and version
       // assume that artifacts will have unique urls and versions, so return the first entry in the bundle
       const artifactBundle = await fetch(
-        `${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}?` +
+        `${process.env.MRS_SERVER}/${input.resourceType}?` +
           new URLSearchParams({ url: input.url, version: input.version })
       ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
 
@@ -126,7 +127,7 @@ export const serviceRouter = router({
       }
 
       // release the parent draft artifact to the measure repository through a PUT operation to the server by id
-      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json+fhir'
@@ -161,7 +162,7 @@ export const serviceRouter = router({
       }
 
       // release the child draft artifact to the measure repository through a PUT operation to the server by id
-      const res = await fetch(`${process.env.NEXT_PUBLIC_MRS_SERVER}/${input.resourceType}/${draftRes.id}`, {
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${draftRes.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json+fhir'

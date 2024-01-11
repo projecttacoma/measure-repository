@@ -4,6 +4,7 @@ import { DateInput } from '@mantine/dates';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArtifactSearchParams } from '@/util/searchParams';
+import { trpc } from '@/util/trpc';
 
 interface SearchComponentProps {
   resourceType: ArtifactResourceType;
@@ -20,6 +21,8 @@ interface Parameter {
  * SearchComponent is a component for displaying search inputs for a resource
  */
 export default function SearchComponent({ resourceType }: SearchComponentProps) {
+  const publicUrl = trpc.service.getPublicUrl.useQuery();
+
   const emptyInputs = ArtifactSearchParams[resourceType].map(p => ({
     name: p.param,
     description: p.description,
@@ -123,7 +126,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
         <Text>Request Preview</Text>
         <div style={{ overflowWrap: 'anywhere' }}>
           <Text size="xl" color="gray" weight={700}>
-            {`${process.env.NEXT_PUBLIC_MRS_SERVER}/${resourceType}` + requestPreview()}{' '}
+            {`${publicUrl.data ? publicUrl.data : ''}/${resourceType}` + requestPreview()}{' '}
           </Text>
         </div>
         <Link href={`/${resourceType}/search-result${requestPreview()}`}>
