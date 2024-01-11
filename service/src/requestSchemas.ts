@@ -194,7 +194,9 @@ export const CoreSearchArgs = z
     title: z.string(),
     topic: z.string(),
     url: z.string().url(),
-    version: z.string()
+    version: z.string(),
+    // adding _summary for count (https://www.hl7.org/fhir/search.html#_summary)
+    _summary: z.literal('count')
   })
   .partial()
   .strict();
