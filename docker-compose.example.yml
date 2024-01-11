@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  measure-service:
+    depends_on:
+      - mongo
+    image: tacoma/measure-repository-service
+    environment:
+      DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+  measure-service-app:
+    depends_on:
+      - mongo
+      - measure-service
+    image: tacoma/measure-repository-app
+    environment:
+      # Change this for public location of measure-service
+      PUBLIC_MRS_SERVER: https://abacus-test.example.org/mrs/4_0_1
+      MRS_SERVER: http://measure-service:3000/4_0_1
+      MONGODB_URI: mongodb://mongo:27017/draft-repository
+    ports:
+      - '3001:3001'
+    stdin_open: true
+    tty: true
+
+  mongo:
+    image: mongo:7.0
+    expose:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

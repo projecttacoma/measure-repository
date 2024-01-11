@@ -44,7 +44,7 @@ To start the app and repository service in parallel:
 npm run start:all
 ```
 
-This starts up the Measure Repository service at `localhost:3000` and you can open the Measure Repository Service frontend application by navigating to http://localhost:3001 in your browser.
+This starts up the Measure Repository service at `localhost:3000` and you can open the Measure Repository Service frontend application by navigating to http://localhost:3001/mrs in your browser.
 
 To start only the frontend:
 
@@ -73,7 +73,7 @@ docker compose up --build
 
 #### Deploying/Running with Docker Prebuilt Images
 
-If you wish to run pre-built images from Docker Hub. Create a docker-compose.yml in your environment with the content below:
+If you wish to run pre-built images from [Docker Hub](https://hub.docker.com/u/tacoma), create a `docker-compose.yml` in your environment with the content below. This file is also found at docker-compose.example.yml.
 
 ```
 version: '3'
@@ -122,7 +122,7 @@ When configuring an application proxy for this, make sure the `app` is routed to
 
 #### Building new Docker Images
 
-If you have permission to push to the tacoma organization on Docker Hub. Simply run `docker-build.sh` to build a multi-platform image and push to docker hub tagged as `latest`.
+If you have permission to push to the tacoma organization on Docker Hub, simply run `docker-build.sh` to build a multi-platform image and push to docker hub tagged as `latest`.
 
 ## License
 
