@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import { DetailedEntry, addIsOwnedExtension } from '../src/util/baseUtils';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -74,80 +75,38 @@ async function uploadBundleResources(filePath: string) {
   if (data) {
     console.log(`Uploading ${filePath.split('/').slice(-1)}...`);
     const bundle: fhir4.Bundle = JSON.parse(data);
+    const entries = bundle.entry as DetailedEntry[];
     // retrieve each resource and insert into database
-    if (bundle.entry) {
+    if (entries) {
       let resourcesUploaded = 0;
       let notUploaded = 0;
-      const uploads = bundle.entry.map(async res => {
-        // Get the main library from the Measure and add the isOwned extension on that library's
-        // entry in the relatedArtifacts of the measure
-        if (res?.resource?.resourceType && res?.resource?.resourceType === 'Measure' && res?.resource?.library) {
-          // get the main library of the measure from the library property and the version
-          const mainLibrary = res.resource.library?.[0];
-          const mainLibraryVersion = res.resource.version;
+      const uploads = entries.map(async res => {
+        // if the artifact is a Measure, get the main Library from the Measure and add the is owned extension on
+        // that library's entry in the relatedArtifacts of the measure
+        const entry = addIsOwnedExtension(res);
 
-          // append the version to the end of the library
-          const mainLibraryUrl = mainLibraryVersion ? mainLibrary.concat('|', mainLibraryVersion) : mainLibrary;
-
-          // check if relatedArtifacts property exists on the measure, add it if it doesn't
-          if (res.resource.relatedArtifact === undefined) {
-            res.resource.relatedArtifact = [];
-          }
-
-          // check if the main library already exists in the relatedArtifacts
-          const mainLibraryRA = res.resource.relatedArtifact.find(
-            ra => (ra.url === mainLibraryUrl || ra.resource === mainLibraryUrl) && ra.type === 'composed-of'
-          );
-
-          if (mainLibraryRA) {
-            // check if the main library's extension array exists and create it if it doesn't
-            if (mainLibraryRA.extension) {
-              // if it does exist, check that the isOwned extension is not already on it, add it if not
-              if (
-                mainLibraryRA.extension.find(
-                  e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned'
-                ) === undefined
-              )
-                mainLibraryRA.extension.push({
-                  url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
-                  valueBoolean: true
-                });
-            } else {
-              mainLibraryRA.extension = [
-                { url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }
-              ];
-            }
-          } else {
-            res.resource.relatedArtifact.push({
-              type: 'composed-of',
-              resource: mainLibraryUrl,
-              extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }]
-            });
-          }
-        }
-
-        // Only upload Library or Measure resources
         if (
-          res?.resource?.resourceType &&
-          (res?.resource?.resourceType === 'Library' || res?.resource?.resourceType === 'Measure')
+          entry.resource?.resourceType &&
+          (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure')
         ) {
+          // Only upload Library or Measure resources
           try {
-            if (!res.resource.id) {
-              res.resource.id = uuidv4();
+            if (!entry.resource.id) {
+              entry.resource.id = uuidv4();
             }
-            if (res.resource.status != 'active') {
-              res.resource.status = 'active';
+            if (entry.resource?.status != 'active') {
+              entry.resource.status = 'active';
               console.warn(
-                `Resource ${res?.resource?.resourceType}/${res.resource.id} status has been coerced to 'active'.`
+                `Resource ${res?.resource?.resourceType}/${entry.resource.id} status has been coerced to 'active'.`
               );
             }
-            const collection = Connection.db.collection<fhir4.FhirResource>(res.resource.resourceType);
-            console.log(`Inserting ${res?.resource?.resourceType}/${res.resource.id} into database`);
-            await collection.insertOne(res.resource);
+            const collection = Connection.db.collection<fhir4.FhirResource>(entry.resource.resourceType);
+            console.log(`Inserting ${res?.resource?.resourceType}/${entry.resource.id} into database`);
+            await collection.insertOne(entry.resource);
             resourcesUploaded += 1;
           } catch (e) {
             // ignore duplicate key errors for Libraries, Note: if ValueSets added, also ignore for those
-            if (!(e instanceof MongoError && e.code == 11000 && res.resource.resourceType === 'Library')) {
+            if (!(e instanceof MongoError && e.code == 11000 && entry.resource.resourceType === 'Library')) {
               if (e instanceof Error) {
                 console.error(e.message);
               } else {

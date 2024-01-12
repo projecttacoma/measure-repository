@@ -4,7 +4,7 @@ import { checkContentTypeHeader } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { createResource, updateResource } from '../db/dbOperations';
 import path from 'path';
-import { DetailedEntry, replaceReferences } from '../util/baseUtils';
+import { DetailedEntry, addIsOwnedExtension, replaceReferences } from '../util/baseUtils';
 
 const logger = loggers.get('default');
 
@@ -49,7 +49,9 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
           `Expected requests of type PUT or POST, received ${method} for ${entry.resource?.resourceType}/${entry.resource?.id}`
         );
       } else {
-        return insertBundleResources(entry);
+        // if the entry is a Measure, check to see if the isOwned extension needs to be added
+        const modifiedEntry = addIsOwnedExtension(entry);
+        return insertBundleResources(modifiedEntry);
       }
     } else {
       throw new BadRequestError('Each entry must contain request details that provide the HTTP details of the action.');
