@@ -15,7 +15,7 @@ export type DetailedEntry = fhir4.BundleEntry<FhirResource> & {
 };
 
 /**
- * Add isOwned extension to the main Library reference on a Measure's relatedArtifacts
+ * Checks entry for Measure type with library and adds isOwned extension to the main Library reference on a Measure's relatedArtifacts
  */
 export function addIsOwnedExtension(entry: DetailedEntry) {
   if (entry.resource?.resourceType && entry.resource?.resourceType === 'Measure' && entry.resource?.library) {
