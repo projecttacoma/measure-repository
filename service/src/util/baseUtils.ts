@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { loggers } from '@projecttacoma/node-fhir-server-core';
-import { OperationOutcome } from 'fhir/r4';
+import { FhirResource, OperationOutcome } from 'fhir/r4';
 
 const logger = loggers.get('default');
 
-export type DetailedEntry = fhir4.BundleEntry & {
+export type DetailedEntry = fhir4.BundleEntry<FhirResource> & {
   isPost: boolean;
   oldId?: string;
   newId: string;
@@ -13,6 +13,56 @@ export type DetailedEntry = fhir4.BundleEntry & {
   data?: string;
   outcome?: OperationOutcome;
 };
+
+/**
+ * Checks entry for Measure type with library and adds isOwned extension to the main Library reference on a Measure's relatedArtifacts
+ */
+export function addIsOwnedExtension(entry: DetailedEntry) {
+  if (entry.resource?.resourceType && entry.resource?.resourceType === 'Measure' && entry.resource?.library) {
+    // get the main Library of the Measure from the library property and the version
+    const mainLibrary = entry.resource.library[0];
+    const mainLibraryVersion = entry.resource.version;
+
+    // append the version to the end of the library
+    const mainLibraryUrl = mainLibraryVersion ? mainLibrary.concat('|', mainLibraryVersion) : mainLibrary;
+
+    // check if relatedArtifacts property exists on the measure, add it if it doesn't
+    if (entry.resource.relatedArtifact === undefined) {
+      entry.resource.relatedArtifact = [];
+    }
+
+    // check if the main library already exists in the relatedArtifacts
+    const mainLibraryRA = entry.resource.relatedArtifact.find(
+      ra => (ra.url === mainLibraryUrl || ra.resource === mainLibraryUrl) && ra.type === 'composed-of'
+    );
+
+    if (mainLibraryRA) {
+      // check if the main library's extension array exists and create it if it doesn't
+      if (mainLibraryRA.extension) {
+        // if it does exist, check that the isOwned extension is not already on it, add it if not
+        if (
+          mainLibraryRA.extension.find(e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned') ===
+          undefined
+        )
+          mainLibraryRA.extension.push({
+            url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+            valueBoolean: true
+          });
+      } else {
+        mainLibraryRA.extension = [
+          { url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }
+        ];
+      }
+    } else {
+      entry.resource.relatedArtifact.push({
+        type: 'composed-of',
+        resource: mainLibraryUrl,
+        extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }]
+      });
+    }
+  }
+  return entry;
+}
 
 /**
  * For entries in a transaction bundle whose IDs will be auto-generated, replace all instances of an existing reference
