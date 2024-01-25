@@ -16,7 +16,9 @@ async function createCollections() {
 
   const creations = COLLECTION_NAMES.map(async cn => {
     console.log(`Creating collection ${cn}`);
-    await (await Connection.db.createCollection(cn)).createIndex({ id: 1 }, { unique: true });
+    const collection = await Connection.db.createCollection(cn);
+    await collection.createIndex({ id: 1 }, { unique: true });
+    await collection.createIndex({ url: 1, version: 1 }, { unique: true });
   });
 
   await Promise.all(creations);

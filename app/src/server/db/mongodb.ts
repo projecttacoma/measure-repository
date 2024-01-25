@@ -6,6 +6,7 @@ if (!process.env.MONGODB_URI) {
 
 const uri = process.env.MONGODB_URI;
 const options = {};
+const COLLECTION_NAMES = ['Measure', 'Library'];
 
 let client;
 let clientPromise: Promise<MongoClient>;
@@ -27,6 +28,11 @@ if (process.env.NODE_ENV === 'development') {
   client = new MongoClient(uri, options);
   clientPromise = client.connect();
 }
+
+COLLECTION_NAMES.map(async cn => {
+  const collection = (await clientPromise).db().collection(cn);
+  collection.createIndex({ url: 1, version: 1 }, { unique: true });
+});
 
 // Export a module-scoped MongoClient promise. By doing this in a
 // separate module, the client can be shared across functions.

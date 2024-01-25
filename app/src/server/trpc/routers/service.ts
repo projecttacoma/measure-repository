@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
 import { getChildren } from '@/util/serviceUtils';
+import { OperationOutcome } from 'fhir/r4';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
@@ -135,6 +136,12 @@ export const serviceRouter = router({
         body: JSON.stringify(draftRes)
       });
 
+      if (res.status === 500) {
+        // If error, return error text
+        const outcome: OperationOutcome = await res.json();
+        return { location: null, status: res.status, children: null, error: outcome.issue[0].details?.text };
+      }
+
       let location = res.headers.get('Location');
       if (location?.substring(0, 5) === '4_0_1') {
         location = location?.substring(5); // remove 4_0_1 (version)
@@ -143,7 +150,7 @@ export const serviceRouter = router({
       // recursively get any child artifacts from the artifact if they exist
       const children = draftRes?.relatedArtifact ? await getChildren(draftRes.relatedArtifact) : [];
 
-      return { location: location, status: res.status, children: children };
+      return { location: location, status: res.status, children: children, error: null };
     }),
 
   releaseChild: publicProcedure
@@ -170,6 +177,12 @@ export const serviceRouter = router({
         body: JSON.stringify(draftRes)
       });
 
-      return { id: draftRes.id, status: res.status };
+      if (res.status === 500) {
+        // If error, return error text
+        const outcome: OperationOutcome = await res.json();
+        return { id: draftRes.id, status: res.status, error: outcome.issue[0].details?.text };
+      }
+
+      return { id: draftRes.id, status: res.status, error: null };
     })
 });

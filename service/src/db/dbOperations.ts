@@ -42,7 +42,7 @@ export async function findResourceCountWithQuery(query: Filter<any>, resourceTyp
  */
 export async function findDataRequirementsWithQuery<T extends fhir4.Library>(query: Filter<any>) {
   const collection = Connection.db.collection('Library');
-  return collection.findOne<T>({ _dataRequirements: query }, { projection: { _id: 0, _dataRequirements: 0 } });
+  return collection.findOne<T>({ _dataRequirements: query }, { projection: { _id: 0, _dataRequirements: 0, url: 0 } });
 }
 
 /**

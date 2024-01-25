@@ -183,6 +183,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     // add the data requirements query params to the data requirements Library resource and add to the Library collection
     const results = { ...dataRequirements.results } as FhirLibraryWithDR;
     results['_dataRequirements'] = dataReqsQuery;
+    results.url = `Library/${dataRequirements.results.id}`;
     createResource(results, 'Library');
 
     logger.info('Successfully generated $data-requirements report');

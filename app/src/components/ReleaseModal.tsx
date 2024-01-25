@@ -36,7 +36,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         console.error(data.status);
         notifications.show({
           title: `Release Failed!`,
-          message: `Server unable to process request`,
+          message: `Server unable to process request. ${data.error ?? ''}`,
           icon: <AlertCircle />,
           color: 'red'
         });
@@ -70,19 +70,19 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
 
   const releaseMutation = trpc.service.releaseParent.useMutation({
     onSuccess: (data, variables) => {
-      if (!data.location) {
+      if (data.status !== 201) {
+        console.error(data.status);
+        notifications.show({
+          title: `Release Failed!`,
+          message: `Server unable to process request. ${data.error ?? ''}`,
+          icon: <AlertCircle />,
+          color: 'red'
+        });
+      } else if (!data.location) {
         console.error('No resource location for released artifact');
         notifications.show({
           title: `Release Failed!`,
           message: `No resource location exists for draft artifact`,
-          icon: <AlertCircle />,
-          color: 'red'
-        });
-      } else if (data.status !== 201) {
-        console.error(data.status);
-        notifications.show({
-          title: `Release Failed!`,
-          message: `Server unable to process request`,
           icon: <AlertCircle />,
           color: 'red'
         });
