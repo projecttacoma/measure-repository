@@ -4,7 +4,7 @@ import { checkContentTypeHeader } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { createResource, updateResource } from '../db/dbOperations';
 import path from 'path';
-import { DetailedEntry, addIsOwnedExtension, replaceReferences } from '../util/baseUtils';
+import { DetailedEntry, addIsOwnedExtension, addLibraryIsOwned, replaceReferences } from '../util/baseUtils';
 
 const logger = loggers.get('default');
 
@@ -41,7 +41,9 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
   logger.info('Inserting Measure and Library resources from transaction bundle');
   const scrubbedEntries = replaceReferences(entries);
 
-  const requestsArray = scrubbedEntries.map(async entry => {
+  // pre-process to find owned relationships and error as needed
+  const ownedUrls: string[] = [];
+  const modifedRequestsArray = scrubbedEntries.map(entry => {
     if (entry.request) {
       const { method } = entry.request;
       if (method !== 'PUT' && method !== 'POST') {
@@ -50,12 +52,19 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
         );
       } else {
         // if the entry is a Measure, check to see if the isOwned extension needs to be added
-        const modifiedEntry = addIsOwnedExtension(entry);
-        return insertBundleResources(modifiedEntry);
+        const { modifiedEntry, url } = addIsOwnedExtension(entry);
+        if (url) ownedUrls.push(url);
+        return modifiedEntry;
       }
     } else {
       throw new BadRequestError('Each entry must contain request details that provide the HTTP details of the action.');
     }
+  });
+
+  const requestsArray = modifedRequestsArray.map(async entry => {
+    // add library owned extension
+    entry = addLibraryIsOwned(entry, ownedUrls);
+    return insertBundleResources(entry);
   });
   return Promise.all(requestsArray);
 }
