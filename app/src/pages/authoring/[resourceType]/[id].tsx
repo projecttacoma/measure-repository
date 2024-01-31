@@ -253,7 +253,17 @@ export default function ResourceAuthoringPage() {
               >
                 Update
               </Button>
-              <Button w={120} onClick={() => setIsModalOpen(true)}>
+              <Button
+                w={120}
+                onClick={() => setIsModalOpen(true)}
+                disabled={
+                  !!resource?.extension?.find(
+                    ext =>
+                      ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' &&
+                      ext.valueBoolean === true
+                  )
+                }
+              >
                 Release
               </Button>
             </Group>

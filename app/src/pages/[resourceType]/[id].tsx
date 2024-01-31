@@ -170,7 +170,17 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button w={240} loading={draftFromArtifactMutation.isLoading} onClick={createDraftOfArtifact}>
+            <Button
+              w={240}
+              loading={draftFromArtifactMutation.isLoading}
+              onClick={createDraftOfArtifact}
+              disabled={
+                !!jsonData.extension?.find(
+                  ext =>
+                    ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
+                )
+              }
+            >
               Create Draft of {jsonData.resourceType}
             </Button>
           </Group>
