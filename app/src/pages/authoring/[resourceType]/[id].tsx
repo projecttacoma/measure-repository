@@ -253,19 +253,22 @@ export default function ResourceAuthoringPage() {
               >
                 Update
               </Button>
-              <Button
-                w={120}
-                onClick={() => setIsModalOpen(true)}
-                disabled={
-                  !!resource?.extension?.find(
-                    ext =>
-                      ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' &&
-                      ext.valueBoolean === true
-                  )
-                }
-              >
-                Release
-              </Button>
+              {!!resource?.extension?.find(
+                ext =>
+                  ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
+              ) ? (
+                <Tooltip label="Child artifacts cannot be directly released">
+                  <span>
+                    <Button w={120} disabled={true}>
+                      Release
+                    </Button>
+                  </span>
+                </Tooltip>
+              ) : (
+                <Button w={120} onClick={() => setIsModalOpen(true)} disabled={false}>
+                  Release
+                </Button>
+              )}
             </Group>
           </Stack>
         </Grid.Col>

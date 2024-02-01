@@ -11,7 +11,8 @@ import {
   Stack,
   Tabs,
   Text,
-  TextInput
+  TextInput,
+  Tooltip
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -170,19 +171,26 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
             <Text size="xl" color="gray">
               {jsonData.resourceType}/{jsonData.id}
             </Text>
-            <Button
-              w={240}
-              loading={draftFromArtifactMutation.isLoading}
-              onClick={createDraftOfArtifact}
-              disabled={
-                !!jsonData.extension?.find(
-                  ext =>
-                    ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
-                )
-              }
-            >
-              Create Draft of {jsonData.resourceType}
-            </Button>
+            {!!jsonData?.extension?.find(
+              ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
+            ) ? (
+              <Tooltip label="Child artifacts cannot be directly drafted">
+                <span>
+                  <Button w={240} loading={draftFromArtifactMutation.isLoading} disabled={true}>
+                    Create Draft of {jsonData.resourceType}
+                  </Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button
+                w={240}
+                loading={draftFromArtifactMutation.isLoading}
+                onClick={createDraftOfArtifact}
+                disabled={false}
+              >
+                Create Draft of {jsonData.resourceType}
+              </Button>
+            )}
           </Group>
         </div>
         <Divider my="sm" pb={6} />

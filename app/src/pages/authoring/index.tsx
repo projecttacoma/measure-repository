@@ -169,6 +169,7 @@ export default function AuthoringPage() {
               data={artifacts}
               value={selectedArtifact}
               onChange={setSelectedArtifact}
+              placeholder="Select an independent (non-child) artifact"
             />
           ) : (
             <Text c="red">An unknown error occurred fetching artifacts</Text>
