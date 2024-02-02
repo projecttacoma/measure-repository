@@ -38,7 +38,10 @@ export const serviceRouter = router({
       );
       const artifactList = artifactBundle.entry?.map(entry => ({
         label: entry.resource?.name || entry.resource?.id || '',
-        value: entry.resource?.id || `${entry.resource?.resourceType}` || ''
+        value: entry.resource?.id || `${entry.resource?.resourceType}` || '',
+        disabled: !!entry.resource?.extension?.find(
+          ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
+        )
       }));
 
       return artifactList;

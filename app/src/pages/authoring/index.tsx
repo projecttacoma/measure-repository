@@ -169,6 +169,7 @@ export default function AuthoringPage() {
               data={artifacts}
               value={selectedArtifact}
               onChange={setSelectedArtifact}
+              placeholder={resourceType === 'Library' ? 'Choose an independent (non-child) Library' : ''}
             />
           ) : (
             <Text c="red">An unknown error occurred fetching artifacts</Text>

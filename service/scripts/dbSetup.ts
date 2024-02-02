@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import { DetailedEntry, addIsOwnedExtension } from '../src/util/baseUtils';
+import { DetailedEntry, addIsOwnedExtension, addLibraryIsOwned } from '../src/util/baseUtils';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -82,11 +82,18 @@ async function uploadBundleResources(filePath: string) {
     if (entries) {
       let resourcesUploaded = 0;
       let notUploaded = 0;
-      const uploads = entries.map(async res => {
+      // pre-process to find owned relationships
+      const ownedUrls: string[] = [];
+      const modifiedEntries = entries.map(ent => {
         // if the artifact is a Measure, get the main Library from the Measure and add the is owned extension on
         // that library's entry in the relatedArtifacts of the measure
-        const entry = addIsOwnedExtension(res);
-
+        const { modifiedEntry, url } = addIsOwnedExtension(ent);
+        if (url) ownedUrls.push(url);
+        return modifiedEntry;
+      });
+      const uploads = modifiedEntries.map(async entry => {
+        // add Library owned extension
+        entry = addLibraryIsOwned(entry, ownedUrls);
         if (
           entry.resource?.resourceType &&
           (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure')
@@ -99,11 +106,11 @@ async function uploadBundleResources(filePath: string) {
             if (entry.resource?.status != 'active') {
               entry.resource.status = 'active';
               console.warn(
-                `Resource ${res?.resource?.resourceType}/${entry.resource.id} status has been coerced to 'active'.`
+                `Resource ${entry?.resource?.resourceType}/${entry.resource.id} status has been coerced to 'active'.`
               );
             }
             const collection = Connection.db.collection<fhir4.FhirResource>(entry.resource.resourceType);
-            console.log(`Inserting ${res?.resource?.resourceType}/${entry.resource.id} into database`);
+            console.log(`Inserting ${entry?.resource?.resourceType}/${entry.resource.id} into database`);
             await collection.insertOne(entry.resource);
             resourcesUploaded += 1;
           } catch (e) {
@@ -117,7 +124,7 @@ async function uploadBundleResources(filePath: string) {
             }
           }
         } else {
-          if (res?.resource?.resourceType) {
+          if (entry?.resource?.resourceType) {
             notUploaded += 1;
           } else {
             console.log('Resource or resource type undefined');

@@ -16,6 +16,8 @@ export type DetailedEntry = fhir4.BundleEntry<FhirResource> & {
 
 /**
  * Checks entry for Measure type with library and adds isOwned extension to the main Library reference on a Measure's relatedArtifacts
+ *
+ * returns modified entry and url of owned library
  */
 export function addIsOwnedExtension(entry: DetailedEntry) {
   if (entry.resource?.resourceType && entry.resource?.resourceType === 'Measure' && entry.resource?.library) {
@@ -59,6 +61,30 @@ export function addIsOwnedExtension(entry: DetailedEntry) {
         resource: mainLibraryUrl,
         extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }]
       });
+    }
+    return { modifiedEntry: entry, url: mainLibraryUrl };
+  }
+  return { modifiedEntry: entry, url: null };
+}
+
+/**
+ * Checks ownedUrls for entry url and adds isOwned extension to the resource if found in ownedUrls
+ */
+export function addLibraryIsOwned(entry: DetailedEntry, ownedUrls: string[]) {
+  // add owned to identified resources (currently assumes these will only be Libraries)
+  if (entry.resource?.resourceType === 'Library' && entry.resource.url) {
+    const libraryUrl = entry.resource.version
+      ? entry.resource.url.concat('|', entry.resource.version)
+      : entry.resource.url;
+    if (ownedUrls.includes(libraryUrl)) {
+      entry.resource.extension
+        ? entry.resource.extension.push({
+            url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+            valueBoolean: true
+          })
+        : (entry.resource.extension = [
+            { url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }
+          ]);
     }
   }
   return entry;
