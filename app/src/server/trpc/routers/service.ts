@@ -37,7 +37,11 @@ export const serviceRouter = router({
         resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
       );
       const artifactList = artifactBundle.entry?.map(entry => ({
-        label: entry.resource?.name || entry.resource?.id || '',
+        label:
+          entry.resource?.name?.concat(`|${entry.resource?.version}`) ||
+          entry.resource?.name ||
+          entry.resource?.id ||
+          '',
         value: entry.resource?.id || `${entry.resource?.resourceType}` || '',
         disabled: !!entry.resource?.extension?.find(
           ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
