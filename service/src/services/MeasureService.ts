@@ -4,6 +4,7 @@ import {
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
+  findResourceElementsWithQuery,
   findResourcesWithQuery,
   updateResource
 } from '../db/dbOperations';
@@ -47,6 +48,13 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (parsedQuery._summary && parsedQuery._summary === 'count') {
       const count = await findResourceCountWithQuery(mongoQuery, 'Measure');
       return createSummarySearchsetBundle<fhir4.Measure>(count);
+    }
+    // if the _elements parameter with a comma-separated string is included
+    // then return a searchset bundle that includes only those elements
+    // on those resource entries
+    else if (parsedQuery._elements) {
+      const entries = await findResourceElementsWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      return createSearchsetBundle(entries);
     } else {
       const entries = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
       return createSearchsetBundle(entries);

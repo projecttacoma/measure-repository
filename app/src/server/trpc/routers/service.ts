@@ -33,9 +33,9 @@ export const serviceRouter = router({
   getArtifactsByType: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']) }))
     .query(async ({ input }) => {
-      const artifactBundle = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}`).then(
-        resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
-      );
+      const artifactBundle = await fetch(
+        `${process.env.MRS_SERVER}/${input.resourceType}?_elements=id,name,extension`
+      ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
       const artifactList = artifactBundle.entry?.map(entry => ({
         label:
           entry.resource?.name?.concat(`|${entry.resource.version}`) ||

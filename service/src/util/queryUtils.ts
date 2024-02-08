@@ -31,6 +31,9 @@ export function getMongoQueryFromRequest(query: RequestQuery): Filter<any> {
         mf['identifier.system'] = splitIden[0];
         mf['identifier.value'] = splitIden[1];
       }
+    } else if (key === '_elements') {
+      const elements = query[key] as string;
+      mf[key] = elements.split(',');
     } else {
       // Otherwise no parsing necessary
       mf[key] = query[key];
