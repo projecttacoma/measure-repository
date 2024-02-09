@@ -114,9 +114,13 @@ The Measure Repository Service server supports `Library` and `Measure` resource 
 - url
 - version (can appear only in combination with a url search)
 
-The Measure Repository Service server also supports the `_summary` search parameter specified in the [HL7 FHIR Search Docs](https://www.hl7.org/fhir/search.html#_summary). The server currently supports the following `_summary` parameter values:
+The Measure Repository Service server also supports the `_summary` and `_elements` search parameters.
+
+The `_summary` parameter is specified in the [HL7 FHIR Search Docs](https://www.hl7.org/fhir/search.html#_summary). The server currently supports the following `_summary` parameter values:
 
 - count
+
+The `_elements` parameter is specified in the [HL7 FHIR Search Docs](https://www.hl7.org/fhir/search.html#_elements) and supports a comma-separated list of base element names.
 
 ### Package
 
