@@ -38,9 +38,8 @@ export const serviceRouter = router({
       );
       const artifactList = artifactBundle.entry?.map(entry => ({
         label:
-          entry.resource?.name?.concat(`|${entry.resource?.version}`) ||
-          entry.resource?.name ||
-          entry.resource?.id ||
+          entry.resource?.name?.concat(`|${entry.resource.version}`) ||
+          entry.resource?.id?.concat(`|${entry.resource.version}`) ||
           '',
         value: entry.resource?.id || `${entry.resource?.resourceType}` || '',
         disabled: !!entry.resource?.extension?.find(
