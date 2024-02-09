@@ -33,7 +33,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
   const releaseMutation = trpc.service.releaseParent.useMutation({
     onSuccess: data => {
       if (data.status !== 200) {
-        console.error(data.status || data.error);
+        console.error(data.status);
         notifications.show({
           title: `Release Failed!`,
           message: `Server unable to process request. ${data.error ?? ''}`,
