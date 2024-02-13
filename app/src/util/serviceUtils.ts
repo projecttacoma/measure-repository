@@ -1,3 +1,4 @@
+import { getDraftByUrl } from '@/server/db/dbOperations';
 import { ArtifactResourceType, FhirArtifact } from './types/fhir';
 
 export type ChildArtifactInfo = {
@@ -48,6 +49,48 @@ export async function getChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
           const nested = await getChildren(draftRes.relatedArtifact);
           children = children.concat(nested);
         }
+      }
+    }
+  }
+
+  return children;
+}
+
+export async function getDraftChildren(relatedArtifacts: fhir4.RelatedArtifact[]) {
+  let children: ChildArtifactInfo[] = [];
+
+  for (const ra of relatedArtifacts) {
+    if (
+      ra.type === 'composed-of' &&
+      ra.resource &&
+      ra.extension?.some(
+        e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+      )
+    ) {
+      let resourceType: ArtifactResourceType;
+      if (ra.resource.includes('Measure')) {
+        resourceType = 'Measure';
+      } else {
+        resourceType = 'Library';
+      }
+
+      const [url, version] = ra.resource.split('|');
+
+      console.log('hellloooo', version);
+
+      // add child artifact info to the array of child artifact info
+      children.push({ resourceType, url, version });
+
+      // search for the related artifact in the draft repository
+      const childArtifact = await getDraftByUrl(url, version, resourceType);
+
+      console.log('CHILD', childArtifact?.relatedArtifact);
+
+      // if the related artifact exists in the draft repository, then we
+      // want to recursively look for its child artifacts as well
+      if (childArtifact?.relatedArtifact) {
+        const nested = await getDraftChildren(childArtifact.relatedArtifact);
+        children = children.concat(nested);
       }
     }
   }
