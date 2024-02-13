@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
 import { getChildren } from '@/util/serviceUtils';
-import { OperationOutcome } from 'fhir/r4';
+import { Bundle, BundleEntry, FhirResource, OperationOutcome } from 'fhir/r4';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service
@@ -119,7 +119,7 @@ export const serviceRouter = router({
       };
     }),
 
-  // new release procedures (separate release of parent and release of child)
+  // new release procedures (batched release of parent and child using transaction bundle)
   releaseParent: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string(), version: z.string() }))
     .mutation(async ({ input }) => {
@@ -131,64 +131,84 @@ export const serviceRouter = router({
         draftRes.version = input.version;
         draftRes.status = 'active';
         draftRes.date = DateTime.now().toISO() || '';
+      } else {
+        throw new Error(`No draft artifact found for resourceType ${input.resourceType}, id ${input.id}`);
       }
 
-      // release the parent draft artifact to the measure repository through a PUT operation to the server by id
-      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${draftRes?.id}`, {
-        method: 'PUT',
+      // construct transaction bundle
+      const txnBundle: Bundle = {
+        resourceType: 'Bundle',
+        type: 'transaction',
+        entry: [
+          {
+            resource: draftRes as FhirResource,
+            request: {
+              method: 'POST',
+              url: `${draftRes?.resourceType}/${draftRes?.id}`
+            }
+          }
+        ]
+      };
+
+      // recursively get any child artifacts from the artifact if they exist
+      const children = draftRes?.relatedArtifact ? await getChildren(draftRes.relatedArtifact) : [];
+      const toDelete: {
+        resourceType: 'Measure' | 'Library';
+        id: string;
+      }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children to be deleted upon success
+
+      for (const c of children) {
+        // get the draft child artifact by its URL and version
+        const childDraftRes = await getDraftByUrl(c.url, c.version, c.resourceType);
+
+        // if a draft artifact of that resource type, url, and version exists, then modify its content to be an active artifact
+        if (childDraftRes) {
+          childDraftRes.version = c.version;
+          childDraftRes.status = 'active';
+          childDraftRes.date = DateTime.now().toISO() || '';
+          toDelete.push({ resourceType: c.resourceType, id: childDraftRes.id });
+        } else {
+          return {
+            location: null,
+            deletable: null,
+            status: null,
+            error: `No child draft artifact found for resourceType ${c.resourceType}, version ${c.version}, and URL ${c.url}`
+          };
+        }
+        txnBundle.entry?.push({
+          resource: childDraftRes,
+          request: {
+            method: 'POST',
+            url: `${childDraftRes.resourceType}/${childDraftRes.id}`
+          }
+        } as BundleEntry<FhirResource>);
+      }
+
+      // release the parent and children draft artifacts to the measure repository through a transaction bundle POST
+      const res = await fetch(`${process.env.MRS_SERVER}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json+fhir'
         },
-        body: JSON.stringify(draftRes)
+        body: JSON.stringify(txnBundle)
       });
 
       if (res.status === 500) {
         // If error, return error text
         const outcome: OperationOutcome = await res.json();
-        return { location: null, status: res.status, children: null, error: outcome.issue[0].details?.text };
+        return { location: null, deletable: null, status: res.status, error: outcome.issue[0].details?.text };
       }
 
-      let location = res.headers.get('Location');
+      const resBundle: Bundle = await res.json();
+
+      if (!resBundle.entry || resBundle.entry.length === 0) {
+        throw new Error(`No transaction responses found for releasing ${input.resourceType}, id ${input.id}`);
+      }
+      let location = resBundle.entry[0].response?.location; //response same order as request
       if (location?.substring(0, 5) === '4_0_1') {
         location = location?.substring(5); // remove 4_0_1 (version)
       }
 
-      // recursively get any child artifacts from the artifact if they exist
-      const children = draftRes?.relatedArtifact ? await getChildren(draftRes.relatedArtifact) : [];
-
-      return { location: location, status: res.status, children: children, error: null };
-    }),
-
-  releaseChild: publicProcedure
-    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), url: z.string(), version: z.string() }))
-    .mutation(async ({ input }) => {
-      // get the draft child artifact by its URL and version
-      const draftRes = await getDraftByUrl(input.url, input.version, input.resourceType);
-
-      // if a draft artifact of that resource type, url, and version exists, then modify its content to be an active artifact
-      if (draftRes) {
-        draftRes.version = input.version;
-        draftRes.status = 'active';
-        draftRes.date = DateTime.now().toISO() || '';
-      } else {
-        throw new Error('No draft artifact found for this resourceType, version, and URL');
-      }
-
-      // release the child draft artifact to the measure repository through a PUT operation to the server by id
-      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${draftRes.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json+fhir'
-        },
-        body: JSON.stringify(draftRes)
-      });
-
-      if (res.status === 500) {
-        // If error, return error text
-        const outcome: OperationOutcome = await res.json();
-        return { id: draftRes.id, status: res.status, error: outcome.issue[0].details?.text };
-      }
-
-      return { id: draftRes.id, status: res.status, error: null };
+      return { location: location, deletable: toDelete, status: res.status, error: null };
     })
 });
