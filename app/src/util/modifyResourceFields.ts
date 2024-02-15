@@ -1,15 +1,18 @@
 import { coerce, inc } from 'semver';
 import { FhirArtifact } from './types/fhir';
 import { v4 as uuidv4 } from 'uuid';
+import { getDraftByUrl } from '@/server/db/dbOperations';
 
 /**
  * Helper function that takes an artifact and returns it with a new id,
  * draft status, and increments the version if it has one or sets it to
  * 0.0.1 if it does not
  */
-export function modifyResourceToDraft(artifact: FhirArtifact) {
+export async function modifyResourceToDraft(artifact: FhirArtifact) {
   artifact.id = uuidv4();
   artifact.status = 'draft';
+
+  // initial version coercion and increment
   // we can only increment artifacts whose versions are either semantic, can be coerced
   // to semantic, or are in x.x.xxx format. Every other kind of version will become 0.0.1
   if (artifact.version) {
@@ -26,6 +29,23 @@ export function modifyResourceToDraft(artifact: FhirArtifact) {
       artifact.version = '0.0.1';
     }
   }
+
+  // subsequent version increments
+  if (artifact.url) {
+    // check for existing draft with proposed version
+    let existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
+    // only increment a limited number of times
+    let count = 0;
+    while (existingDraft && count < 10) {
+      // increment artifact version
+      const incVersion = inc(artifact.version, 'patch');
+      artifact.version = incVersion ?? incrementArtifactVersion(artifact.version);
+
+      existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
+      count++;
+    }
+  }
+
   if (artifact.relatedArtifact) {
     artifact.relatedArtifact.forEach(ra => {
       if (
