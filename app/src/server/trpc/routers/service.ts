@@ -82,7 +82,7 @@ export const serviceRouter = router({
       // recursively get any child artifacts from the artifact if they exist
       const children = draftJson.relatedArtifact ? await getChildren(draftJson.relatedArtifact) : [];
 
-      const draftArtifact = modifyResourceToDraft({ ...draftJson });
+      const draftArtifact = await modifyResourceToDraft({ ...draftJson });
 
       // create a draft of the modified parent artifact
       const res = await createDraft(input.resourceType, draftArtifact);
@@ -106,7 +106,7 @@ export const serviceRouter = router({
       const draftRes = artifactBundle.entry?.[0].resource;
 
       // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
-      const draftChildArtifact = modifyResourceToDraft(draftRes as FhirArtifact);
+      const draftChildArtifact = await modifyResourceToDraft(draftRes as FhirArtifact);
 
       // create a draft of the modified child artifact
       const res = await createDraft(input.resourceType, draftChildArtifact);
