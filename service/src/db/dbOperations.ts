@@ -35,7 +35,11 @@ export async function findResourceElementsWithQuery<T extends fhir4.FhirResource
   resourceType: FhirResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
-  const projection: any = { status: 1, resourceType: 1, type: 1 };
+
+  // if the resourceType is Library, then we want to include type in the projection
+  const projection: any =
+    resourceType === 'Library' ? { status: 1, resourceType: 1, type: 1 } : { status: 1, resourceType: 1 };
+
   (query._elements as string[]).forEach(elem => {
     projection[elem] = 1;
   });
