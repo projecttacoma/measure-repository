@@ -54,6 +54,20 @@ export class MeasureService implements Service<fhir4.Measure> {
     // on those resource entries
     else if (parsedQuery._elements) {
       const entries = await findResourceElementsWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      // add the SUBSETTED tag to the resources returned by the _elements parameter
+      entries.map(e => {
+        if (e.meta) {
+          if (e.meta.tag) {
+            e.meta.tag.push({ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' });
+          } else {
+            e.meta.tag = [{ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' }];
+          }
+        } else {
+          e.meta = {
+            tag: [{ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' }]
+          };
+        }
+      });
       return createSearchsetBundle(entries);
     } else {
       const entries = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');

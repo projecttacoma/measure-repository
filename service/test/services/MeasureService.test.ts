@@ -19,7 +19,15 @@ const MEASURE_WITH_URL: fhir4.Measure = {
 const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl',
-  status: 'active'
+  status: 'active',
+  meta: {
+    tag: [
+      {
+        code: 'SUBSETTED',
+        system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue'
+      }
+    ]
+  }
 };
 
 const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: fhir4.Measure = {

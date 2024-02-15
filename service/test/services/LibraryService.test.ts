@@ -18,7 +18,15 @@ const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
   resourceType: 'Library',
   type: { coding: [{ code: 'logic-library' }] },
   id: 'testWithUrl',
-  status: 'active'
+  status: 'active',
+  meta: {
+    tag: [
+      {
+        code: 'SUBSETTED',
+        system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue'
+      }
+    ]
+  }
 };
 
 const LIBRARY_WITH_IDENTIFIER_VALUE: fhir4.Library = {
