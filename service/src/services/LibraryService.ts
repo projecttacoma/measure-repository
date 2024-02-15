@@ -4,6 +4,7 @@ import {
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
+  findResourceElementsWithQuery,
   findResourcesWithQuery,
   updateResource
 } from '../db/dbOperations';
@@ -46,6 +47,27 @@ export class LibraryService implements Service<fhir4.Library> {
     if (parsedQuery._summary && parsedQuery._summary === 'count') {
       const count = await findResourceCountWithQuery(mongoQuery, 'Library');
       return createSummarySearchsetBundle<fhir4.Library>(count);
+    }
+    // if the _elements parameter with a comma-separated string is included
+    // then return a searchset bundle that includes only those elements
+    // on those resource entries
+    else if (parsedQuery._elements) {
+      const entries = await findResourceElementsWithQuery<fhir4.Library>(mongoQuery, 'Library');
+      // add the SUBSETTED tag to the resources returned by the _elements parameter
+      entries.map(e => {
+        if (e.meta) {
+          if (e.meta.tag) {
+            e.meta.tag.push({ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' });
+          } else {
+            e.meta.tag = [{ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' }];
+          }
+        } else {
+          e.meta = {
+            tag: [{ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' }]
+          };
+        }
+      });
+      return createSearchsetBundle(entries);
     } else {
       const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
       return createSearchsetBundle(entries);

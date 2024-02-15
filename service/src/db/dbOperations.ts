@@ -22,7 +22,32 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
+  query._elements = { $exists: false };
   return collection.find<T>(query, { projection: { _id: 0, _dataRequirements: 0 } }).toArray();
+}
+
+/**
+ * searches the database and returns an array of all resources of the given type that match the given query
+ * but the resources only include the elements specified by the _elements parameter
+ */
+export async function findResourceElementsWithQuery<T extends fhir4.FhirResource>(
+  query: Filter<any>,
+  resourceType: FhirResourceType
+) {
+  const collection = Connection.db.collection(resourceType);
+
+  // if the resourceType is Library, then we want to include type in the projection
+  const projection: any =
+    resourceType === 'Library' ? { status: 1, resourceType: 1, type: 1 } : { status: 1, resourceType: 1 };
+
+  (query._elements as string[]).forEach(elem => {
+    projection[elem] = 1;
+  });
+  projection['_id'] = 0;
+  query._dataRequirements = { $exists: false };
+  query._summary = { $exists: false };
+  query._elements = { $exists: false };
+  return collection.find<T>(query, { projection: projection }).toArray();
 }
 
 /**
@@ -34,6 +59,7 @@ export async function findResourceCountWithQuery(query: Filter<any>, resourceTyp
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
+  query._elements = { $exists: false };
   return collection.countDocuments(query);
 }
 

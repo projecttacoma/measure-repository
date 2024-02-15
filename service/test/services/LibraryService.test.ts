@@ -14,6 +14,21 @@ const LIBRARY_WITH_URL: fhir4.Library = {
   url: 'http://example.com'
 };
 
+const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  id: 'testWithUrl',
+  status: 'active',
+  meta: {
+    tag: [
+      {
+        code: 'SUBSETTED',
+        system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue'
+      }
+    ]
+  }
+};
+
 const LIBRARY_WITH_IDENTIFIER_VALUE: fhir4.Library = {
   resourceType: 'Library',
   type: { coding: [{ code: 'logic-library' }] },
@@ -162,6 +177,51 @@ describe('LibraryService', () => {
               })
             ])
           );
+        });
+    });
+
+    it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library')
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(1);
+          expect(response.body.entry[0].resource).toEqual(LIBRARY_WITH_URL_ONLY_ID);
+        });
+    });
+
+    it('returns 200 and correct searchset bundle with only id element when query matches multiple resources', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library')
+        .query({ _elements: 'id', status: 'active' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(7);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining<fhir4.BundleEntry>({
+                resource: LIBRARY_WITH_URL_ONLY_ID
+              })
+            ])
+          );
+        });
+    });
+
+    it('returns 200 and correct searchset bundle that does not have entries only the count when the _summary=count parameter is provided', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library')
+        .query({ _summary: 'count' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(9);
+          expect(response.body.entry).toBeUndefined;
         });
     });
 

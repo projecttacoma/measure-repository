@@ -16,6 +16,20 @@ const MEASURE_WITH_URL: fhir4.Measure = {
   version: 'searchable'
 };
 
+const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithUrl',
+  status: 'active',
+  meta: {
+    tag: [
+      {
+        code: 'SUBSETTED',
+        system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue'
+      }
+    ]
+  }
+};
+
 const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   identifier: [{ value: 'measureWithIdentifierValueRootLib' }],
@@ -154,6 +168,51 @@ describe('MeasureService', () => {
               })
             ])
           );
+        });
+    });
+
+    it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure')
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(1);
+          expect(response.body.entry[0].resource).toEqual(MEASURE_WITH_URL_ONLY_ID);
+        });
+    });
+
+    it('returns 200 and correct searchset bundle with only id element when query matches multiple resources', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure')
+        .query({ _elements: 'id', status: 'active' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(7);
+          expect(response.body.entry).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining<fhir4.BundleEntry>({
+                resource: MEASURE_WITH_URL_ONLY_ID
+              })
+            ])
+          );
+        });
+    });
+
+    it('returns 200 and correct searchset bundle that does not have entries only the count when the _summary=count parameter is provided', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure')
+        .query({ _summary: 'count' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.resourceType).toEqual('Bundle');
+          expect(response.body.total).toEqual(7);
+          expect(response.body.entry).toBeUndefined;
         });
     });
 
