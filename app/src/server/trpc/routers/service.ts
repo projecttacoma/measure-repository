@@ -1,5 +1,5 @@
 import { publicProcedure, router } from '../trpc';
-import { createDraft, getDraftById, getDraftByUrl } from '@/server/db/dbOperations';
+import { batchCreateDraft, getDraftById, getDraftByUrl } from '@/server/db/dbOperations';
 import { modifyResourceToDraft } from '@/util/modifyResourceFields';
 import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
@@ -82,41 +82,27 @@ export const serviceRouter = router({
       // recursively get any child artifacts from the artifact if they exist
       const children = draftJson.relatedArtifact ? await getChildren(draftJson.relatedArtifact) : [];
 
-      const draftArtifact = await modifyResourceToDraft({ ...draftJson });
+      const childDrafts = children.map(async child => {
+        const artifactBundle = await fetch(
+          `${process.env.MRS_SERVER}/${child.resourceType}?` +
+            new URLSearchParams({ url: child.url, version: child.version })
+        ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
+
+        if (!artifactBundle.entry || artifactBundle.entry.length === 0) {
+          throw new Error('No artifacts found in search');
+        }
+        const draftRes = artifactBundle.entry?.[0].resource;
+
+        // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
+        return await modifyResourceToDraft(draftRes as FhirArtifact);
+      });
+      const parentArtifact = await modifyResourceToDraft({ ...draftJson });
+      const draftArtifacts = [parentArtifact].concat(await Promise.all(childDrafts));
 
       // create a draft of the modified parent artifact
-      const res = await createDraft(input.resourceType, draftArtifact);
+      await batchCreateDraft(draftArtifacts);
 
-      return { draftId: draftArtifact.id, children, ...res };
-    }),
-
-  draftChild: publicProcedure
-    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), url: z.string(), version: z.string() }))
-    .mutation(async ({ input }) => {
-      // search the measure repository for an artifact of the same resource type, url, and version
-      // assume that artifacts will have unique urls and versions, so return the first entry in the bundle
-      const artifactBundle = await fetch(
-        `${process.env.MRS_SERVER}/${input.resourceType}?` +
-          new URLSearchParams({ url: input.url, version: input.version })
-      ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
-
-      if (!artifactBundle.entry || artifactBundle.entry.length === 0) {
-        throw new Error('No artifacts found in search');
-      }
-      const draftRes = artifactBundle.entry?.[0].resource;
-
-      // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
-      const draftChildArtifact = await modifyResourceToDraft(draftRes as FhirArtifact);
-
-      // create a draft of the modified child artifact
-      const res = await createDraft(input.resourceType, draftChildArtifact);
-
-      return {
-        draftId: draftChildArtifact.id,
-        id: draftRes?.id,
-        resourceType: draftChildArtifact.resourceType,
-        ...res
-      };
+      return { draftId: parentArtifact.id, children: children };
     }),
 
   // new release procedures (batched release of parent and child using transaction bundle)
