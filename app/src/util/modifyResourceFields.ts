@@ -14,18 +14,18 @@ export async function modifyResourceToDraft(artifact: FhirArtifact) {
 
   // initial version coercion and increment
   // we can only increment artifacts whose versions are either semantic, can be coerced
-  // to semantic, or are in x.x.xxx format. Every other kind of version will become 0.0.1
+  // to semantic, or are in x.x.xxx/x.xx.xxx format. Every other kind of version will become 0.0.1
   if (artifact.version) {
     const coerced = coerce(artifact.version);
     const incVersion = coerced !== null ? inc(coerced, 'patch') : null;
-    if (incVersion !== null) {
-      artifact.version = incVersion;
-      // if we can't coerce the version to semver, then check that it is x.x.xxx
-      // format and increment manually
-    } else if (checkVersionFormat(artifact.version)) {
+    if (checkVersionFormat(artifact.version)) {
+      // check that it is x.x.xxx/x.xx.xxx, format and increment manually
       artifact.version = incrementArtifactVersion(artifact.version);
+    } else if (incVersion !== null) {
+      // if possible, coerce the version to semver, and increment
+      artifact.version = incVersion;
     } else {
-      // if it cannot be coerced and is not x.x.xxx format, then set to 0.0.1
+      // if it cannot be coerced and is not x.x.xxx/x.xx.xxx format, then set to 0.0.1
       artifact.version = '0.0.1';
     }
   }
@@ -64,11 +64,12 @@ export async function modifyResourceToDraft(artifact: FhirArtifact) {
 }
 
 /**
- * Increments an artifact version that is in x.x.xxx format
+ * Increments an artifact version that is in x.x.xxx/x.xx.xxx format
  */
 function incrementArtifactVersion(version: string): string {
-  const versionParts = version.split('.').map(Number);
-
+  const stringParts = version.split('.');
+  const padMinor = stringParts[1].length === 2; //pad minor version if it's x.xx.xxx format
+  const versionParts = stringParts.map(Number);
   // increment the patch version
   versionParts[2]++;
 
@@ -78,22 +79,24 @@ function incrementArtifactVersion(version: string): string {
     versionParts[1]++;
   }
 
-  // if the minor version reaches 10, reset it to 0 and increment the major version
-  if (versionParts[1] >= 10) {
+  // if the minor version reaches 10/100 (depending on minor pad), reset it to 0 and increment the major version
+  const minorLimit = padMinor ? 100 : 10;
+  if (versionParts[1] >= minorLimit) {
     versionParts[1] = 0;
     versionParts[0]++;
   }
 
-  let formattedPatch;
-  if (versionParts[2] < 10) {
+  let formattedPatch = versionParts[2].toString();
+  if (versionParts[2] < 100) {
     formattedPatch = versionParts[2].toString().padStart(3, '0');
-  } else if (versionParts[2] < 100) {
-    formattedPatch = versionParts[2].toString().padStart(2, '0');
-  } else {
-    formattedPatch = versionParts[2].toString();
   }
 
-  return `${versionParts[0]}.${versionParts[1]}.${formattedPatch}`;
+  let formattedMinor = versionParts[1].toString();
+  if (padMinor && versionParts[1] < 10) {
+    formattedMinor = versionParts[1].toString().padStart(2, '0');
+  }
+
+  return `${versionParts[0]}.${formattedMinor}.${formattedPatch}`;
 }
 
 /**
@@ -101,7 +104,7 @@ function incrementArtifactVersion(version: string): string {
  * format and returns false if it is not
  */
 function checkVersionFormat(version: string): boolean {
-  const format = /^\d\.\d\.\d{3}$/;
+  const format = /^\d\.\d{1,2}\.\d{3}$/;
 
   return format.test(version);
 }
