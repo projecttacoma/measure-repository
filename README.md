@@ -34,6 +34,28 @@ npm install --workspace=<app-or-service> <package-name>
 
 Copy `app/.env.example` to `app/.env.local` and `service/.env.example` to `service/.env`. Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups.
 
+### Mongo Replica Set Setup
+
+Use the mongodb configuration file to configure the single node replica set. More information about the configuration file and system location, see the mongodb [configuration file documentation](https://www.mongodb.com/docs/manual/reference/configuration-options/).
+
+1. First shutdown any currently running mongodb standalone instance: `brew services stop mongodb-community`.
+2. Add this replication set configuration to the file:
+```
+replication:
+   replSetName: rs0
+```
+3. Start mongodb again using homebrew: `brew services restart mongodb-community`.
+4. Initialize the replica set using mongosh:
+```bash
+mongosh
+```
+```bash
+rs.initiate()
+```
+5. From here you can continue to use the replica set, and in the future, you can do a normal start of the server using homebrew: `brew services start mongodb-community` (without need to reinitialize the replica set).
+
+Further information on standalong to replica set conversion can be found in the mongodb [replica set conversion documentation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+
 ## Usage
 
 Once you have the necessary dependencies installed, you can run the following in the root directory:
