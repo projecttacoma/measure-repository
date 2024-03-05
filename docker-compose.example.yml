@@ -6,7 +6,7 @@ services:
       - mongo
     image: tacoma/measure-repository-service
     environment:
-      DATABASE_URL: 'mongodb://mongo:27017/measure-repository'
+      DATABASE_URL: 'mongodb://mongo:27017/measure-repository?replicaSet=rs0'
     ports:
       - "3000:3000"
     stdin_open: true
@@ -22,7 +22,7 @@ services:
       # measure-service container is made public to users with `4_0_1` appended. ex. https://abacus.example.com/mrs/4_0_1
       PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
       MRS_SERVER: http://measure-service:3000/4_0_1
-      MONGODB_URI: mongodb://mongo:27017/draft-repository
+      MONGODB_URI: mongodb://mongo:27017/draft-repository?replicaSet=rs0
     ports:
       - '3001:3001'
     stdin_open: true
@@ -30,10 +30,24 @@ services:
 
   mongo:
     image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     expose:
       - "27017:27017"
+    ports:
+      - 27017:27017
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
     volumes:
       - mongo_data:/data/db
+      - mongo_config:/data/configdb
 
 volumes:
   mongo_data:
+  mongo_config:
