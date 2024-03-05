@@ -60,8 +60,6 @@ services:
     volumes:
       - mongo_data:/data/db
       - mongo_config:/data/configdb
-    stdin_open: true
-    tty: true
 
 volumes:
   mongo_data:
