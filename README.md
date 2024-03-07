@@ -36,10 +36,10 @@ Copy `app/.env.example` to `app/.env.local` and `service/.env.example` to `servi
 
 ### Mongo Replica Set Setup
 
-Use the mongodb configuration file to configure the single node replica set. More information about the configuration file and system location, see the mongodb [configuration file documentation](https://www.mongodb.com/docs/manual/reference/configuration-options/).
+Use the mongodb configuration file to configure the single node replica set. For more information about the configuration file and system location, see the mongodb [configuration file documentation](https://www.mongodb.com/docs/manual/reference/configuration-options/).
 
-1. First shutdown any currently running mongodb standalone instance: `brew services stop mongodb-community`.
-2. Add this replication set configuration to the file:
+1. First shutdown any currently running mongodb standalone instances: `brew services stop mongodb-community`.
+2. Add this replication set configuration to the mongo configuration file:
 ```
 replication:
    replSetName: rs0
@@ -54,7 +54,7 @@ rs.initiate()
 ```
 5. From here you can continue to use the replica set, and in the future, you can do a normal start of the server using homebrew: `brew services start mongodb-community` (without need to reinitialize the replica set).
 
-Further information on standalong to replica set conversion can be found in the mongodb [replica set conversion documentation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+Further information on standalone to replica set conversion can be found in the mongodb [replica set conversion documentation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
 
 ## Usage
 
