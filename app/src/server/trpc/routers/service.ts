@@ -142,7 +142,7 @@ export const serviceRouter = router({
         resourceType: 'Measure' | 'Library';
         id: string;
       }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children to be deleted upon success
-      const childEntries = children.map(async c => {
+      for (const c of children) {
         // get the draft child artifact by its URL and version
         const childDraftRes = await getDraftByUrl(c.url, c.version, c.resourceType);
 
@@ -153,22 +153,23 @@ export const serviceRouter = router({
           childDraftRes.date = DateTime.now().toISO() || '';
           toDelete.push({ resourceType: c.resourceType, id: childDraftRes.id });
         } else {
-          throw new Error(
-            `No child draft artifact found for resourceType ${c.resourceType}, version ${c.version}, and URL ${c.url}`
-          );
+          return {
+            location: null,
+            deletable: null,
+            status: null,
+            error: `No child draft artifact found for resourceType ${c.resourceType}, version ${c.version}, and URL ${c.url}`
+          };
         }
-        return {
+        txnBundle.entry?.push({
           resource: childDraftRes,
           request: {
             method: 'POST',
             url: `${childDraftRes.resourceType}/${childDraftRes.id}`
           }
-        } as BundleEntry<FhirResource>;
-      });
+        } as BundleEntry<FhirResource>);
+      }
 
-      txnBundle.entry?.push(...(await Promise.all(childEntries)));
-
-      // release the parent draft artifact to the measure repository through a PUT operation to the server by id
+      // release the parent and children draft artifacts to the measure repository through a transaction bundle POST
       const res = await fetch(`${process.env.MRS_SERVER}`, {
         method: 'POST',
         headers: {
