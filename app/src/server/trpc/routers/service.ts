@@ -142,6 +142,7 @@ export const serviceRouter = router({
         resourceType: 'Measure' | 'Library';
         id: string;
       }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children to be deleted upon success
+
       for (const c of children) {
         // get the draft child artifact by its URL and version
         const childDraftRes = await getDraftByUrl(c.url, c.version, c.resourceType);
