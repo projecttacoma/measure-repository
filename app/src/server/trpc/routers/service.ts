@@ -143,7 +143,6 @@ export const serviceRouter = router({
         id: string;
       }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children to be deleted upon success
       const childEntries = children.map(async c => {
-        console.log('hi', c);
         // get the draft child artifact by its URL and version
         const childDraftRes = await getDraftByUrl(c.url, c.version, c.resourceType);
 

@@ -76,15 +76,11 @@ export async function getDraftChildren(relatedArtifacts: fhir4.RelatedArtifact[]
 
       const [url, version] = ra.resource.split('|');
 
-      console.log('hellloooo', version);
-
       // add child artifact info to the array of child artifact info
       children.push({ resourceType, url, version });
 
       // search for the related artifact in the draft repository
       const childArtifact = await getDraftByUrl(url, version, resourceType);
-
-      console.log('CHILD', childArtifact?.relatedArtifact);
 
       // if the related artifact exists in the draft repository, then we
       // want to recursively look for its child artifacts as well
