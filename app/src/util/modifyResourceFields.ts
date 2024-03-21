@@ -56,7 +56,8 @@ export async function modifyResourceToDraft(artifact: FhirArtifact) {
         )
       ) {
         const url = ra.resource.split('|')[0];
-        ra.resource = url + '|' + artifact.version;
+        const version = ra.resource.split('|')[1];
+        ra.resource = url + '|' + incrementArtifactVersion(version);
       }
     });
   }

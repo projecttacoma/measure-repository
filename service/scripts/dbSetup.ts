@@ -89,6 +89,18 @@ async function uploadBundleResources(filePath: string) {
         // that library's entry in the relatedArtifacts of the measure
         const { modifiedEntry, url } = addIsOwnedExtension(ent);
         if (url) ownedUrls.push(url);
+        // check if there are other isOwned urls but already in the relatedArtifacts
+        if (ent.resource?.resourceType === 'Measure' || ent.resource?.resourceType === 'Library') {
+          ent.resource.relatedArtifact?.forEach(ra => {
+            if (ra.type === 'composed-of') {
+              if (ra.extension?.some(e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned')) {
+                if (ra.resource) {
+                  ownedUrls.push(ra.resource);
+                }
+              }
+            }
+          });
+        }
         return modifiedEntry;
       });
       const uploads = modifiedEntries.map(async entry => {
