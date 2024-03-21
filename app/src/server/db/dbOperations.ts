@@ -58,7 +58,7 @@ export async function batchCreateDraft(drafts: FhirArtifact[]) {
     await session.commitTransaction();
     console.log('Batch drafts transaction committed.');
   } catch (err) {
-    console.error('Batch drafts transaction failed:' + err);
+    console.error('Batch drafts transaction failed: ' + err);
     await session.abortTransaction();
     error = err;
   } finally {

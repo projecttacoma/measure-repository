@@ -99,7 +99,7 @@ export const serviceRouter = router({
       const parentArtifact = await modifyResourceToDraft({ ...draftJson });
       const draftArtifacts = [parentArtifact].concat(await Promise.all(childDrafts));
 
-      // create a draft of the modified parent artifact
+      // create a draft of the modified parent artifact and any children
       await batchCreateDraft(draftArtifacts);
 
       return { draftId: parentArtifact.id, children: children };

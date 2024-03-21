@@ -98,10 +98,10 @@ export default function AuthoringPage() {
   const draftFromArtifactMutation = trpc.service.draftParent.useMutation({
     onSuccess: (data, variables) => {
       successNotification(variables.resourceType, true, false, variables.id);
-      router.push(`authoring/${resourceType}/${data.draftId}`);
       data.children.forEach(c => {
         successNotification(c.resourceType, true, true, c.url);
       });
+      router.push(`authoring/${resourceType}/${data.draftId}`);
     },
     onError: (e, variables) => {
       errorNotification(variables.resourceType, e.message, true, false, variables.id);
