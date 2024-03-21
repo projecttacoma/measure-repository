@@ -42,6 +42,32 @@ export async function createDraft(resourceType: ArtifactResourceType, draft: any
 }
 
 /**
+ * Creates several new draft resources in a batch
+ */
+export async function batchCreateDraft(drafts: FhirArtifact[]) {
+  let error = null;
+  const client = await clientPromise;
+  const session = client.startSession();
+  try {
+    session.startTransaction();
+    const inserts = drafts.map(draft => {
+      const collection = client.db().collection(draft.resourceType);
+      return collection.insertOne(draft as any, { session });
+    });
+    await Promise.all(inserts);
+    await session.commitTransaction();
+    console.log('Batch drafts transaction committed.');
+  } catch (err) {
+    console.error('Batch drafts transaction failed: ' + err);
+    await session.abortTransaction();
+    error = err;
+  } finally {
+    await session.endSession();
+  }
+  if (error) throw error;
+}
+
+/**
  * Updates the resource of the given type with the given id
  */
 export async function updateDraft(resourceType: ArtifactResourceType, id: string, additions: any, deletions: any) {

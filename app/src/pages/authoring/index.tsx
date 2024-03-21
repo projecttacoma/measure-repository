@@ -95,30 +95,13 @@ export default function AuthoringPage() {
     }
   });
 
-  const draftChildMutation = trpc.service.draftChild.useMutation({
-    onSuccess: (_, variables) => {
-      successNotification(variables.resourceType, true, true, variables.url);
-    },
-    onError: (e, variables) => {
-      errorNotification(variables.resourceType, e.message, true, true, variables.url);
-    }
-  });
-
   const draftFromArtifactMutation = trpc.service.draftParent.useMutation({
     onSuccess: (data, variables) => {
       successNotification(variables.resourceType, true, false, variables.id);
-      router.push(`authoring/${resourceType}/${data.draftId}`);
-
-      // child artifacts only get drafted if the draft of the parent was successful
-      // the success of the parent does not rely on the success of its child artifacts
-      // nor do the child artifacts rely on each other
-      data.children.forEach(childArtifact => {
-        draftChildMutation.mutate({
-          resourceType: childArtifact.resourceType,
-          url: childArtifact.url,
-          version: childArtifact.version
-        });
+      data.children.forEach(c => {
+        successNotification(c.resourceType, true, true, c.url);
       });
+      router.push(`authoring/${resourceType}/${data.draftId}`);
     },
     onError: (e, variables) => {
       errorNotification(variables.resourceType, e.message, true, false, variables.id);
