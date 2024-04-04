@@ -93,7 +93,11 @@ async function uploadBundleResources(filePath: string) {
         if (ent.resource?.resourceType === 'Measure' || ent.resource?.resourceType === 'Library') {
           ent.resource.relatedArtifact?.forEach(ra => {
             if (ra.type === 'composed-of') {
-              if (ra.extension?.some(e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned')) {
+              if (
+                ra.extension?.some(
+                  e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+                )
+              ) {
                 if (ra.resource) {
                   ownedUrls.push(ra.resource);
                 }
