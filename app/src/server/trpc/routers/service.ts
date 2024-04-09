@@ -5,7 +5,7 @@ import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
-import { getChildren } from '@/util/serviceUtils';
+import { getChildren, getDraftChildren } from '@/util/serviceUtils';
 import { Bundle, BundleEntry, FhirResource, OperationOutcome } from 'fhir/r4';
 
 /**
@@ -137,7 +137,7 @@ export const serviceRouter = router({
       };
 
       // recursively get any child artifacts from the artifact if they exist
-      const children = draftRes?.relatedArtifact ? await getChildren(draftRes.relatedArtifact) : [];
+      const children = draftRes?.relatedArtifact ? await getDraftChildren(draftRes.relatedArtifact) : [];
       const toDelete: {
         resourceType: 'Measure' | 'Library';
         id: string;
