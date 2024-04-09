@@ -17,7 +17,7 @@ A prototype implementation of a [FHIR Measure Repository Service](http://hl7.org
 Clone the source code:
 
 ```bash
-git clone https://github.com/projecttacoma/measure-repository-service.git
+git clone https://github.com/projecttacoma/measure-repository.git
 ```
 
 This repository uses [`npm workspaces`](https://docs.npmjs.com/cli/v7/using-npm/workspaces), so in order to install all dependencies, run the following:
@@ -32,27 +32,36 @@ If you want to install a dependency in only the `app` or the `service` directory
 npm install --workspace=<app-or-service> <package-name>
 ```
 
-Copy `app/.env.example` to `app/.env.local` and `service/.env.example` to `service/.env`. Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups.
+Make a copy of `.env` files:
+```bash
+cp app/.env.example app/.env.local
+```
+```bash
+cp service/.env.example service/.env
+```
+
+Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups.
 
 ### Mongo Replica Set Setup
 
 Use the mongodb configuration file to configure the single node replica set. For more information about the configuration file and system location, see the mongodb [configuration file documentation](https://www.mongodb.com/docs/manual/reference/configuration-options/).
 
 1. First shutdown any currently running mongodb standalone instances: `brew services stop mongodb-community`.
-2. Add this replication set configuration to the mongo configuration file:
+2. Locate your [Mongo Configuration File](https://www.mongodb.com/docs/compass/current/settings/config-file/#:~:text=For%20macOS%20and%20Linux%2C%20the,%5Cmongodb%2Dcompass.). *System dependent but may be found at  `/usr/local/etc/mongod.conf`*
+3. Add this replication set configuration to the mongo configuration file:
 ```
 replication:
    replSetName: rs0
 ```
-3. Start mongodb again using homebrew: `brew services restart mongodb-community`.
-4. Initialize the replica set using mongosh:
+4. Start mongodb again using homebrew: `brew services restart mongodb-community`.
+5. Initialize the replica set using mongosh:
 ```bash
 mongosh
 ```
 ```bash
 rs.initiate()
 ```
-5. From here you can continue to use the replica set, and in the future, you can do a normal start of the server using homebrew: `brew services start mongodb-community` (without need to reinitialize the replica set).
+6. From here you can continue to use the replica set, and in the future, you can do a normal start of the server using homebrew: `brew services start mongodb-community` (without need to reinitialize the replica set).
 
 Further information on standalone to replica set conversion can be found in the mongodb [replica set conversion documentation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
 
@@ -85,6 +94,8 @@ To run `lint` and `prettier` in both the frontend and backend and unit tests in 
 ```bash
 npm run check:all
 ```
+> Note: If you recieve a workspace error, run `npx next telemetry disable` 
+
 ### Docker
 
 To start the app and repository service in parallel, run 
