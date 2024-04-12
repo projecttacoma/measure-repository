@@ -47,7 +47,7 @@ Make any changes to point to the measure repository service, Mongo database, and
 Use the mongodb configuration file to configure the single node replica set. For more information about the configuration file and system location, see the mongodb [configuration file documentation](https://www.mongodb.com/docs/manual/reference/configuration-options/).
 
 1. First shutdown any currently running mongodb standalone instances: `brew services stop mongodb-community`.
-2. Locate your [Mongo Configuration File](https://www.mongodb.com/docs/compass/current/settings/config-file/#:~:text=For%20macOS%20and%20Linux%2C%20the,%5Cmongodb%2Dcompass.). *System dependent but may be found at  `/usr/local/etc/mongod.conf`*
+2. Locate your [Mongo Configuration File](https://www.mongodb.com/docs/compass/current/settings/config-file/#:~:text=For%20macOS%20and%20Linux%2C%20the,%5Cmongodb%2Dcompass.). *System dependent but may be found at  `/usr/local/etc/mongod.conf`*.
 3. Add this replication set configuration to the mongo configuration file:
 ```
 replication:
@@ -94,7 +94,7 @@ To run `lint` and `prettier` in both the frontend and backend and unit tests in 
 ```bash
 npm run check:all
 ```
-> Note: If you recieve a workspace error, run `npx next telemetry disable` 
+> Note: You may recieve a workspace error. This does not prevent the service from running, to remove the error for future builds, run `npx next telemetry disable` 
 
 ### Docker
 
