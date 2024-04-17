@@ -11,6 +11,7 @@ import { getDraftByUrl } from '@/server/db/dbOperations';
 export async function modifyResourceToDraft(artifact: FhirArtifact) {
   artifact.id = uuidv4();
   artifact.status = 'draft';
+  let count = 0;
 
   // initial version coercion and increment
   // we can only increment artifacts whose versions are either semantic, can be coerced
@@ -35,7 +36,6 @@ export async function modifyResourceToDraft(artifact: FhirArtifact) {
     // check for existing draft with proposed version
     let existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
     // only increment a limited number of times
-    let count = 0;
     while (existingDraft && count < 10) {
       // increment artifact version
       const incVersion = inc(artifact.version, 'patch');
@@ -56,7 +56,11 @@ export async function modifyResourceToDraft(artifact: FhirArtifact) {
         )
       ) {
         const url = ra.resource.split('|')[0];
-        const version = ra.resource.split('|')[1];
+        let version = ra.resource.split('|')[1];
+        while (count !== 0) {
+          version = incrementArtifactVersion(version);
+          count--;
+        }
         ra.resource = url + '|' + incrementArtifactVersion(version);
       }
     });
