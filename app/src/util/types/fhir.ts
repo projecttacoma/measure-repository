@@ -24,4 +24,5 @@ export interface ResourceInfo {
   url: string | null;
   version: string;
   status: string | null;
+  isChild: boolean;
 }

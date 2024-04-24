@@ -49,17 +49,15 @@ export async function batchCreateDraft(drafts: FhirArtifact[]) {
   const client = await clientPromise;
   const session = client.startSession();
   try {
-    session.startTransaction();
-    const inserts = drafts.map(draft => {
-      const collection = client.db().collection(draft.resourceType);
-      return collection.insertOne(draft as any, { session });
+    await session.withTransaction(async () => {
+      for (const draft of drafts) {
+        const collection = await client.db().collection(draft.resourceType);
+        await collection.insertOne(draft as any, { session });
+      }
     });
-    await Promise.all(inserts);
-    await session.commitTransaction();
     console.log('Batch drafts transaction committed.');
   } catch (err) {
     console.error('Batch drafts transaction failed: ' + err);
-    await session.abortTransaction();
     error = err;
   } finally {
     await session.endSession();
@@ -92,4 +90,28 @@ export async function deleteDraft(resourceType: ArtifactResourceType, id: string
   const client = await clientPromise;
   const collection = client.db().collection(resourceType);
   return collection.deleteOne({ id });
+}
+
+/**
+ * Deletes a parent artifact and all of its children (if applicable) in a batch
+ */
+export async function batchDeleteDraft(drafts: FhirArtifact[]) {
+  let error = null;
+  const client = await clientPromise;
+  const deleteSession = client.startSession();
+  try {
+    await deleteSession.withTransaction(async () => {
+      for (const draft of drafts) {
+        const collection = await client.db().collection(draft.resourceType);
+        await collection.deleteOne({ id: draft.id }, { session: deleteSession });
+      }
+    });
+    console.log('Batch delete transaction committed.');
+  } catch (err) {
+    console.error('Batch delete transaction failed: ' + err);
+    error = err;
+  } finally {
+    await deleteSession.endSession();
+  }
+  if (error) throw error;
 }

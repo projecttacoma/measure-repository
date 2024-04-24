@@ -7,9 +7,11 @@ import {
   getDraftCount,
   updateDraft,
   deleteDraft,
-  getDraftByUrl
+  getDraftByUrl,
+  batchDeleteDraft
 } from '../../db/dbOperations';
 import { publicProcedure, router } from '../trpc';
+import { getDraftChildren } from '@/util/serviceUtils';
 
 /** one big router with resource types passed in */
 export const draftRouter = router({
@@ -67,5 +69,33 @@ export const draftRouter = router({
     .mutation(async ({ input }) => {
       const res = await deleteDraft(input.resourceType, input.id);
       return { draftId: input.id, resourceType: input.resourceType, ...res };
+    }),
+
+  deleteParent: publicProcedure
+    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
+    .mutation(async ({ input }) => {
+      // get the parent draft artifact by id
+      const draftRes = await getDraftById(input.id, input.resourceType);
+
+      if (!draftRes) {
+        throw new Error(`No draft artifact found for resourceType ${input.resourceType}, id ${input.id}`);
+      }
+
+      // recursively get any child artifacts from the artifact if they exist
+      const children = draftRes?.relatedArtifact ? await getDraftChildren(draftRes.relatedArtifact) : [];
+
+      const childDrafts = children.map(async child => {
+        const draft = await getDraftByUrl(child.url, child.version, child.resourceType);
+        if (!draft) {
+          throw new Error('No artifacts found in search');
+        }
+        return draft;
+      });
+
+      const draftArtifacts = [draftRes].concat(await Promise.all(childDrafts));
+
+      await batchDeleteDraft(draftArtifacts);
+
+      return { draftId: draftRes.id, children: children };
     })
 });

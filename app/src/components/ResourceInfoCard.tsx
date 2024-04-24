@@ -39,24 +39,47 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   const ctx = trpc.useContext();
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
-  const deleteMutation = trpc.draft.deleteDraft.useMutation({
-    onSuccess: () => {
-      notifications.show({
-        title: `Draft ${resourceInfo.resourceType} Deleted!`,
-        message: `Draft ${resourceInfo.resourceType}/${resourceInfo.id} successfully deleted`,
-        icon: <CircleCheck />,
-        color: 'green'
+  const successNotification = (resourceType: string, childArtifact: boolean, idOrUrl?: string) => {
+    let message;
+    if (childArtifact) {
+      message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully deleted`;
+    } else {
+      message = `Draft of ${resourceType}/${idOrUrl} successfully deleted`;
+    }
+    notifications.show({
+      title: `${resourceType} Deleted!`,
+      message: message,
+      icon: <CircleCheck />,
+      color: 'green'
+    });
+    ctx.draft.getDraftCounts.invalidate();
+  };
+
+  const errorNotification = (resourceType: string, errorMessage: string, childArtifact: boolean, idOrUrl?: string) => {
+    let message;
+    if (childArtifact) {
+      message = `Attempt to delete draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
+    } else {
+      message = `Attempt to delete draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
+    }
+    notifications.show({
+      title: `${resourceType} Deletion Failed!`,
+      message: message,
+      icon: <AlertCircle />,
+      color: 'red'
+    });
+  };
+
+  const deleteMutation = trpc.draft.deleteParent.useMutation({
+    onSuccess: (data, variables) => {
+      successNotification(variables.resourceType, false, variables.id);
+      data.children.forEach(c => {
+        successNotification(c.resourceType, true, c.url);
       });
-      ctx.draft.getDraftCounts.invalidate();
       ctx.draft.getDrafts.invalidate();
     },
-    onError: e => {
-      notifications.show({
-        title: `Draft ${resourceInfo.resourceType} Deletion Failed!`,
-        message: `Attempt to delete draft of ${resourceInfo.resourceType}/${resourceInfo.id} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
-        color: 'red'
-      });
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, false, variables.id);
     }
   });
 
@@ -67,7 +90,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         onClose={() => setIsConfirmationModalOpen(false)}
         modalText={`This will delete draft ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
-        }" permanently.`}
+        }" and any child artifacts permanently.`}
         onConfirm={() => {
           deleteMutation.mutate({
             resourceType: resourceInfo.resourceType,
@@ -130,19 +153,28 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 </ActionIcon>
               </Tooltip>
             </Link>
-            {authoring && (
-              <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
-                <ActionIcon
-                  radius="md"
-                  size="md"
-                  variant="subtle"
-                  color="red"
-                  onClick={() => setIsConfirmationModalOpen(true)}
-                >
-                  <Trash size="24" />
-                </ActionIcon>
-              </Tooltip>
-            )}
+            {authoring &&
+              (resourceInfo.isChild ? (
+                <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
+                  <span>
+                    <ActionIcon radius="md" size="md" disabled={true}>
+                      <Trash size="24" />
+                    </ActionIcon>
+                  </span>
+                </Tooltip>
+              ) : (
+                <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
+                  <ActionIcon
+                    radius="md"
+                    size="md"
+                    variant="subtle"
+                    color="red"
+                    onClick={() => setIsConfirmationModalOpen(true)}
+                  >
+                    <Trash size="24" />
+                  </ActionIcon>
+                </Tooltip>
+              ))}
           </Group>
         </Grid>
       </Paper>

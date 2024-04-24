@@ -19,7 +19,10 @@ export function extractResourceInfo(resource: FhirArtifact) {
     name: resource.name ?? null,
     url: resource.url ?? null,
     version: resource.version ?? null,
-    status: resource.status ?? null
+    status: resource.status ?? null,
+    isChild: !!resource.extension?.find(
+      ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
+    )
   };
   return resourceInfo;
 }
