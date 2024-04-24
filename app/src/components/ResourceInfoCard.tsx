@@ -90,7 +90,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         onClose={() => setIsConfirmationModalOpen(false)}
         modalText={`This will delete draft ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
-        }" permanently.`}
+        }" and any child artifacts permanently.`}
         onConfirm={() => {
           deleteMutation.mutate({
             resourceType: resourceInfo.resourceType,
