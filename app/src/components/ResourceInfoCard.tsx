@@ -27,7 +27,7 @@ const useStyles = createStyles(theme => ({
   card: {
     borderRadius: 6,
     border: `${rem(1)} solid ${theme.colors.gray[3]}`,
-    width: '800px',
+    width: '900px',
     [`@media (max-width: ${em(getBreakpointValue(theme.breakpoints.lg) - 1)})`]: {
       width: '100%'
     }
@@ -139,7 +139,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
       />
       <Paper className={classes.card} shadow="sm" p="md">
         <Grid align="center">
-          <Grid.Col span={10}>
+          <Grid.Col span={9}>
             <div>
               <Text size="lg" fw={700}>
                 {resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`}
