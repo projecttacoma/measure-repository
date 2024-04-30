@@ -8,9 +8,12 @@ import { getDraftByUrl } from '@/server/db/dbOperations';
  * draft status, and increments the version if it has one or sets it to
  * 0.0.1 if it does not
  */
-export async function modifyResourceToDraft(artifact: FhirArtifact) {
+export async function modifyResource(artifact: FhirArtifact, action: string) {
   artifact.id = uuidv4();
-  artifact.status = 'draft';
+  if (action === 'draft') {
+    artifact.status = 'draft';
+  }
+
   let count = 0;
 
   // initial version coercion and increment

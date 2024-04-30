@@ -13,10 +13,10 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck, Report } from 'tabler-icons-react';
+import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck, Report, Copy } from 'tabler-icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
-import DeletionConfirmationModal from './DeletionConfirmationModal';
+import ConfirmationModal from './ConfirmationModal';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
@@ -36,67 +36,106 @@ const useStyles = createStyles(theme => ({
 
 export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceInfoCardProps) {
   const { classes } = useStyles();
-  const ctx = trpc.useContext();
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const utils = trpc.useUtils();
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
+  const [isCloneConfirmationModalOpen, setIsCloneConfirmationModalOpen] = useState(false);
 
-  const successNotification = (resourceType: string, childArtifact: boolean, idOrUrl?: string) => {
+  const successNotification = (resourceType: string, childArtifact: boolean, action: string, idOrUrl?: string) => {
     let message;
     if (childArtifact) {
-      message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully deleted`;
+      message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully ${
+        action === 'delete' ? 'deleted' : 'cloned'
+      }`;
     } else {
-      message = `Draft of ${resourceType}/${idOrUrl} successfully deleted`;
+      message = `Draft of ${resourceType}/${idOrUrl} successfully ${action === 'delete' ? 'deleted' : 'cloned'}`;
     }
     notifications.show({
-      title: `${resourceType} Deleted!`,
+      title: `${resourceType} ${action === 'delete' ? 'Deleted' : 'Cloned'}!`,
       message: message,
       icon: <CircleCheck />,
       color: 'green'
     });
-    ctx.draft.getDraftCounts.invalidate();
+    utils.draft.getDraftCounts.invalidate();
   };
 
-  const errorNotification = (resourceType: string, errorMessage: string, childArtifact: boolean, idOrUrl?: string) => {
+  const errorNotification = (
+    resourceType: string,
+    errorMessage: string,
+    childArtifact: boolean,
+    action: string,
+    idOrUrl?: string
+  ) => {
     let message;
     if (childArtifact) {
-      message = `Attempt to delete draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
+      message = `Attempt to ${action} draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
     } else {
-      message = `Attempt to delete draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
+      message = `Attempt to ${action} draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
     }
     notifications.show({
-      title: `${resourceType} Deletion Failed!`,
+      title: `${resourceType} ${action === 'delete' ? 'Deletion' : 'Clone'} Failed!`,
       message: message,
       icon: <AlertCircle />,
       color: 'red'
     });
   };
 
-  const deleteMutation = trpc.draft.deleteParent.useMutation({
+  const cloneMutation = trpc.draft.cloneParent.useMutation({
     onSuccess: (data, variables) => {
-      successNotification(variables.resourceType, false, variables.id);
+      successNotification(variables.resourceType, false, 'clone', variables.id);
       data.children.forEach(c => {
-        successNotification(c.resourceType, true, c.url);
+        successNotification(c.resourceType, true, 'clone', c.url);
       });
-      ctx.draft.getDrafts.invalidate();
+      utils.draft.getDrafts.invalidate();
+      setIsCloneConfirmationModalOpen(false);
     },
     onError: (e, variables) => {
-      errorNotification(variables.resourceType, e.message, false, variables.id);
+      errorNotification(variables.resourceType, e.message, false, 'clone', variables.id);
+    }
+  });
+
+  const deleteMutation = trpc.draft.deleteParent.useMutation({
+    onSuccess: (data, variables) => {
+      successNotification(variables.resourceType, false, 'delete', variables.id);
+      data.children.forEach(c => {
+        successNotification(c.resourceType, true, 'delete', c.url);
+      });
+      utils.draft.getDrafts.invalidate();
+      setIsCloneConfirmationModalOpen(false);
+    },
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, false, 'delete', variables.id);
     }
   });
 
   return (
     <>
-      <DeletionConfirmationModal
-        open={isConfirmationModalOpen}
-        onClose={() => setIsConfirmationModalOpen(false)}
-        modalText={`This will delete draft ${resourceInfo.resourceType} "${
+      <ConfirmationModal
+        open={isCloneConfirmationModalOpen}
+        onClose={() => setIsCloneConfirmationModalOpen(false)}
+        onConfirm={() => {
+          cloneMutation.mutate({
+            resourceType: resourceInfo.resourceType,
+            id: resourceInfo.id
+          });
+        }}
+        action="clone"
+        modalText={`This will clone draft ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
-        }" and any child artifacts permanently.`}
+        }" and any child artifacts.`}
+      />
+      <ConfirmationModal
+        open={isDeleteConfirmationModalOpen}
+        onClose={() => setIsDeleteConfirmationModalOpen(false)}
         onConfirm={() => {
           deleteMutation.mutate({
             resourceType: resourceInfo.resourceType,
             id: resourceInfo.id
           });
         }}
+        action="delete"
+        modalText={`This will delete draft ${resourceInfo.resourceType} "${
+          resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
+        }" and any child artifacts permanently.`}
       />
       <Paper className={classes.card} shadow="sm" p="md">
         <Grid align="center">
@@ -155,25 +194,47 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
             </Link>
             {authoring &&
               (resourceInfo.isChild ? (
-                <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
-                  <span>
-                    <ActionIcon radius="md" size="md" disabled={true}>
+                <Group>
+                  <Tooltip label={'Child artifacts cannot be directly cloned'}>
+                    <span>
+                      <ActionIcon radius="md" size="md" disabled={true}>
+                        <Copy size="24" />
+                      </ActionIcon>
+                    </span>
+                  </Tooltip>
+                  <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
+                    <span>
+                      <ActionIcon radius="md" size="md" disabled={true}>
+                        <Trash size="24" />
+                      </ActionIcon>
+                    </span>
+                  </Tooltip>
+                </Group>
+              ) : (
+                <Group>
+                  <Tooltip label={'Clone Draft Resource'} openDelay={1000}>
+                    <ActionIcon
+                      radius="md"
+                      size="md"
+                      variant="subtle"
+                      color="green"
+                      onClick={() => setIsCloneConfirmationModalOpen(true)}
+                    >
+                      <Copy size="24" />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
+                    <ActionIcon
+                      radius="md"
+                      size="md"
+                      variant="subtle"
+                      color="red"
+                      onClick={() => setIsDeleteConfirmationModalOpen(true)}
+                    >
                       <Trash size="24" />
                     </ActionIcon>
-                  </span>
-                </Tooltip>
-              ) : (
-                <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
-                  <ActionIcon
-                    radius="md"
-                    size="md"
-                    variant="subtle"
-                    color="red"
-                    onClick={() => setIsConfirmationModalOpen(true)}
-                  >
-                    <Trash size="24" />
-                  </ActionIcon>
-                </Tooltip>
+                  </Tooltip>
+                </Group>
               ))}
           </Group>
         </Grid>

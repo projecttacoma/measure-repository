@@ -1,6 +1,6 @@
 import { publicProcedure, router } from '../trpc';
 import { batchCreateDraft, getDraftById, getDraftByUrl } from '@/server/db/dbOperations';
-import { modifyResourceToDraft } from '@/util/modifyResourceFields';
+import { modifyResource } from '@/util/modifyResourceFields';
 import { FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
@@ -94,9 +94,9 @@ export const serviceRouter = router({
         const draftRes = artifactBundle.entry?.[0].resource;
 
         // increment the version in the url and update the relatedArtifact.resource to have the new version on the url
-        return await modifyResourceToDraft(draftRes as FhirArtifact);
+        return await modifyResource(draftRes as FhirArtifact, 'draft');
       });
-      const parentArtifact = await modifyResourceToDraft({ ...draftJson });
+      const parentArtifact = await modifyResource({ ...draftJson }, 'draft');
       const draftArtifacts = [parentArtifact].concat(await Promise.all(childDrafts));
 
       // create a draft of the modified parent artifact and any children
