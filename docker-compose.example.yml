@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   measure-service:
@@ -6,7 +6,7 @@ services:
       - mongo
     image: tacoma/measure-repository-service
     environment:
-      DATABASE_URL: 'mongodb://mongo:27017/measure-repository?replicaSet=rs0'
+      DATABASE_URL: "mongodb://mongo:27017/measure-repository?replicaSet=rs0"
     ports:
       - "3000:3000"
     stdin_open: true
@@ -24,7 +24,7 @@ services:
       MRS_SERVER: http://measure-service:3000/4_0_1
       MONGODB_URI: mongodb://mongo:27017/draft-repository?replicaSet=rs0
     ports:
-      - '3001:3001'
+      - "3001:3001"
     stdin_open: true
     tty: true
 
@@ -38,6 +38,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
+      # for linux systems, replace host.docker.internal with mongo
       test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
       interval: 5s
       timeout: 30s
