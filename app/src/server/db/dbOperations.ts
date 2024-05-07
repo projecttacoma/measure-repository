@@ -115,3 +115,27 @@ export async function batchDeleteDraft(drafts: FhirArtifact[]) {
   }
   if (error) throw error;
 }
+
+/**
+ * Clones a parent artifact and all of its children (if applicable) in a batch
+ */
+export async function batchCloneDraft(drafts: FhirArtifact[]) {
+  let error = null;
+  const client = await clientPromise;
+  const cloneSession = client.startSession();
+  try {
+    await cloneSession.withTransaction(async () => {
+      for (const draft of drafts) {
+        const collection = await client.db().collection(draft.resourceType);
+        await collection.insertOne(draft as any, { session: cloneSession });
+      }
+    });
+    console.log('Batch clone transaction committed.');
+  } catch (err) {
+    console.log('Batch clone transaction failed: ' + err);
+    error = err;
+  } finally {
+    await cloneSession.endSession();
+  }
+  if (error) throw error;
+}

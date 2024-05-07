@@ -35,7 +35,7 @@ export default function AuthoringPage() {
     error: artifactError
   } = trpc.service.getArtifactsByType.useQuery({ resourceType });
 
-  const ctx = trpc.useContext();
+  const utils = trpc.useUtils();
   const { classes } = useStyles();
   const router = useRouter();
 
@@ -59,7 +59,7 @@ export default function AuthoringPage() {
       icon: <CircleCheck />,
       color: 'green'
     });
-    ctx.draft.getDraftCounts.invalidate();
+    utils.draft.getDraftCounts.invalidate();
   };
 
   const errorNotification = (

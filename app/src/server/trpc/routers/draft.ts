@@ -8,10 +8,12 @@ import {
   updateDraft,
   deleteDraft,
   getDraftByUrl,
-  batchDeleteDraft
+  batchDeleteDraft,
+  batchCloneDraft
 } from '../../db/dbOperations';
 import { publicProcedure, router } from '../trpc';
-import { getDraftChildren } from '@/util/serviceUtils';
+import { getParentDraftArtifactAndChildren } from '@/util/draftHelper';
+import { modifyResource } from '@/util/modifyResourceFields';
 
 /** one big router with resource types passed in */
 export const draftRouter = router({
@@ -74,27 +76,29 @@ export const draftRouter = router({
   deleteParent: publicProcedure
     .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
     .mutation(async ({ input }) => {
-      // get the parent draft artifact by id
-      const draftRes = await getDraftById(input.id, input.resourceType);
-
-      if (!draftRes) {
-        throw new Error(`No draft artifact found for resourceType ${input.resourceType}, id ${input.id}`);
-      }
-
-      // recursively get any child artifacts from the artifact if they exist
-      const children = draftRes?.relatedArtifact ? await getDraftChildren(draftRes.relatedArtifact) : [];
-
-      const childDrafts = children.map(async child => {
-        const draft = await getDraftByUrl(child.url, child.version, child.resourceType);
-        if (!draft) {
-          throw new Error('No artifacts found in search');
-        }
-        return draft;
-      });
-
-      const draftArtifacts = [draftRes].concat(await Promise.all(childDrafts));
+      const { draftArtifacts, draftRes, children } = await getParentDraftArtifactAndChildren(
+        input.id,
+        input.resourceType
+      );
 
       await batchDeleteDraft(draftArtifacts);
+
+      return { draftId: draftRes.id, children: children };
+    }),
+
+  cloneParent: publicProcedure
+    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
+    .mutation(async ({ input }) => {
+      const { draftArtifacts, draftRes, children } = await getParentDraftArtifactAndChildren(
+        input.id,
+        input.resourceType
+      );
+
+      const clones = await draftArtifacts.map(async draftArtifact => {
+        return await modifyResource(draftArtifact, 'clone');
+      });
+
+      await batchCloneDraft(await Promise.all(clones));
 
       return { draftId: draftRes.id, children: children };
     })
