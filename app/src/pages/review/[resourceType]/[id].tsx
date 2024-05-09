@@ -31,6 +31,8 @@ import ArtifactTimeline from '@/components/ArtifactTimeline';
 
 interface DraftArtifactUpdates {
   extension?: fhir4.Extension[];
+  date?: string;
+  lastReviewDate?: string;
 }
 
 /**
@@ -100,6 +102,7 @@ export default function CommentPage() {
   function parseUpdate(comment: string, type: string, userName: string, dateSelected: boolean) {
     const additions: DraftArtifactUpdates = {};
     const deletions: DraftArtifactUpdates = {};
+    const currentDate = new Date().toISOString();
 
     const newExtension: fhir4.Extension[] = [];
     newExtension.push({ url: 'type', valueCode: type }, { url: 'text', valueMarkdown: comment });
@@ -108,21 +111,28 @@ export default function CommentPage() {
       newExtension.push({ url: 'user', valueString: userName });
     }
     if (dateSelected === true) {
-      const authoredDate = new Date();
-      newExtension.push({ url: 'authoredOn', valueDateTime: authoredDate.toISOString() });
+      newExtension.push({ url: 'authoredOn', valueDateTime: currentDate });
     }
 
-    if (resource?.extension) {
-      resource.extension.push({
-        extension: newExtension,
-        url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-      });
-      additions['extension'] = resource.extension;
-    } else if (resource && !resource.extension) {
-      resource.extension = [
-        { extension: newExtension, url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment' }
-      ];
-      additions['extension'] = resource.extension;
+    if(resource){
+      if (resource.extension) {
+        resource.extension.push({
+          extension: newExtension,
+          url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+        });
+        additions.extension = resource.extension;
+      } else{
+        resource.extension = [
+          { extension: newExtension, url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment' }
+        ];
+        additions.extension = resource.extension;
+      }
+      // update resource dates
+      
+      resource.date = currentDate;
+      additions.date = resource.date;
+      resource.lastReviewDate = currentDate;
+      additions.lastReviewDate = resource.lastReviewDate;
     }
     return [additions, deletions];
   }
