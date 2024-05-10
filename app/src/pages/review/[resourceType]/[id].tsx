@@ -114,21 +114,24 @@ export default function CommentPage() {
       newExtension.push({ url: 'authoredOn', valueDateTime: currentDate });
     }
 
-    if(resource){
+    if (resource) {
       if (resource.extension) {
         resource.extension.push({
           extension: newExtension,
           url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
         });
         additions.extension = resource.extension;
-      } else{
+      } else {
         resource.extension = [
-          { extension: newExtension, url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment' }
+          {
+            extension: newExtension,
+            url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+          }
         ];
         additions.extension = resource.extension;
       }
       // update resource dates
-      
+
       resource.date = currentDate;
       additions.date = resource.date;
       resource.lastReviewDate = currentDate;
