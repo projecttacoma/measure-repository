@@ -1,7 +1,5 @@
 import { Avatar, createStyles, Group, Paper, rem, Text, TypographyStylesProvider } from '@mantine/core';
 import parse from 'html-react-parser';
-import { useHover } from '@mantine/hooks';
-import { useEffect, useState } from 'react';
 
 const useStyles = createStyles(theme => ({
   card: {
@@ -36,36 +34,6 @@ export interface ArtifactCommentProps {
 
 export default function ArtifactComments({ date, body, author }: ArtifactCommentProps) {
   const { classes } = useStyles();
-  const { hovered, ref } = useHover();
-  const [color, setColor] = useState('grey');
-  const [displayedDate, setDisplayedDate] = useState<string | undefined>(date);
-
-  // This changes the UTC date format into the 'mm/dd/yyyy' format
-  function getDate() {
-    if (date) {
-      const stringDate = new Date(date);
-      return `${stringDate.getMonth() + 1}/${stringDate.getDate()}/${stringDate.getFullYear()}`;
-    }
-  }
-
-  const formattedDate = getDate();
-
-  function changeDate() {
-    if (displayedDate === date) {
-      setDisplayedDate(formattedDate);
-    } else {
-      setDisplayedDate(date);
-    }
-  }
-
-  // Changes the color of the date text depending on if the user is hovering over the text or not
-  useEffect(() => {
-    if (hovered === true) {
-      setColor('blue');
-    } else {
-      setColor('grey');
-    }
-  }, [hovered]);
 
   return (
     <Paper withBorder radius="md" className={classes.card} shadow="md">
@@ -78,11 +46,9 @@ export default function ArtifactComments({ date, body, author }: ArtifactComment
             <Text weight={500} fz="sm">
               {author ? author : 'Guest'}
             </Text>
-            <div ref={ref} style={{ cursor: 'pointer' }}>
-              <Text variant="subtle" fz="xs" onClick={changeDate} opacity={0.8} color={color}>
-                {date ? displayedDate : ''}
-              </Text>
-            </div>
+            <Text variant="subtle" fz="xs" opacity={0.8} color={'grey'}>
+              {date ? date : ''}
+            </Text>
           </div>
         </Group>
         <div style={{ wordBreak: 'break-word' }}>
