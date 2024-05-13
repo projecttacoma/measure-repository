@@ -130,8 +130,8 @@ export default function CommentPage() {
         ];
         additions.extension = resource.extension;
       }
-      // update resource dates
 
+      // update resource dates
       resource.date = currentDate;
       additions.date = resource.date;
       resource.lastReviewDate = currentDate;
