@@ -320,7 +320,8 @@ export const CoreSearchArgs = z
     // adding _summary for count (https://www.hl7.org/fhir/search.html#_summary)
     _summary: z.literal('count'),
     // adding _elements for a comma separated string (https://www.hl7.org/fhir/search.html#_elements)
-    _elements: z.string()
+    _elements: z.string(),
+    _count: z.string()
   })
   .partial()
   .strict();

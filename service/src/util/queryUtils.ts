@@ -34,6 +34,8 @@ export function getMongoQueryFromRequest(query: RequestQuery): Filter<any> {
     } else if (key === '_elements') {
       const elements = query[key] as string;
       mf[key] = elements.split(',');
+    } else if (key === '_count') {
+      //blackhole _count for now
     } else {
       // Otherwise no parsing necessary
       mf[key] = query[key];
