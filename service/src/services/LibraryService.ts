@@ -1,6 +1,7 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
   createResource,
+  deleteResource,
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
@@ -18,7 +19,10 @@ import {
   gatherParams,
   validateParamIdSource,
   checkContentTypeHeader,
-  checkExpectedResourceType
+  checkExpectedResourceType,
+  updateFields,
+  checkFieldsforUpdate,
+  checkFieldsForDelete
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
@@ -97,18 +101,13 @@ export class LibraryService implements Service<fhir4.Library> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Library');
-    resource['id'] = uuidv4();
-    if (resource.status != 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
-    }
+    updateFields(resource);
     return createResource(resource, 'Library');
   }
 
   /**
    * result of sending a PUT request to {BASE_URL}/4_0_1/Library/{id}
    * updates the library with the passed in id using the passed in data
-   * or creates a library with passed in id if it does not exist in the database
    */
   async update(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`PUT /Library/${args.id}`);
@@ -120,11 +119,22 @@ export class LibraryService implements Service<fhir4.Library> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    if (resource.status != 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
-    }
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Library | null;
+    checkFieldsforUpdate(resource, oldResource);
     return updateResource(args.id, resource, 'Library');
+  }
+
+  /**
+   * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
+   * deletes the library with the passed in id if it exists in the database
+   */
+  async delete(args: RequestArgs, { req }: RequestCtx) {
+    const resource = (await findResourceById(args.id, 'Library')) as fhir4.Library | null;
+    if (!resource) {
+      throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
+    }
+    checkFieldsForDelete(resource);
+    return deleteResource(args.id, 'Library');
   }
 
   /**

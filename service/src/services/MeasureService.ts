@@ -1,6 +1,7 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
   createResource,
+  deleteResource,
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
@@ -17,7 +18,10 @@ import {
   gatherParams,
   validateParamIdSource,
   checkContentTypeHeader,
-  checkExpectedResourceType
+  checkExpectedResourceType,
+  updateFields,
+  checkFieldsforUpdate,
+  checkFieldsForDelete
 } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
 import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
@@ -98,11 +102,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Measure');
-    resource['id'] = uuidv4();
-    if (resource.status != 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
-    }
+    updateFields(resource);
     return createResource(resource, 'Measure');
   }
 
@@ -121,11 +121,22 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    if (resource.status != 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
-    }
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Measure | null;
+    checkFieldsforUpdate(resource, oldResource);
     return updateResource(args.id, resource, 'Measure');
+  }
+
+  /**
+   * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
+   * deletes the library with the passed in id if it exists in the database
+   */
+  async delete(args: RequestArgs, { req }: RequestCtx) {
+    const resource = (await findResourceById(args.id, 'Measure')) as fhir4.Measure | null;
+    if (!resource) {
+      throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
+    }
+    checkFieldsForDelete(resource);
+    return deleteResource(args.id, 'Measure');
   }
 
   /**

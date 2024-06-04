@@ -99,8 +99,28 @@ This server currently supports the following CRUD operations:
 
 - Read by ID with `GET` to endpoint: `4_0_1/<resourceType>/<resourceId>`
 - Create resource (Library or Measure) with `POST` to endpoint: `4_0_1/<resourceType>`
+  - Publishable:
+    - Supports the [CRMI Publishable Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#publishable-artifact-repository) minimum write capability _publish_
+    - Artifact must be in active status and conform to appropriate shareable and publishable profiles
+  - Authoring (In Progress):
+    - Supports the [CRMI Authoring Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#authoring-artifact-repository) additional authoring capability _submit_
+    - Artifact must be in draft status
+
 - Update resource (Library or Measure) with `PUT` to endpoint: `4_0_1/<resourceType>/<resourceId>`
-  _More functionality coming soon!_
+  - Publishable:
+    - Supports the [CRMI Publishable Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#publishable-artifact-repository) minimum write capability _retire_
+    - Artifact must be in active status and may only change the status to retired and update the date (and other metadata appropriate to indicate retired status)
+  - Authoring (In Progress):
+    - Supports the [CRMI Authoring Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#authoring-artifact-repository) additional authoring capability _revise_
+    - Artifact must be in (and remain in) draft status
+
+- Delete resource (Library or Measure) with `DELETE` to endpoint: `4_0_1/<resourceType>/<resourceId>`
+  - Publishable:
+    - Supports the [CRMI Publishable Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#publishable-artifact-repository) minimum write capability _archive_
+    - Artifact must be in retired status
+  - Authoring (In Progress):
+    - Supports the [CRMI Authoring Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#authoring-artifact-repository) additional authoring capability _withdraw_
+    - Artifact must be in draft status
 
 ### Search
 

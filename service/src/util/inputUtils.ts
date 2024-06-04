@@ -1,6 +1,10 @@
 import { RequestArgs, RequestQuery, FhirResourceType } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
-import { BadRequestError } from './errorUtils';
+import { BadRequestError, ResourceNotFoundError } from './errorUtils';
+import { v4 as uuidv4 } from 'uuid';
+import _ from 'lodash';
+import { loggers } from '@projecttacoma/node-fhir-server-core';
+const logger = loggers.get('default');
 
 /*
  * Gathers parameters from both the query and the FHIR parameter request body resource
@@ -65,5 +69,57 @@ export function checkContentTypeHeader(contentType?: string) {
 export function checkExpectedResourceType(resourceType: string, expectedResourceType: FhirResourceType) {
   if (resourceType !== expectedResourceType) {
     throw new BadRequestError(`Expected resourceType '${expectedResourceType}' in body. Received '${resourceType}'.`);
+  }
+}
+
+export function updateFields(resource: fhir4.Measure | fhir4.Library) {
+  resource['id'] = uuidv4();
+  if (process.env.AUTHORING) {
+    // authoring requires active or draft, TODO: return error instead
+    if (resource.status !== 'active' && resource.status !== 'draft') {
+      resource.status = 'active';
+      logger.warn(`Resource ${resource.id} has been coerced to active`);
+    }
+  } else {
+    // publishable requires active, TODO: return error instead
+    if (resource.status !== 'active') {
+      resource.status = 'active';
+      logger.warn(`Resource ${resource.id} has been coerced to active`);
+    }
+  }
+}
+
+export function checkFieldsforUpdate(
+  resource: fhir4.Measure | fhir4.Library,
+  oldResource: fhir4.Measure | fhir4.Library | null
+) {
+  if (!oldResource) {
+    throw new ResourceNotFoundError(`Existing resource not found with id ${resource.id}`);
+  }
+  if (!process.env.AUTHORING || oldResource.status === 'active') {
+    // publishable or active status requires retire functionality
+    // TODO: is there any other metadata we should allow to update for the retire functionality?
+    if (!process.env.AUTHORING && oldResource.status !== 'active') {
+      throw new BadRequestError(
+        `Resource status is currently ${oldResource.status}. Publishable repository service updates may only be made to active status resources.`
+      );
+    }
+    const { status: statusOld, date: dateOld, ...limitedOld } = oldResource;
+    const { status: statusNew, date: dateNew, ...limitedNew } = resource;
+
+    if (statusNew !== 'retired') {
+      throw new BadRequestError('Updating active status resources requires changing the resource status to retired.');
+    }
+
+    if (!_.isEqual(limitedOld, limitedNew)) {
+      throw new BadRequestError('Updating active status resources may only change the status and date.');
+    }
+  } else if (oldResource.status === 'draft') {
+    // authoring and draft status requires revise functionality
+    if (resource.status != 'draft') {
+      throw new BadRequestError('Existing draft resources must stay in draft while revising.');
+    }
+  } else {
+    throw new BadRequestError(`Cannot update existing resource with status ${oldResource.status}`);
   }
 }
