@@ -13,21 +13,37 @@ export async function findResourceById<T extends fhir4.FhirResource>(id: string,
 }
 
 /**
- * searches the database and returns an array of all resources of the given type that match the given query
+ * searches the database and returns an array of objects that contain metadata and each respective resource of the given type that match the given query
  */
 export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
   query: Filter<any>,
   resourceType: FhirResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
+  const projection = { _id: 0, _dataRequirements: 0 };
+  const pagination: any = query.skip ? [{ $skip: query.skip }, { $limit: query.limit }] : [];
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  return collection.find<T>(query, { projection: { _id: 0, _dataRequirements: 0 } }).toArray();
+  query._count = { $exists: false };
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
+  return collection
+    .aggregate<{ metadata: { total: number }[]; data: T }>([
+      { $match: query },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: pagination
+        }
+      },
+      { $project: projection }
+    ])
+    .toArray();
 }
 
 /**
- * searches the database and returns an array of all resources of the given type that match the given query
+ * searches the database and returns an array objects that contain metadata and each respective resource of the given type that match the given query
  * but the resources only include the elements specified by the _elements parameter
  */
 export async function findResourceElementsWithQuery<T extends fhir4.FhirResource>(
@@ -44,10 +60,27 @@ export async function findResourceElementsWithQuery<T extends fhir4.FhirResource
     projection[elem] = 1;
   });
   projection['_id'] = 0;
+
+  // create pagination
+  const pagination: any = [{ $skip: query.skip }, { $limit: query.limit }];
+
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  return collection.find<T>(query, { projection: projection }).toArray();
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
+  return collection
+    .aggregate<{ metadata: { total: number }[]; data: T }>([
+      { $match: query },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: pagination
+        }
+      },
+      { $project: projection }
+    ])
+    .toArray();
 }
 
 /**

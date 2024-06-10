@@ -9,7 +9,12 @@ import {
   updateResource
 } from '../db/dbOperations';
 import { Service } from '../types/service';
-import { createMeasurePackageBundle, createSearchsetBundle, createSummarySearchsetBundle } from '../util/bundleUtils';
+import {
+  createPaginationLinks,
+  createMeasurePackageBundle,
+  createSearchsetBundle,
+  createSummarySearchsetBundle
+} from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import {
@@ -45,7 +50,11 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     // if the _summary parameter with a value of count is included, then
     // return a searchset bundle that excludes the entries
-    if (parsedQuery._summary && parsedQuery._summary === 'count') {
+    // if _count has the value 0, this shall be treated the same as _summary=count
+    if (
+      (parsedQuery._summary && parsedQuery._summary === 'count') ||
+      (parsedQuery._count && parsedQuery._count === '0')
+    ) {
       const count = await findResourceCountWithQuery(mongoQuery, 'Measure');
       return createSummarySearchsetBundle<fhir4.Measure>(count);
     }
@@ -53,7 +62,8 @@ export class MeasureService implements Service<fhir4.Measure> {
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const entries = await findResourceElementsWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      const result = await findResourceElementsWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      const entries = result.map(r => r.data);
       // add the SUBSETTED tag to the resources returned by the _elements parameter
       entries.map(e => {
         if (e.meta) {
@@ -68,10 +78,39 @@ export class MeasureService implements Service<fhir4.Measure> {
           };
         }
       });
-      return createSearchsetBundle(entries);
+      const bundle = createSearchsetBundle(entries);
+      if (parsedQuery._count) {
+        if (parsedQuery._count) {
+          bundle.link = createPaginationLinks(
+            `http://${req.headers.host}/${req.params.base_version}/`,
+            'Measure',
+            new URLSearchParams(req.query),
+            {
+              numberOfPages: Math.ceil(result[0].metadata[0].total / parseInt(parsedQuery._count)),
+              page: parseInt(parsedQuery.page || '1')
+            }
+          );
+        }
+      }
+      return bundle;
     } else {
-      const entries = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
-      return createSearchsetBundle(entries);
+      const result = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      const entries = result.map(r => r.data);
+      const bundle = createSearchsetBundle(entries);
+      if (parsedQuery._count) {
+        if (parsedQuery._count) {
+          bundle.link = createPaginationLinks(
+            `http://${req.headers.host}/${req.params.base_version}/`,
+            'Measure',
+            new URLSearchParams(req.query),
+            {
+              numberOfPages: Math.ceil(result[0].metadata[0].total / parseInt(parsedQuery._count)),
+              page: parseInt(parsedQuery.page || '1')
+            }
+          );
+        }
+      }
+      return bundle;
     }
   }
 
