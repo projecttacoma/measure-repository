@@ -8,6 +8,9 @@ const STRING_TYPE_PARAMS = ['name', 'title', 'description', 'version'];
  * a usable mongo query
  */
 export function getMongoQueryFromRequest(query: RequestQuery): Filter<any> {
+  const pageSize = (query['_count'] && parseInt(query['_count'] as string)) || 100; // set a base limit of 100
+  if (!query['page']) query['page'] = '1'; // default to first page
+
   //TODO: Handle potential for query value to be array
   return Object.keys(query).reduce((mf: Filter<any>, key: string) => {
     if (!query[key] || Array.isArray(query[key])) {
@@ -35,7 +38,9 @@ export function getMongoQueryFromRequest(query: RequestQuery): Filter<any> {
       const elements = query[key] as string;
       mf[key] = elements.split(',');
     } else if (key === '_count') {
-      //blackhole _count for now
+      mf['limit'] = pageSize;
+    } else if (key === 'page') {
+      mf['skip'] = (parseInt((query[key] || '1') as string) - 1) * pageSize; //default to first page
     } else {
       // Otherwise no parsing necessary
       mf[key] = query[key];
