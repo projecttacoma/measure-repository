@@ -246,13 +246,16 @@ describe('MeasureService', () => {
 
   describe('update', () => {
     beforeAll(() => {
-      return createTestResource({ resourceType: 'Measure', id: 'exampleId', status: 'draft' }, 'Measure');
+      return createTestResource(
+        { resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'test' },
+        'Measure'
+      );
     });
 
     it('returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
-        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active' })
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'updated' })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {

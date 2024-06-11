@@ -20,8 +20,8 @@ import {
   validateParamIdSource,
   checkContentTypeHeader,
   checkExpectedResourceType,
-  updateFields,
-  checkFieldsforUpdate,
+  checkFieldsForCreate,
+  checkFieldsForUpdate,
   checkFieldsForDelete
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
@@ -101,7 +101,8 @@ export class LibraryService implements Service<fhir4.Library> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Library');
-    updateFields(resource);
+    checkFieldsForCreate(resource);
+    resource['id'] = uuidv4();
     return createResource(resource, 'Library');
   }
 
@@ -120,7 +121,11 @@ export class LibraryService implements Service<fhir4.Library> {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
     const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Library | null;
-    checkFieldsforUpdate(resource, oldResource);
+    if (oldResource) {
+      checkFieldsForUpdate(resource, oldResource);
+    } else {
+      checkFieldsForCreate(resource);
+    }
     return updateResource(args.id, resource, 'Library');
   }
 

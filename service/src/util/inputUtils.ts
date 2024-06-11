@@ -72,30 +72,28 @@ export function checkExpectedResourceType(resourceType: string, expectedResource
   }
 }
 
-export function updateFields(resource: fhir4.Measure | fhir4.Library) {
-  resource['id'] = uuidv4();
+export function checkFieldsForCreate(resource: fhir4.Measure | fhir4.Library) {
   if (process.env.AUTHORING) {
-    // authoring requires active or draft, TODO: return error instead
+    // authoring requires active or draft status
     if (resource.status !== 'active' && resource.status !== 'draft') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
+      throw new BadRequestError(
+        'Authoring repository service creations may only be made for active or draft status resources.'
+      );
     }
   } else {
-    // publishable requires active, TODO: return error instead
+    // publishable requires active status
     if (resource.status !== 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
+      throw new BadRequestError(
+        'Publishable repository service creations may only be made for active status resources.'
+      );
     }
   }
 }
 
-export function checkFieldsforUpdate(
+export function checkFieldsForUpdate(
   resource: fhir4.Measure | fhir4.Library,
-  oldResource: fhir4.Measure | fhir4.Library | null
+  oldResource: fhir4.Measure | fhir4.Library
 ) {
-  if (!oldResource) {
-    throw new ResourceNotFoundError(`Existing resource not found with id ${resource.id}`);
-  }
   if (!process.env.AUTHORING || oldResource.status === 'active') {
     // publishable or active status requires retire functionality
     // TODO: is there any other metadata we should allow to update for the retire functionality?
@@ -121,5 +119,21 @@ export function checkFieldsforUpdate(
     }
   } else {
     throw new BadRequestError(`Cannot update existing resource with status ${oldResource.status}`);
+  }
+}
+
+export function checkFieldsForDelete(resource: fhir4.Measure | fhir4.Library) {
+  if (process.env.AUTHORING) {
+    // authoring requires draft status
+    if (resource.status !== 'draft') {
+      throw new BadRequestError('Authoring repository service deletions may only be made to draft status resources.');
+    }
+  } else {
+    // publishable requires retired status
+    if (resource.status !== 'retired') {
+      throw new BadRequestError(
+        'Publishable repository service deletions may only be made to retired status resources.'
+      );
+    }
   }
 }

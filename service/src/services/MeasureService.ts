@@ -19,8 +19,8 @@ import {
   validateParamIdSource,
   checkContentTypeHeader,
   checkExpectedResourceType,
-  updateFields,
-  checkFieldsforUpdate,
+  checkFieldsForCreate,
+  checkFieldsForUpdate,
   checkFieldsForDelete
 } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
@@ -102,7 +102,8 @@ export class MeasureService implements Service<fhir4.Measure> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Measure');
-    updateFields(resource);
+    checkFieldsForCreate(resource);
+    resource['id'] = uuidv4();
     return createResource(resource, 'Measure');
   }
 
@@ -122,7 +123,12 @@ export class MeasureService implements Service<fhir4.Measure> {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
     const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Measure | null;
-    checkFieldsforUpdate(resource, oldResource);
+    if (oldResource) {
+      checkFieldsForUpdate(resource, oldResource);
+    } else {
+      checkFieldsForCreate(resource);
+    }
+
     return updateResource(args.id, resource, 'Measure');
   }
 

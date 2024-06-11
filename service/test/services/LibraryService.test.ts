@@ -256,7 +256,13 @@ describe('LibraryService', () => {
   describe('update', () => {
     beforeAll(() => {
       return createTestResource(
-        { resourceType: 'Library', type: { coding: [{ code: 'logic-library' }] }, id: 'exampleId', status: 'draft' },
+        {
+          resourceType: 'Library',
+          type: { coding: [{ code: 'logic-library' }] },
+          id: 'exampleId',
+          status: 'draft',
+          title: 'test'
+        },
         'Library'
       );
     });
@@ -264,7 +270,7 @@ describe('LibraryService', () => {
     it('returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Library/exampleId')
-        .send({ resourceType: 'Library', id: 'exampleId', status: 'active' })
+        .send({ resourceType: 'Library', id: 'exampleId', status: 'draft', title: 'updated' })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
