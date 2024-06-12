@@ -70,7 +70,7 @@ export function checkExpectedResourceType(resourceType: string, expectedResource
 }
 
 export function checkFieldsForCreate(resource: fhir4.Measure | fhir4.Library) {
-  if (process.env.AUTHORING) {
+  if (process.env.AUTHORING === 'true') {
     // authoring requires active or draft status
     if (resource.status !== 'active' && resource.status !== 'draft') {
       throw new BadRequestError(
@@ -91,10 +91,10 @@ export function checkFieldsForUpdate(
   resource: fhir4.Measure | fhir4.Library,
   oldResource: fhir4.Measure | fhir4.Library
 ) {
-  if (!process.env.AUTHORING || oldResource.status === 'active') {
+  if (process.env.AUTHORING !== 'true' || oldResource.status === 'active') {
     // publishable or active status requires retire functionality
     // TODO: is there any other metadata we should allow to update for the retire functionality?
-    if (!process.env.AUTHORING && oldResource.status !== 'active') {
+    if (process.env.AUTHORING !== 'true' && oldResource.status !== 'active') {
       throw new BadRequestError(
         `Resource status is currently ${oldResource.status}. Publishable repository service updates may only be made to active status resources.`
       );
@@ -120,10 +120,12 @@ export function checkFieldsForUpdate(
 }
 
 export function checkFieldsForDelete(resource: fhir4.Measure | fhir4.Library) {
-  if (process.env.AUTHORING) {
-    // authoring requires draft status
-    if (resource.status !== 'draft') {
-      throw new BadRequestError('Authoring repository service deletions may only be made to draft status resources.');
+  if (process.env.AUTHORING === 'true') {
+    // authoring requires draft or retired status
+    if (resource.status !== 'draft' && resource.status !== 'retired') {
+      throw new BadRequestError(
+        'Authoring repository service deletions may only be made to draft or retired status resources.'
+      );
     }
   } else {
     // publishable requires retired status

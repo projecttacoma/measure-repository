@@ -133,7 +133,7 @@ export class LibraryService implements Service<fhir4.Library> {
    * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
    * deletes the library with the passed in id if it exists in the database
    */
-  async delete(args: RequestArgs, { req }: RequestCtx) {
+  async remove(args: RequestArgs, { req }: RequestCtx) {
     const resource = (await findResourceById(args.id, 'Library')) as fhir4.Library | null;
     if (!resource) {
       throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);

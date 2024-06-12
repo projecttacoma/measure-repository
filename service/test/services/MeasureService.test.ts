@@ -97,6 +97,7 @@ const LIBRARY_WITH_DEPS: fhir4.Library = {
 describe('MeasureService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
+    process.env.AUTHORING = 'true';
     return setupTestDatabase([
       MEASURE,
       MEASURE_WITH_URL,
@@ -231,11 +232,88 @@ describe('MeasureService', () => {
     });
   });
 
-  describe('create', () => {
-    it('returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+  describe('publishable repository validation', () => {
+    const ORIGINAL_AUTHORING = process.env.AUTHORING;
+    beforeAll(() => {
+      process.env.AUTHORING = 'false';
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'publishable-retired',
+          status: 'retired',
+          title: 'test'
+        },
+        'Measure'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'publishable-active',
+          status: 'active',
+          title: 'test'
+        },
+        'Measure'
+      );
+    });
+    it('publish: returns 400 status when provided with artifact in non-active status', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
         .send({ resourceType: 'Measure', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    it('retire: returns 400 when artifact to update is not in active status', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/publishable-retired')
+        .send({
+          resourceType: 'Measure',
+          id: 'publishable-retired',
+          status: 'active',
+          title: 'test'
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+
+    it('retire: returns 400 when attempting to update non-date/non-status fields', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/publishable-active')
+        .send({
+          resourceType: 'Measure',
+          id: 'publishable-active',
+          status: 'retired',
+          title: 'updated'
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    it('archive: returns 400 status when deleting an active artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/publishable-active')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    afterAll(() => {
+      process.env.AUTHORING = ORIGINAL_AUTHORING;
+    });
+  });
+
+  describe('create', () => {
+    it('submit: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send({ resourceType: 'Measure', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+    it('publish: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send({ resourceType: 'Measure', status: 'active' })
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -246,16 +324,39 @@ describe('MeasureService', () => {
 
   describe('update', () => {
     beforeAll(() => {
+      createTestResource(
+        { resourceType: 'Measure', id: 'exampleId-active', status: 'active', title: 'test' },
+        'Measure'
+      );
       return createTestResource(
         { resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'test' },
         'Measure'
       );
     });
 
-    it('returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
+    it('revise: returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
         .send({ resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'updated' })
+        .set('content-type', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('revise: returns 400 when status changes', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/exampleId')
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active', title: 'updated' })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+
+    it('retire: returns 200 when provided updated status for retiring', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/exampleId-active')
+        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired', title: 'test' })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -288,6 +389,59 @@ describe('MeasureService', () => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
+    });
+  });
+
+  describe('delete', () => {
+    beforeAll(() => {
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'delete-active',
+          status: 'active',
+          title: 'test'
+        },
+        'Measure'
+      );
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'delete-retired',
+          status: 'retired',
+          title: 'test'
+        },
+        'Measure'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'delete-draft',
+          status: 'draft',
+          title: 'test'
+        },
+        'Measure'
+      );
+    });
+    it('withdraw: returns 204 status when deleting a draft artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/delete-draft')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(204);
+    });
+    it('archive: returns 204 status when deleting a retired artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/delete-retired')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(204);
+    });
+    it('archive: returns 400 status when deleting an active artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/delete-active')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
     });
   });
 

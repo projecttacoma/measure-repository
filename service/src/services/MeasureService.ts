@@ -136,7 +136,7 @@ export class MeasureService implements Service<fhir4.Measure> {
    * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
    * deletes the library with the passed in id if it exists in the database
    */
-  async delete(args: RequestArgs, { req }: RequestCtx) {
+  async remove(args: RequestArgs, { req }: RequestCtx) {
     const resource = (await findResourceById(args.id, 'Measure')) as fhir4.Measure | null;
     if (!resource) {
       throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
