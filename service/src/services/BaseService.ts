@@ -64,7 +64,7 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
   const requestsArray = modifedRequestsArray.map(async entry => {
     // add library owned extension
     entry = addLibraryIsOwned(entry, ownedUrls);
-    return insertBundleResources(entry);
+    return insertBundleResources(entry as DetailedEntry);
   });
   return Promise.all(requestsArray);
 }

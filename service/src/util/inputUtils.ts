@@ -1,10 +1,7 @@
 import { RequestArgs, RequestQuery, FhirResourceType } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
-import { BadRequestError, ResourceNotFoundError } from './errorUtils';
-import { v4 as uuidv4 } from 'uuid';
+import { BadRequestError } from './errorUtils';
 import _ from 'lodash';
-import { loggers } from '@projecttacoma/node-fhir-server-core';
-const logger = loggers.get('default');
 
 /*
  * Gathers parameters from both the query and the FHIR parameter request body resource
