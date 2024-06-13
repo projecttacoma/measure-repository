@@ -73,7 +73,6 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
  * Inserts Library or Measure resources from Bundle into the database through create or update.
  */
 async function insertBundleResources(entry: DetailedEntry) {
-  // TODO: make updates here for AUHTHORING/PUBLISHABLE
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
     if (entry.isPost) {
       checkFieldsForCreate(entry.resource);

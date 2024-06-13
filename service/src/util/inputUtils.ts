@@ -93,7 +93,6 @@ export function checkFieldsForUpdate(
 ) {
   if (process.env.AUTHORING !== 'true' || oldResource.status === 'active') {
     // publishable or active status requires retire functionality
-    // TODO: is there any other metadata we should allow to update for the retire functionality?
     if (process.env.AUTHORING !== 'true' && oldResource.status !== 'active') {
       throw new BadRequestError(
         `Resource status is currently ${oldResource.status}. Publishable repository service updates may only be made to active status resources.`
