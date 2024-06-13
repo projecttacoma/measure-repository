@@ -96,7 +96,8 @@ const VALID_PUT_REQ = {
       resource: {
         resourceType: 'Measure',
         id: 'test-measure',
-        library: ['Library/test-library']
+        library: ['Library/test-library'],
+        status: 'draft'
       },
       request: {
         method: 'PUT',
@@ -113,7 +114,8 @@ const VALID_POST_REQ = {
     {
       resource: {
         resourceType: 'Library',
-        id: 'test-library'
+        id: 'test-library',
+        status: 'draft'
       },
       request: {
         method: 'POST',
@@ -126,6 +128,7 @@ const VALID_POST_REQ = {
 describe('BaseService', () => {
   beforeAll(async () => {
     server = initialize(serverConfig, app);
+    process.env.AUTHORING = 'true';
     return setupTestDatabase([]);
   });
 
