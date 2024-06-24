@@ -43,7 +43,7 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
 
   // pre-process to find owned relationships and error as needed
   const ownedUrls: string[] = [];
-  const modifedRequestsArray = scrubbedEntries.map(entry => {
+  const modifiedRequestsArray = scrubbedEntries.map(entry => {
     if (entry.request) {
       const { method } = entry.request;
       if (method !== 'PUT' && method !== 'POST') {
@@ -61,7 +61,7 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
     }
   });
 
-  const requestsArray = modifedRequestsArray.map(async entry => {
+  const requestsArray = modifiedRequestsArray.map(async entry => {
     // add library owned extension
     entry = addLibraryIsOwned(entry, ownedUrls);
     return insertBundleResources(entry as DetailedEntry);
@@ -84,10 +84,10 @@ async function insertBundleResources(entry: DetailedEntry) {
       }
     } else {
       if (entry.resource.id) {
-        const oldResource = (await findResourceById(
-          entry.resource.id,
-          entry.resource.resourceType
-        )) as fhir4.Library | null;
+        const oldResource = (await findResourceById(entry.resource.id, entry.resource.resourceType)) as
+          | fhir4.Library
+          | fhir4.Measure
+          | null;
         if (oldResource) {
           checkFieldsForUpdate(entry.resource, oldResource);
         } else {

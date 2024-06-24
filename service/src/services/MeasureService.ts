@@ -133,8 +133,8 @@ export class MeasureService implements Service<fhir4.Measure> {
   }
 
   /**
-   * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
-   * deletes the library with the passed in id if it exists in the database
+   * result of sending a DELETE request to {BASE_URL}/4_0_1/measure/{id}
+   * deletes the measure with the passed in id if it exists in the database
    */
   async remove(args: RequestArgs) {
     const resource = (await findResourceById(args.id, 'Measure')) as fhir4.Measure | null;

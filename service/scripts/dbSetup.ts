@@ -39,7 +39,8 @@ async function deleteCollections() {
 /*
  * Gathers necessary file path(s) for bundle(s) to upload, then uploads all measure and
  * library resources found in the bundle(s).
- *
+ * If a connectionURL is provided, then posts the resources to the server at the 
+ * connectionURL (as a transaction bundle), otherwise, loads the resources directly to the database
  */
 async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string) {
   const status = fs.statSync(fileOrDirectoryPath);
@@ -68,6 +69,9 @@ async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string) {
   }
 }
 
+/*
+ * POSTs a transaction bundle to url
+ */
 async function transactBundle(bundle: fhir4.Bundle, url: string) {
   if (bundle.entry) {
     // only upload Measures and Libraries
@@ -100,6 +104,9 @@ async function transactBundle(bundle: fhir4.Bundle, url: string) {
   }
 }
 
+/*
+ * Loads all resources found in the bundle at filePath, by POSTing them to the provided url
+ */
 async function postBundleResources(filePath: string, url: string) {
   console.log(`Loading bundle from path ${filePath}`);
 
@@ -118,7 +125,7 @@ async function postBundleResources(filePath: string, url: string) {
 }
 
 /*
- * Loads all measure or library resources found in the bundle located at param filePath
+ * Loads all resources found in the bundle at filePath, directly to the database
  */
 async function uploadBundleResources(filePath: string) {
   console.log(`Loading bundle from path ${filePath}`);
@@ -171,6 +178,10 @@ async function uploadBundleResources(filePath: string) {
   }
 }
 
+/*
+ * Convenience modification of an array of entries to create isOwned relationships and coerce to status active.
+ * This let's us massage existing data that may not have the appropriate properties needed for a Publishable Measure Repository
+ */
 function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]) {
   // pre-process to find owned relationships
   const ownedUrls: string[] = [];

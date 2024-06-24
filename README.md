@@ -43,14 +43,19 @@ cp app/.env.example app/.env.local
 cp service/.env.example service/.env
 ```
 
-Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups.
+Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups. 
+Additionally, some versions of tooling may have issues with running `next dev` within workspaces. Disabling telemetry can prevent the disallowed npm command from running under the hood.
+```bash
+npx next telemetry disable
+```
+
 
 ### Mongo Replica Set Setup
 
 Use the mongodb configuration file to configure the single node replica set. For more information about the configuration file and system location, see the mongodb [configuration file documentation](https://www.mongodb.com/docs/manual/reference/configuration-options/).
 
 1. First shutdown any currently running mongodb standalone instances: `brew services stop mongodb-community`.
-2. Locate your [Mongo Configuration File](https://www.mongodb.com/docs/compass/current/settings/config-file/#:~:text=For%20macOS%20and%20Linux%2C%20the,%5Cmongodb%2Dcompass.). _System dependent but may be found at `/usr/local/etc/mongod.conf`_.
+2. Locate your [Mongo Configuration File](https://www.mongodb.com/docs/manual/reference/configuration-options/). _System dependent but may be found at `/opt/homebrew/etc/mongod.conf`_.
 3. Add this replication set configuration to the mongo configuration file:
 
 ```

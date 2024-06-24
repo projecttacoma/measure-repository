@@ -109,6 +109,7 @@ export class LibraryService implements Service<fhir4.Library> {
   /**
    * result of sending a PUT request to {BASE_URL}/4_0_1/Library/{id}
    * updates the library with the passed in id using the passed in data
+   * or creates a library with passed in id if it does not exist in the database
    */
   async update(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`PUT /Library/${args.id}`);
