@@ -70,6 +70,11 @@ export function checkExpectedResourceType(resourceType: string, expectedResource
 }
 
 export function checkFieldsForCreate(resource: fhir4.Measure | fhir4.Library) {
+  // base shareable artifact requires url, version, title, status (required by base FHIR), description
+  if (!resource.url || !resource.version || !resource.title || !resource.description) {
+    throw new BadRequestError('Created artifacts must have url, version, title, status, and description');
+  }
+
   if (process.env.AUTHORING === 'true') {
     // authoring requires active or draft status
     if (resource.status !== 'active' && resource.status !== 'draft') {
@@ -112,6 +117,10 @@ export function checkFieldsForUpdate(
     // authoring and draft status requires revise functionality
     if (resource.status != 'draft') {
       throw new BadRequestError('Existing draft resources must stay in draft while revising.');
+    }
+    // base shareable artifact requires url, version, title, status (required by base FHIR), description
+    if (!resource.url || !resource.version || !resource.title || !resource.description) {
+      throw new BadRequestError('Artifacts must have url, version, title, status, and description');
     }
   } else {
     throw new BadRequestError(`Cannot update existing resource with status ${oldResource.status}`);

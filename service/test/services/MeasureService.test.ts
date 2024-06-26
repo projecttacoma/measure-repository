@@ -13,7 +13,29 @@ const MEASURE_WITH_URL: fhir4.Measure = {
   id: 'testWithUrl',
   status: 'active',
   url: 'http://example.com',
-  version: 'searchable'
+  version: 'searchable',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
+const MEASURE_WITH_URL_2: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithUrl2',
+  status: 'draft',
+  url: 'http://example.com',
+  version: 'searchable',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
+const DRAFT_MEASURE_WITH_URL: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithUrl',
+  status: 'active',
+  url: 'http://example.com',
+  version: 'searchable',
+  title: 'Sample title',
+  description: 'Sample description'
 };
 
 const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
@@ -241,7 +263,10 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-retired',
           status: 'retired',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         },
         'Measure'
       );
@@ -250,7 +275,10 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-active',
           status: 'active',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         },
         'Measure'
       );
@@ -269,7 +297,10 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-retired',
           status: 'active',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -282,7 +313,10 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-active',
           status: 'retired',
-          title: 'updated'
+          title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -303,7 +337,7 @@ describe('MeasureService', () => {
     it('submit: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
-        .send({ resourceType: 'Measure', status: 'draft' })
+        .send(DRAFT_MEASURE_WITH_URL)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -313,7 +347,7 @@ describe('MeasureService', () => {
     it('publish: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
-        .send({ resourceType: 'Measure', status: 'active' })
+        .send(MEASURE_WITH_URL)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -325,11 +359,17 @@ describe('MeasureService', () => {
   describe('update', () => {
     beforeAll(() => {
       createTestResource(
-        { resourceType: 'Measure', id: 'exampleId-active', status: 'active', title: 'test' },
+        { resourceType: 'Measure', id: 'exampleId-active', status: 'active', title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' },
         'Measure'
       );
       return createTestResource(
-        { resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'test' },
+        { resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' },
         'Measure'
       );
     });
@@ -337,7 +377,10 @@ describe('MeasureService', () => {
     it('revise: returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
-        .send({ resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'updated' })
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -348,7 +391,10 @@ describe('MeasureService', () => {
     it('revise: returns 400 when status changes', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
-        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active', title: 'updated' })
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active', title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
@@ -356,7 +402,10 @@ describe('MeasureService', () => {
     it('retire: returns 200 when provided updated status for retiring', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId-active')
-        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired', title: 'test' })
+        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired', title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -366,8 +415,8 @@ describe('MeasureService', () => {
 
     it('returns 201 when provided correct headers and a FHIR Measure whose id is not in the database', async () => {
       await supertest(server.app)
-        .put('/4_0_1/Measure/newId')
-        .send({ resourceType: 'Measure', id: 'newId', status: 'draft' })
+        .put('/4_0_1/Measure/testWithUrl2')
+        .send(MEASURE_WITH_URL_2)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {

@@ -97,7 +97,11 @@ const VALID_PUT_REQ = {
         resourceType: 'Measure',
         id: 'test-measure',
         library: ['Library/test-library'],
-        status: 'draft'
+        status: 'draft',
+        url: 'http://example.com',
+        version: '1',
+        title: 'Sample title',
+        description: 'Sample description'
       },
       request: {
         method: 'PUT',
@@ -115,7 +119,11 @@ const VALID_POST_REQ = {
       resource: {
         resourceType: 'Library',
         id: 'test-library',
-        status: 'draft'
+        status: 'draft',
+        url: 'http://example.com',
+        version: '1',
+        title: 'Sample title',
+        description: 'Sample description'
       },
       request: {
         method: 'POST',

@@ -11,7 +11,32 @@ const LIBRARY_WITH_URL: fhir4.Library = {
   type: { coding: [{ code: 'logic-library' }] },
   id: 'testWithUrl',
   status: 'active',
-  url: 'http://example.com'
+  url: 'http://example.com',
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
+const LIBRARY_WITH_URL_2: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  id: 'testWithUrl2',
+  status: 'draft',
+  url: 'http://example.com',
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
+const DRAFT_LIBRARY_WITH_URL: fhir4.Library = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  id: 'testWithUrl',
+  status: 'draft',
+  url: 'http://example.com',
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
 };
 
 const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
@@ -102,6 +127,7 @@ const LIBRARY_WITH_SAME_SYSTEM2: fhir4.Library = {
   identifier: [{ system: 'http://example.com/libraryWithSameSystem', value: 'libraryWithDifferentValue' }],
   status: 'active'
 };
+
 
 describe('LibraryService', () => {
   beforeAll(() => {
@@ -251,7 +277,10 @@ describe('LibraryService', () => {
           type: { coding: [{ code: 'logic-library' }] },
           id: 'publishable-retired',
           status: 'retired',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         },
         'Library'
       );
@@ -261,7 +290,10 @@ describe('LibraryService', () => {
           type: { coding: [{ code: 'logic-library' }] },
           id: 'publishable-active',
           status: 'active',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         },
         'Library'
       );
@@ -281,7 +313,10 @@ describe('LibraryService', () => {
           id: 'publishable-retired',
           status: 'active',
           title: 'test',
-          type: { coding: [{ code: 'logic-library' }] }
+          type: { coding: [{ code: 'logic-library' }],
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' }
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -295,7 +330,10 @@ describe('LibraryService', () => {
           id: 'publishable-active',
           status: 'retired',
           title: 'updated',
-          type: { coding: [{ code: 'logic-library' }] }
+          type: { coding: [{ code: 'logic-library' }],
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' }
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -316,7 +354,7 @@ describe('LibraryService', () => {
     it('submit: returns 201 status with populated location when provided correct headers and a FHIR Library', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library')
-        .send({ resourceType: 'Library', status: 'draft' })
+        .send(DRAFT_LIBRARY_WITH_URL)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -327,7 +365,7 @@ describe('LibraryService', () => {
     it('publish: returns 201 status with populated location when provided correct headers and a FHIR Library', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library')
-        .send({ resourceType: 'Library', status: 'active' })
+        .send(LIBRARY_WITH_URL)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -344,7 +382,10 @@ describe('LibraryService', () => {
           type: { coding: [{ code: 'logic-library' }] },
           id: 'exampleId-active',
           status: 'active',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         },
         'Library'
       );
@@ -354,7 +395,10 @@ describe('LibraryService', () => {
           type: { coding: [{ code: 'logic-library' }] },
           id: 'exampleId',
           status: 'draft',
-          title: 'test'
+          title: 'test',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
         },
         'Library'
       );
@@ -363,7 +407,16 @@ describe('LibraryService', () => {
     it('revise: returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Library/exampleId')
-        .send({ resourceType: 'Library', id: 'exampleId', status: 'draft', title: 'updated' })
+        .send({
+          resourceType: 'Library',
+          type: { coding: [{ code: 'logic-library' }] },
+          id: 'exampleId',
+          status: 'draft',
+          title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
+        })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -374,7 +427,10 @@ describe('LibraryService', () => {
     it('revise: returns 400 when status changes', async () => {
       await supertest(server.app)
         .put('/4_0_1/Library/exampleId')
-        .send({ resourceType: 'Library', id: 'exampleId', status: 'active', title: 'updated' })
+        .send({ resourceType: 'Library', id: 'exampleId', status: 'active', title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
@@ -387,7 +443,10 @@ describe('LibraryService', () => {
           id: 'exampleId-active',
           status: 'retired',
           title: 'test',
-          type: { coding: [{ code: 'logic-library' }] }
+          type: { coding: [{ code: 'logic-library' }]},
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' 
         })
         .set('content-type', 'application/json+fhir')
         .expect(200)
@@ -398,8 +457,8 @@ describe('LibraryService', () => {
 
     it('returns 201 when provided correct headers and a FHIR Library whose id is not in the database', async () => {
       await supertest(server.app)
-        .put('/4_0_1/Library/newId')
-        .send({ resourceType: 'Library', id: 'newId', status: 'draft' })
+        .put('/4_0_1/Library/testWithUrl2')
+        .send(LIBRARY_WITH_URL_2)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
