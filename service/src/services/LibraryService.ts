@@ -121,6 +121,7 @@ export class LibraryService implements Service<fhir4.Library> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
+    // note: the distance between this database call and the update resource call, could cause a race condition
     const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Library | null;
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);

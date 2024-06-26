@@ -84,6 +84,7 @@ async function insertBundleResources(entry: DetailedEntry) {
       }
     } else {
       if (entry.resource.id) {
+        // note: the distance between this database call and the update resource call, could cause a race condition
         const oldResource = (await findResourceById(entry.resource.id, entry.resource.resourceType)) as
           | fhir4.Library
           | fhir4.Measure

@@ -123,6 +123,7 @@ export class MeasureService implements Service<fhir4.Measure> {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
     const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Measure | null;
+    // note: the distance between this database call and the update resource call, could cause a race condition
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
     } else {

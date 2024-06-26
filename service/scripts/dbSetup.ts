@@ -120,7 +120,7 @@ async function postBundleResources(filePath: string, url: string) {
       const modifiedEntries = modifyEntriesForUpload(entries);
       bundle.entry = modifiedEntries;
     }
-    transactBundle(bundle, url);
+    await transactBundle(bundle, url);
   }
 }
 
