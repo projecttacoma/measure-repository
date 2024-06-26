@@ -98,8 +98,8 @@ export function checkFieldsForUpdate(
         `Resource status is currently ${oldResource.status}. Publishable repository service updates may only be made to active status resources.`
       );
     }
-    const { status: statusOld, date: dateOld, ...limitedOld } = oldResource;
-    const { status: statusNew, date: dateNew, ...limitedNew } = resource;
+    const { status: statusOld, date: dateOld, ...limitedOld } = oldResource; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { status: statusNew, date: dateNew, ...limitedNew } = resource; // eslint-disable-line @typescript-eslint/no-unused-vars
 
     if (statusNew !== 'retired') {
       throw new BadRequestError('Updating active status resources requires changing the resource status to retired.');
