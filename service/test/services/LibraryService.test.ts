@@ -6,37 +6,34 @@ import { Calculator } from 'fqm-execution';
 
 let server: Server;
 
-const LIBRARY_WITH_URL: fhir4.Library = {
-  resourceType: 'Library',
+// boiler plate required fields
+const LIBRARY_BASE = {
   type: { coding: [{ code: 'logic-library' }] },
-  id: 'testWithUrl',
-  status: 'active',
   url: 'http://example.com',
   version: '1',
   title: 'Sample title',
   description: 'Sample description'
+};
+
+const LIBRARY_WITH_URL: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testWithUrl',
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_URL_2: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   id: 'testWithUrl2',
   status: 'draft',
-  url: 'http://example.com',
-  version: '1',
-  title: 'Sample title',
-  description: 'Sample description'
+  ...LIBRARY_BASE
 };
 
 const DRAFT_LIBRARY_WITH_URL: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   id: 'testWithUrl',
   status: 'draft',
-  url: 'http://example.com',
-  version: '1',
-  title: 'Sample title',
-  description: 'Sample description'
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
@@ -56,25 +53,25 @@ const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
 
 const LIBRARY_WITH_IDENTIFIER_VALUE: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   identifier: [{ value: 'libraryWithIdentifierValue' }],
-  status: 'active'
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_IDENTIFIER_SYSTEM: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   identifier: [{ system: 'http://example.com/libraryWithIdentifierSystem' }],
-  status: 'active'
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   identifier: [
     { system: 'http://example.com/libraryWithIdentifierSystemAndValue', value: 'libraryWithIdentifierSystemAndValue' }
   ],
-  status: 'active'
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
@@ -175,7 +172,7 @@ describe('LibraryService', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ url: 'http://example.com', status: 'active' })
+        .query({ url: 'http://example.com', status: 'active', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -210,7 +207,7 @@ describe('LibraryService', () => {
     it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ _elements: 'id', status: 'active', url: 'http://example.com' })
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl'})
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -274,26 +271,18 @@ describe('LibraryService', () => {
       createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'publishable-retired',
           status: 'retired',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...LIBRARY_BASE
         },
         'Library'
       );
       return createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'publishable-active',
           status: 'active',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...LIBRARY_BASE
         },
         'Library'
       );
@@ -312,11 +301,7 @@ describe('LibraryService', () => {
           resourceType: 'Library',
           id: 'publishable-retired',
           status: 'active',
-          title: 'test',
-          type: { coding: [{ code: 'logic-library' }],
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description' }
+          ...LIBRARY_BASE
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -379,26 +364,18 @@ describe('LibraryService', () => {
       createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'exampleId-active',
           status: 'active',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...LIBRARY_BASE
         },
         'Library'
       );
       return createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'exampleId',
           status: 'draft',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...LIBRARY_BASE
         },
         'Library'
       );
@@ -442,11 +419,7 @@ describe('LibraryService', () => {
           resourceType: 'Library',
           id: 'exampleId-active',
           status: 'retired',
-          title: 'test',
-          type: { coding: [{ code: 'logic-library' }]},
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description' 
+          ...LIBRARY_BASE
         })
         .set('content-type', 'application/json+fhir')
         .expect(200)
@@ -488,30 +461,27 @@ describe('LibraryService', () => {
       createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'delete-active',
           status: 'active',
-          title: 'test'
+          ...LIBRARY_BASE
         },
         'Library'
       );
       createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'delete-retired',
           status: 'retired',
-          title: 'test'
+          ...LIBRARY_BASE
         },
         'Library'
       );
       return createTestResource(
         {
           resourceType: 'Library',
-          type: { coding: [{ code: 'logic-library' }] },
           id: 'delete-draft',
           status: 'draft',
-          title: 'test'
+          ...LIBRARY_BASE
         },
         'Library'
       );

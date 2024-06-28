@@ -180,7 +180,7 @@ async function uploadBundleResources(filePath: string) {
 
 /*
  * Convenience modification of an array of entries to create isOwned relationships and coerce to status active.
- * This let's us massage existing data that may not have the appropriate properties needed for a Publishable Measure Repository
+ * This lets us massage existing data that may not have the appropriate properties needed for a Publishable Measure Repository
  */
 function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]) {
   // pre-process to find owned relationships

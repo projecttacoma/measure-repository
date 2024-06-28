@@ -74,12 +74,11 @@ The server supports transaction bundle uploads via the `:/base_version/` endpoin
 - The request body must be a FHIR bundle of type `transaction`.
 - The entries SHALL be of resource type "Measure" or "Library." An error will be thrown otherwise.
 
-For ease of use, the `service/directory-upload.sh` script can be used to run the transaction bundle upload on an input directory. Details are as follows:
+For ease of use, an upload workflow similar to `db:loadBundle` can be done by POSTing a directory of transaction bundles rather than directly uploading to the database. While the server is running (script assumes default location http://localhost:3000/4_0_1), run the following script with the desired directory path:
 
-- The `-h` option can be used to view usage.
-- A server URL must be supplied via the `-s` option.
-- A directory path must be supplied via the `-d` option.
-- The script can support nested directories (one level deep).
+```
+npm run db:postBundle <path to directory> <optional server location>
+```
 
 ## Usage
 

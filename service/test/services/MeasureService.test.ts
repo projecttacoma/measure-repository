@@ -5,37 +5,35 @@ import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
 
 let server: Server;
+// boiler plate required fields
+const MEASURE_BASE = {
+  url: 'http://example.com',
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
 
-const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', version: 'searchable' };
+const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', ...MEASURE_BASE };
 
 const MEASURE_WITH_URL: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl',
   status: 'active',
-  url: 'http://example.com',
-  version: 'searchable',
-  title: 'Sample title',
-  description: 'Sample description'
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_URL_2: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl2',
   status: 'draft',
-  url: 'http://example.com',
-  version: 'searchable',
-  title: 'Sample title',
-  description: 'Sample description'
+  ...MEASURE_BASE
 };
 
 const DRAFT_MEASURE_WITH_URL: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl',
   status: 'active',
-  url: 'http://example.com',
-  version: 'searchable',
-  title: 'Sample title',
-  description: 'Sample description'
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
@@ -56,14 +54,16 @@ const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   identifier: [{ value: 'measureWithIdentifierValueRootLib' }],
   library: ['http://example.com/testLibrary'],
-  status: 'active'
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   identifier: [{ system: 'http://example.com/measureWithIdentifierSystemRootLib' }],
   library: ['http://example.com/testLibrary'],
-  status: 'active'
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: fhir4.Measure = {
@@ -75,7 +75,8 @@ const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: fhir4.Measure = {
     }
   ],
   library: ['http://example.com/testLibrary'],
-  status: 'active'
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
@@ -162,7 +163,7 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ url: 'http://example.com', status: 'active' })
+        .query({ url: 'http://example.com', status: 'active', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -197,7 +198,7 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ _elements: 'id', status: 'active', url: 'http://example.com' })
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -263,10 +264,7 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-retired',
           status: 'retired',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...MEASURE_BASE
         },
         'Measure'
       );
@@ -275,10 +273,7 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-active',
           status: 'active',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...MEASURE_BASE
         },
         'Measure'
       );
@@ -297,10 +292,7 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'publishable-retired',
           status: 'active',
-          title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description'
+          ...MEASURE_BASE
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -359,17 +351,13 @@ describe('MeasureService', () => {
   describe('update', () => {
     beforeAll(() => {
       createTestResource(
-        { resourceType: 'Measure', id: 'exampleId-active', status: 'active', title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description' },
+        { resourceType: 'Measure', id: 'exampleId-active', status: 'active',
+          ...MEASURE_BASE },
         'Measure'
       );
       return createTestResource(
-        { resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description' },
+        { resourceType: 'Measure', id: 'exampleId', status: 'draft',
+          ...MEASURE_BASE },
         'Measure'
       );
     });
@@ -402,10 +390,8 @@ describe('MeasureService', () => {
     it('retire: returns 200 when provided updated status for retiring', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId-active')
-        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired', title: 'test',
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description' })
+        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired',
+          ...MEASURE_BASE})
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -448,7 +434,7 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'delete-active',
           status: 'active',
-          title: 'test'
+          ...MEASURE_BASE
         },
         'Measure'
       );
@@ -457,7 +443,7 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'delete-retired',
           status: 'retired',
-          title: 'test'
+          ...MEASURE_BASE
         },
         'Measure'
       );
@@ -466,7 +452,7 @@ describe('MeasureService', () => {
           resourceType: 'Measure',
           id: 'delete-draft',
           status: 'draft',
-          title: 'test'
+          ...MEASURE_BASE
         },
         'Measure'
       );
