@@ -19,7 +19,7 @@ export type DetailedEntry = fhir4.BundleEntry<FhirResource> & {
  *
  * returns modified entry and url of owned library
  */
-export function addIsOwnedExtension(entry: DetailedEntry) {
+export function addIsOwnedExtension(entry: fhir4.BundleEntry<fhir4.FhirResource>) {
   if (entry.resource?.resourceType && entry.resource?.resourceType === 'Measure' && entry.resource?.library) {
     // get the main Library of the Measure from the library property and the version
     const mainLibrary = entry.resource.library[0];
@@ -70,7 +70,7 @@ export function addIsOwnedExtension(entry: DetailedEntry) {
 /**
  * Checks ownedUrls for entry url and adds isOwned extension to the resource if found in ownedUrls
  */
-export function addLibraryIsOwned(entry: DetailedEntry, ownedUrls: string[]) {
+export function addLibraryIsOwned(entry: fhir4.BundleEntry<fhir4.FhirResource>, ownedUrls: string[]) {
   // add owned to identified resources (currently assumes these will only be Libraries)
   if (entry.resource?.resourceType === 'Library' && entry.resource.url) {
     const libraryUrl = entry.resource.version

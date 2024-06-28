@@ -5,15 +5,35 @@ import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
 
 let server: Server;
+// boiler plate required fields
+const MEASURE_BASE = {
+  url: 'http://example.com',
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
 
-const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', version: 'searchable' };
+const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', ...MEASURE_BASE };
 
 const MEASURE_WITH_URL: fhir4.Measure = {
   resourceType: 'Measure',
   id: 'testWithUrl',
   status: 'active',
-  url: 'http://example.com',
-  version: 'searchable'
+  ...MEASURE_BASE
+};
+
+const MEASURE_WITH_URL_2: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithUrl2',
+  status: 'draft',
+  ...MEASURE_BASE
+};
+
+const DRAFT_MEASURE_WITH_URL: fhir4.Measure = {
+  resourceType: 'Measure',
+  id: 'testWithUrl',
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
@@ -34,14 +54,16 @@ const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   identifier: [{ value: 'measureWithIdentifierValueRootLib' }],
   library: ['http://example.com/testLibrary'],
-  status: 'active'
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: fhir4.Measure = {
   resourceType: 'Measure',
   identifier: [{ system: 'http://example.com/measureWithIdentifierSystemRootLib' }],
   library: ['http://example.com/testLibrary'],
-  status: 'active'
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: fhir4.Measure = {
@@ -53,7 +75,8 @@ const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: fhir4.Measure = {
     }
   ],
   library: ['http://example.com/testLibrary'],
-  status: 'active'
+  status: 'active',
+  ...MEASURE_BASE
 };
 
 const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
@@ -97,6 +120,7 @@ const LIBRARY_WITH_DEPS: fhir4.Library = {
 describe('MeasureService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
+    process.env.AUTHORING = 'true';
     return setupTestDatabase([
       MEASURE,
       MEASURE_WITH_URL,
@@ -139,7 +163,7 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ url: 'http://example.com', status: 'active' })
+        .query({ url: 'http://example.com', status: 'active', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -174,7 +198,7 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ _elements: 'id', status: 'active', url: 'http://example.com' })
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -231,11 +255,91 @@ describe('MeasureService', () => {
     });
   });
 
-  describe('create', () => {
-    it('returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+  describe('publishable repository validation', () => {
+    const ORIGINAL_AUTHORING = process.env.AUTHORING;
+    beforeAll(() => {
+      process.env.AUTHORING = 'false';
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'publishable-retired',
+          status: 'retired',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'publishable-active',
+          status: 'active',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+    });
+    it('publish: returns 400 status when provided with artifact in non-active status', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
         .send({ resourceType: 'Measure', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    it('retire: returns 400 when artifact to update is not in active status', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/publishable-retired')
+        .send({
+          resourceType: 'Measure',
+          id: 'publishable-retired',
+          status: 'active',
+          ...MEASURE_BASE
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+
+    it('retire: returns 400 when attempting to update non-date/non-status fields', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/publishable-active')
+        .send({
+          resourceType: 'Measure',
+          id: 'publishable-active',
+          status: 'retired',
+          title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    it('archive: returns 400 status when deleting an active artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/publishable-active')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    afterAll(() => {
+      process.env.AUTHORING = ORIGINAL_AUTHORING;
+    });
+  });
+
+  describe('create', () => {
+    it('submit: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send(DRAFT_MEASURE_WITH_URL)
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+    it('publish: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send(MEASURE_WITH_URL)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -246,13 +350,48 @@ describe('MeasureService', () => {
 
   describe('update', () => {
     beforeAll(() => {
-      return createTestResource({ resourceType: 'Measure', id: 'exampleId', status: 'draft' }, 'Measure');
+      createTestResource(
+        { resourceType: 'Measure', id: 'exampleId-active', status: 'active',
+          ...MEASURE_BASE },
+        'Measure'
+      );
+      return createTestResource(
+        { resourceType: 'Measure', id: 'exampleId', status: 'draft',
+          ...MEASURE_BASE },
+        'Measure'
+      );
     });
 
-    it('returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
+    it('revise: returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
-        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active' })
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
+        .set('content-type', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('revise: returns 400 when status changes', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/exampleId')
+        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active', title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+
+    it('retire: returns 200 when provided updated status for retiring', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Measure/exampleId-active')
+        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired',
+          ...MEASURE_BASE})
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -262,8 +401,8 @@ describe('MeasureService', () => {
 
     it('returns 201 when provided correct headers and a FHIR Measure whose id is not in the database', async () => {
       await supertest(server.app)
-        .put('/4_0_1/Measure/newId')
-        .send({ resourceType: 'Measure', id: 'newId', status: 'draft' })
+        .put('/4_0_1/Measure/testWithUrl2')
+        .send(MEASURE_WITH_URL_2)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -285,6 +424,59 @@ describe('MeasureService', () => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
+    });
+  });
+
+  describe('delete', () => {
+    beforeAll(() => {
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'delete-active',
+          status: 'active',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'delete-retired',
+          status: 'retired',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'delete-draft',
+          status: 'draft',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+    });
+    it('withdraw: returns 204 status when deleting a draft artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/delete-draft')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(204);
+    });
+    it('archive: returns 204 status when deleting a retired artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/delete-retired')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(204);
+    });
+    it('archive: returns 400 status when deleting an active artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Measure/delete-active')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
     });
   });
 

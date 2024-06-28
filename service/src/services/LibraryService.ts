@@ -1,6 +1,7 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
   createResource,
+  deleteResource,
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
@@ -18,7 +19,10 @@ import {
   gatherParams,
   validateParamIdSource,
   checkContentTypeHeader,
-  checkExpectedResourceType
+  checkExpectedResourceType,
+  checkFieldsForCreate,
+  checkFieldsForUpdate,
+  checkFieldsForDelete
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
@@ -97,11 +101,8 @@ export class LibraryService implements Service<fhir4.Library> {
     checkContentTypeHeader(contentType);
     const resource = req.body;
     checkExpectedResourceType(resource.resourceType, 'Library');
+    checkFieldsForCreate(resource);
     resource['id'] = uuidv4();
-    if (resource.status != 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
-    }
     return createResource(resource, 'Library');
   }
 
@@ -120,11 +121,27 @@ export class LibraryService implements Service<fhir4.Library> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    if (resource.status != 'active') {
-      resource.status = 'active';
-      logger.warn(`Resource ${resource.id} has been coerced to active`);
+    // note: the distance between this database call and the update resource call, could cause a race condition
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Library | null;
+    if (oldResource) {
+      checkFieldsForUpdate(resource, oldResource);
+    } else {
+      checkFieldsForCreate(resource);
     }
     return updateResource(args.id, resource, 'Library');
+  }
+
+  /**
+   * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
+   * deletes the library with the passed in id if it exists in the database
+   */
+  async remove(args: RequestArgs) {
+    const resource = (await findResourceById(args.id, 'Library')) as fhir4.Library | null;
+    if (!resource) {
+      throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
+    }
+    checkFieldsForDelete(resource);
+    return deleteResource(args.id, 'Library');
   }
 
   /**

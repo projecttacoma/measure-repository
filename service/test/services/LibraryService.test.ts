@@ -6,12 +6,34 @@ import { Calculator } from 'fqm-execution';
 
 let server: Server;
 
+// boiler plate required fields
+const LIBRARY_BASE = {
+  type: { coding: [{ code: 'logic-library' }] },
+  url: 'http://example.com',
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
 const LIBRARY_WITH_URL: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   id: 'testWithUrl',
   status: 'active',
-  url: 'http://example.com'
+  ...LIBRARY_BASE
+};
+
+const LIBRARY_WITH_URL_2: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testWithUrl2',
+  status: 'draft',
+  ...LIBRARY_BASE
+};
+
+const DRAFT_LIBRARY_WITH_URL: fhir4.Library = {
+  resourceType: 'Library',
+  id: 'testWithUrl',
+  status: 'draft',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
@@ -31,25 +53,25 @@ const LIBRARY_WITH_URL_ONLY_ID: fhir4.Library = {
 
 const LIBRARY_WITH_IDENTIFIER_VALUE: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   identifier: [{ value: 'libraryWithIdentifierValue' }],
-  status: 'active'
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_IDENTIFIER_SYSTEM: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   identifier: [{ system: 'http://example.com/libraryWithIdentifierSystem' }],
-  status: 'active'
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE: fhir4.Library = {
   resourceType: 'Library',
-  type: { coding: [{ code: 'logic-library' }] },
   identifier: [
     { system: 'http://example.com/libraryWithIdentifierSystemAndValue', value: 'libraryWithIdentifierSystemAndValue' }
   ],
-  status: 'active'
+  status: 'active',
+  ...LIBRARY_BASE
 };
 
 const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
@@ -103,9 +125,11 @@ const LIBRARY_WITH_SAME_SYSTEM2: fhir4.Library = {
   status: 'active'
 };
 
+
 describe('LibraryService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
+    process.env.AUTHORING = 'true';
     return setupTestDatabase([
       LIBRARY_WITH_URL,
       LIBRARY_WITH_NO_DEPS,
@@ -148,7 +172,7 @@ describe('LibraryService', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ url: 'http://example.com', status: 'active' })
+        .query({ url: 'http://example.com', status: 'active', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -183,7 +207,7 @@ describe('LibraryService', () => {
     it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ _elements: 'id', status: 'active', url: 'http://example.com' })
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl'})
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -240,11 +264,93 @@ describe('LibraryService', () => {
     });
   });
 
-  describe('create', () => {
-    it('returns 201 status with populated location when provided correct headers and a FHIR Library', async () => {
+  describe('publishable repository validation', () => {
+    const ORIGINAL_AUTHORING = process.env.AUTHORING;
+    beforeAll(() => {
+      process.env.AUTHORING = 'false';
+      createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'publishable-retired',
+          status: 'retired',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'publishable-active',
+          status: 'active',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+    });
+    it('publish: returns 400 status when provided with artifact in non-active status', async () => {
       await supertest(server.app)
         .post('/4_0_1/Library')
         .send({ resourceType: 'Library', status: 'draft' })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    it('retire: returns 400 when artifact to update is not in active status', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/publishable-retired')
+        .send({
+          resourceType: 'Library',
+          id: 'publishable-retired',
+          status: 'active',
+          ...LIBRARY_BASE
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+
+    it('retire: returns 400 when attempting to update non-date/non-status fields', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/publishable-active')
+        .send({
+          resourceType: 'Library',
+          id: 'publishable-active',
+          status: 'retired',
+          title: 'updated',
+          type: { coding: [{ code: 'logic-library' }],
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' }
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    it('archive: returns 400 status when deleting an active artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Library/publishable-active')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+    afterAll(() => {
+      process.env.AUTHORING = ORIGINAL_AUTHORING;
+    });
+  });
+
+  describe('create', () => {
+    it('submit: returns 201 status with populated location when provided correct headers and a FHIR Library', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library')
+        .send(DRAFT_LIBRARY_WITH_URL)
+        .set('content-type', 'application/json+fhir')
+        .expect(201)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('publish: returns 201 status with populated location when provided correct headers and a FHIR Library', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library')
+        .send(LIBRARY_WITH_URL)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -255,16 +361,66 @@ describe('LibraryService', () => {
 
   describe('update', () => {
     beforeAll(() => {
+      createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'exampleId-active',
+          status: 'active',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
       return createTestResource(
-        { resourceType: 'Library', type: { coding: [{ code: 'logic-library' }] }, id: 'exampleId', status: 'draft' },
+        {
+          resourceType: 'Library',
+          id: 'exampleId',
+          status: 'draft',
+          ...LIBRARY_BASE
+        },
         'Library'
       );
     });
 
-    it('returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
+    it('revise: returns 200 when provided correct headers and a FHIR Library whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Library/exampleId')
-        .send({ resourceType: 'Library', id: 'exampleId', status: 'active' })
+        .send({
+          resourceType: 'Library',
+          type: { coding: [{ code: 'logic-library' }] },
+          id: 'exampleId',
+          status: 'draft',
+          title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description'
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.headers.location).toBeDefined();
+        });
+    });
+
+    it('revise: returns 400 when status changes', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/exampleId')
+        .send({ resourceType: 'Library', id: 'exampleId', status: 'active', title: 'updated',
+          url: 'http://example.com',
+          version: '1',
+          description: 'Sample description' })
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
+    });
+
+    it('retire: returns 200 when provided updated status for retiring', async () => {
+      await supertest(server.app)
+        .put('/4_0_1/Library/exampleId-active')
+        .send({
+          resourceType: 'Library',
+          id: 'exampleId-active',
+          status: 'retired',
+          ...LIBRARY_BASE
+        })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -274,8 +430,8 @@ describe('LibraryService', () => {
 
     it('returns 201 when provided correct headers and a FHIR Library whose id is not in the database', async () => {
       await supertest(server.app)
-        .put('/4_0_1/Library/newId')
-        .send({ resourceType: 'Library', id: 'newId', status: 'draft' })
+        .put('/4_0_1/Library/testWithUrl2')
+        .send(LIBRARY_WITH_URL_2)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -297,6 +453,59 @@ describe('LibraryService', () => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
+    });
+  });
+
+  describe('delete', () => {
+    beforeAll(() => {
+      createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'delete-active',
+          status: 'active',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+      createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'delete-retired',
+          status: 'retired',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'delete-draft',
+          status: 'draft',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+    });
+    it('withdraw: returns 204 status when deleting a draft artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Library/delete-draft')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(204);
+    });
+    it('archive: returns 204 status when deleting a retired artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Library/delete-retired')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(204);
+    });
+    it('archive: returns 400 status when deleting an active artifact', async () => {
+      await supertest(server.app)
+        .delete('/4_0_1/Library/delete-active')
+        .send()
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
     });
   });
 

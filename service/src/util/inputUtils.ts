@@ -1,6 +1,7 @@
 import { RequestArgs, RequestQuery, FhirResourceType } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { BadRequestError } from './errorUtils';
+import _ from 'lodash';
 
 /*
  * Gathers parameters from both the query and the FHIR parameter request body resource
@@ -65,5 +66,81 @@ export function checkContentTypeHeader(contentType?: string) {
 export function checkExpectedResourceType(resourceType: string, expectedResourceType: FhirResourceType) {
   if (resourceType !== expectedResourceType) {
     throw new BadRequestError(`Expected resourceType '${expectedResourceType}' in body. Received '${resourceType}'.`);
+  }
+}
+
+export function checkFieldsForCreate(resource: fhir4.Measure | fhir4.Library) {
+  // base shareable artifact requires url, version, title, status (required by base FHIR), description
+  if (!resource.url || !resource.version || !resource.title || !resource.description) {
+    throw new BadRequestError('Created artifacts must have url, version, title, status, and description');
+  }
+
+  if (process.env.AUTHORING === 'true') {
+    // authoring requires active or draft status
+    if (resource.status !== 'active' && resource.status !== 'draft') {
+      throw new BadRequestError(
+        'Authoring repository service creations may only be made for active or draft status resources.'
+      );
+    }
+  } else {
+    // publishable requires active status
+    if (resource.status !== 'active') {
+      throw new BadRequestError(
+        'Publishable repository service creations may only be made for active status resources.'
+      );
+    }
+  }
+}
+
+export function checkFieldsForUpdate(
+  resource: fhir4.Measure | fhir4.Library,
+  oldResource: fhir4.Measure | fhir4.Library
+) {
+  if (process.env.AUTHORING !== 'true' || oldResource.status === 'active') {
+    // publishable or active status requires retire functionality
+    if (process.env.AUTHORING !== 'true' && oldResource.status !== 'active') {
+      throw new BadRequestError(
+        `Resource status is currently ${oldResource.status}. Publishable repository service updates may only be made to active status resources.`
+      );
+    }
+    const { status: statusOld, date: dateOld, ...limitedOld } = oldResource; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { status: statusNew, date: dateNew, ...limitedNew } = resource; // eslint-disable-line @typescript-eslint/no-unused-vars
+
+    if (statusNew !== 'retired') {
+      throw new BadRequestError('Updating active status resources requires changing the resource status to retired.');
+    }
+
+    if (!_.isEqual(limitedOld, limitedNew)) {
+      throw new BadRequestError('Updating active status resources may only change the status and date.');
+    }
+  } else if (oldResource.status === 'draft') {
+    // authoring and draft status requires revise functionality
+    if (resource.status != 'draft') {
+      throw new BadRequestError('Existing draft resources must stay in draft while revising.');
+    }
+    // base shareable artifact requires url, version, title, status (required by base FHIR), description
+    if (!resource.url || !resource.version || !resource.title || !resource.description) {
+      throw new BadRequestError('Artifacts must have url, version, title, status, and description');
+    }
+  } else {
+    throw new BadRequestError(`Cannot update existing resource with status ${oldResource.status}`);
+  }
+}
+
+export function checkFieldsForDelete(resource: fhir4.Measure | fhir4.Library) {
+  if (process.env.AUTHORING === 'true') {
+    // authoring requires draft or retired status
+    if (resource.status !== 'draft' && resource.status !== 'retired') {
+      throw new BadRequestError(
+        'Authoring repository service deletions may only be made to draft or retired status resources.'
+      );
+    }
+  } else {
+    // publishable requires retired status
+    if (resource.status !== 'retired') {
+      throw new BadRequestError(
+        'Publishable repository service deletions may only be made to retired status resources.'
+      );
+    }
   }
 }

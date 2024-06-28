@@ -74,12 +74,11 @@ The server supports transaction bundle uploads via the `:/base_version/` endpoin
 - The request body must be a FHIR bundle of type `transaction`.
 - The entries SHALL be of resource type "Measure" or "Library." An error will be thrown otherwise.
 
-For ease of use, the `service/directory-upload.sh` script can be used to run the transaction bundle upload on an input directory. Details are as follows:
+For ease of use, an upload workflow similar to `db:loadBundle` can be done by POSTing a directory of transaction bundles rather than directly uploading to the database. While the server is running (script assumes default location http://localhost:3000/4_0_1), run the following script with the desired directory path:
 
-- The `-h` option can be used to view usage.
-- A server URL must be supplied via the `-s` option.
-- A directory path must be supplied via the `-d` option.
-- The script can support nested directories (one level deep).
+```
+npm run db:postBundle <path to directory> <optional server location>
+```
 
 ## Usage
 
@@ -95,12 +94,34 @@ When sending requests, ensure that the `"Content-type": "application/json+fhir"`
 
 ### CRUD Operations
 
+This server can be configured as a [Publishable Measure Repository](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#publishable-measure-repository) or an  [Authoring Measure Repository](https://build.fhir.org/ig/HL7/cqf-measures/measure-repository-service.html#authoring-measure-repository) using the `AUTHORING` environment variable. The minimum write capabilities for these repositories are described further in the [CRMI Publishable Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#publishable-artifact-repository) and [CRMI Authoring Artifact Repository](https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/artifact-repository-service.html#authoring-artifact-repository) specifications, respectively. The write capabilities implemented in this server are further detailed for the create, update, and delete operations described below.
+
 This server currently supports the following CRUD operations:
 
 - Read by ID with `GET` to endpoint: `4_0_1/<resourceType>/<resourceId>`
 - Create resource (Library or Measure) with `POST` to endpoint: `4_0_1/<resourceType>`
+  - Publishable:
+    - Supports the _Publishable_ minimum write capability _publish_
+    - Artifact must be in active status and conform to appropriate shareable and publishable profiles
+  - Authoring:
+    - Supports the additional _Authoring_ capability _submit_
+    - Artifact must be in draft status
+
 - Update resource (Library or Measure) with `PUT` to endpoint: `4_0_1/<resourceType>/<resourceId>`
-  _More functionality coming soon!_
+  - Publishable:
+    - Supports the _Publishable_ minimum write capability _retire_
+    - Artifact must be in active status and may only change the status to retired and update the date (and other metadata appropriate to indicate retired status)
+  - Authoring:
+    - Supports the additional _Authoring_ capability _revise_
+    - Artifact must be in (and remain in) draft status
+
+- Delete resource (Library or Measure) with `DELETE` to endpoint: `4_0_1/<resourceType>/<resourceId>`
+  - Publishable:
+    - Supports the _Publishable_ minimum write capability _archive_
+    - Artifact must be in retired status
+  - Authoring:
+    - Supports the additional _Authoring_ capability _withdraw_
+    - Artifact must be in draft status
 
 ### Search
 

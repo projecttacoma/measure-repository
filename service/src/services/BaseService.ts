@@ -1,8 +1,8 @@
 import { loggers, constants, resolveSchema } from '@projecttacoma/node-fhir-server-core';
 import { BadRequestError } from '../util/errorUtils';
-import { checkContentTypeHeader } from '../util/inputUtils';
+import { checkContentTypeHeader, checkFieldsForCreate, checkFieldsForUpdate } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
-import { createResource, updateResource } from '../db/dbOperations';
+import { createResource, findResourceById, updateResource } from '../db/dbOperations';
 import path from 'path';
 import { DetailedEntry, addIsOwnedExtension, addLibraryIsOwned, replaceReferences } from '../util/baseUtils';
 
@@ -43,7 +43,7 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
 
   // pre-process to find owned relationships and error as needed
   const ownedUrls: string[] = [];
-  const modifedRequestsArray = scrubbedEntries.map(entry => {
+  const modifiedRequestsArray = scrubbedEntries.map(entry => {
     if (entry.request) {
       const { method } = entry.request;
       if (method !== 'PUT' && method !== 'POST') {
@@ -61,10 +61,10 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
     }
   });
 
-  const requestsArray = modifedRequestsArray.map(async entry => {
+  const requestsArray = modifiedRequestsArray.map(async entry => {
     // add library owned extension
     entry = addLibraryIsOwned(entry, ownedUrls);
-    return insertBundleResources(entry);
+    return insertBundleResources(entry as DetailedEntry);
   });
   return Promise.all(requestsArray);
 }
@@ -74,22 +74,8 @@ async function uploadResourcesFromBundle(entries: DetailedEntry[]) {
  */
 async function insertBundleResources(entry: DetailedEntry) {
   if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
-    if (entry.resource.status != 'active') {
-      entry.resource.status = 'active';
-      entry.outcome = {
-        resourceType: 'OperationOutcome',
-        issue: [
-          {
-            severity: 'warning',
-            code: 'value', // code from: https://build.fhir.org/valueset-issue-type.html
-            details: { text: 'Artifact status has been coerced to active to meet server specifications' },
-            expression: [`${entry.resource.resourceType}.status`]
-          }
-        ]
-      };
-    }
-
     if (entry.isPost) {
+      checkFieldsForCreate(entry.resource);
       entry.resource.id = uuidv4();
       const { id } = await createResource(entry.resource, entry.resource.resourceType);
       if (id != null) {
@@ -98,6 +84,16 @@ async function insertBundleResources(entry: DetailedEntry) {
       }
     } else {
       if (entry.resource.id) {
+        // note: the distance between this database call and the update resource call, could cause a race condition
+        const oldResource = (await findResourceById(entry.resource.id, entry.resource.resourceType)) as
+          | fhir4.Library
+          | fhir4.Measure
+          | null;
+        if (oldResource) {
+          checkFieldsForUpdate(entry.resource, oldResource);
+        } else {
+          checkFieldsForCreate(entry.resource);
+        }
         const { id, created } = await updateResource(entry.resource.id, entry.resource, entry.resource.resourceType);
         if (created === true) {
           entry.status = 201;

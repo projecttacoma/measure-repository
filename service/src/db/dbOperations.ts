@@ -99,3 +99,16 @@ export async function updateResource(id: string, data: fhir4.FhirResource, resou
 
   return { id, created: false };
 }
+
+/**
+ * Searches for a document for a resource and deletes it if found
+ */
+export async function deleteResource(id: string, resourceType: string) {
+  const collection = Connection.db.collection(resourceType);
+  logger.debug(`Finding and deleting ${resourceType}/${id} from database`);
+  const results = await collection.deleteOne({ id });
+  if (results.deletedCount === 1) {
+    return { id, deleted: true };
+  }
+  return { id, deleted: false };
+}

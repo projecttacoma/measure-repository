@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import { DetailedEntry, addIsOwnedExtension, addLibraryIsOwned } from '../src/util/baseUtils';
+import { addIsOwnedExtension, addLibraryIsOwned } from '../src/util/baseUtils';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -39,10 +39,10 @@ async function deleteCollections() {
 /*
  * Gathers necessary file path(s) for bundle(s) to upload, then uploads all measure and
  * library resources found in the bundle(s).
+ * If a connectionURL is provided, then posts the resources to the server at the 
+ * connectionURL (as a transaction bundle), otherwise, loads the resources directly to the database
  */
-async function loadBundle(fileOrDirectoryPath: string) {
-  await Connection.connect(DB_URL);
-  console.log(`Connected to ${DB_URL}`);
+async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string) {
   const status = fs.statSync(fileOrDirectoryPath);
   if (status.isDirectory()) {
     const filePaths: string[] = [];
@@ -60,15 +60,72 @@ async function loadBundle(fileOrDirectoryPath: string) {
     });
 
     for (const filePath of filePaths) {
-      await uploadBundleResources(filePath);
+      await (connectionURL ? postBundleResources(filePath, connectionURL) : uploadBundleResources(filePath));
     }
   } else {
-    await uploadBundleResources(fileOrDirectoryPath);
+    await (connectionURL
+      ? postBundleResources(fileOrDirectoryPath, connectionURL)
+      : uploadBundleResources(fileOrDirectoryPath));
   }
 }
 
 /*
- * Loads all measure or library resources found in the bundle located at param filePath
+ * POSTs a transaction bundle to url
+ */
+async function transactBundle(bundle: fhir4.Bundle, url: string) {
+  if (bundle.entry) {
+    // only upload Measures and Libraries
+    bundle.entry = bundle.entry.filter(
+      e => e.resource?.resourceType === 'Measure' || e.resource?.resourceType === 'Library'
+    );
+    for (const entry of bundle.entry) {
+      if (entry.request?.method === 'POST') {
+        entry.request.method = 'PUT';
+      }
+    }
+  }
+
+  try {
+    console.log(`  POST ${url}`);
+
+    const resp = await fetch(`${url}`, {
+      method: 'POST',
+      body: JSON.stringify(bundle),
+      headers: {
+        'Content-Type': 'application/json+fhir'
+      }
+    });
+    console.log(`    ${resp.status}`);
+    if (resp.status !== 200) {
+      console.log(`${JSON.stringify(await resp.json())}`);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+/*
+ * Loads all resources found in the bundle at filePath, by POSTing them to the provided url
+ */
+async function postBundleResources(filePath: string, url: string) {
+  console.log(`Loading bundle from path ${filePath}`);
+
+  const data = fs.readFileSync(filePath, 'utf8');
+  if (data) {
+    console.log(`POSTing ${filePath.split('/').slice(-1)}...`);
+    const bundle: fhir4.Bundle = JSON.parse(data);
+    const entries = bundle.entry as fhir4.BundleEntry<fhir4.FhirResource>[];
+    // modify bundles before posting
+    if (entries) {
+      const modifiedEntries = modifyEntriesForUpload(entries);
+      bundle.entry = modifiedEntries;
+    }
+    await transactBundle(bundle, url);
+  }
+}
+
+/*
+ * Loads all resources found in the bundle at filePath, directly to the database
  */
 async function uploadBundleResources(filePath: string) {
   console.log(`Loading bundle from path ${filePath}`);
@@ -77,56 +134,21 @@ async function uploadBundleResources(filePath: string) {
   if (data) {
     console.log(`Uploading ${filePath.split('/').slice(-1)}...`);
     const bundle: fhir4.Bundle = JSON.parse(data);
-    const entries = bundle.entry as DetailedEntry[];
+    const entries = bundle.entry as fhir4.BundleEntry<fhir4.FhirResource>[];
     // retrieve each resource and insert into database
     if (entries) {
+      await Connection.connect(DB_URL);
+      console.log(`Connected to ${DB_URL}`);
       let resourcesUploaded = 0;
       let notUploaded = 0;
-      // pre-process to find owned relationships
-      const ownedUrls: string[] = [];
-      const modifiedEntries = entries.map(ent => {
-        // if the artifact is a Measure, get the main Library from the Measure and add the is owned extension on
-        // that library's entry in the relatedArtifacts of the measure
-        const { modifiedEntry, url } = addIsOwnedExtension(ent);
-        if (url) ownedUrls.push(url);
-        // check if there are other isOwned urls but already in the relatedArtifacts
-        if (ent.resource?.resourceType === 'Measure' || ent.resource?.resourceType === 'Library') {
-          ent.resource.relatedArtifact?.forEach(ra => {
-            if (ra.type === 'composed-of') {
-              if (
-                ra.extension?.some(
-                  e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
-                )
-              ) {
-                if (ra.resource) {
-                  ownedUrls.push(ra.resource);
-                }
-              }
-            }
-          });
-        }
-        return modifiedEntry;
-      });
+      const modifiedEntries = modifyEntriesForUpload(entries);
       const uploads = modifiedEntries.map(async entry => {
         // add Library owned extension
-        entry = addLibraryIsOwned(entry, ownedUrls);
-        if (
-          entry.resource?.resourceType &&
-          (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure')
-        ) {
+        if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
           // Only upload Library or Measure resources
           try {
-            if (!entry.resource.id) {
-              entry.resource.id = uuidv4();
-            }
-            if (entry.resource?.status != 'active') {
-              entry.resource.status = 'active';
-              console.warn(
-                `Resource ${entry?.resource?.resourceType}/${entry.resource.id} status has been coerced to 'active'.`
-              );
-            }
             const collection = Connection.db.collection<fhir4.FhirResource>(entry.resource.resourceType);
-            console.log(`Inserting ${entry?.resource?.resourceType}/${entry.resource.id} into database`);
+            console.log(`Inserting ${entry.resource.resourceType}/${entry.resource.id} into database`);
             await collection.insertOne(entry.resource);
             resourcesUploaded += 1;
           } catch (e) {
@@ -140,7 +162,7 @@ async function uploadBundleResources(filePath: string) {
             }
           }
         } else {
-          if (entry?.resource?.resourceType) {
+          if (entry.resource?.resourceType) {
             notUploaded += 1;
           } else {
             console.log('Resource or resource type undefined');
@@ -154,6 +176,56 @@ async function uploadBundleResources(filePath: string) {
       console.error('Unable to identify bundle entries.');
     }
   }
+}
+
+/*
+ * Convenience modification of an array of entries to create isOwned relationships and coerce to status active.
+ * This lets us massage existing data that may not have the appropriate properties needed for a Publishable Measure Repository
+ */
+function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]) {
+  // pre-process to find owned relationships
+  const ownedUrls: string[] = [];
+  const modifiedEntries = entries.map(ent => {
+    // if the artifact is a Measure, get the main Library from the Measure and add the is owned extension on
+    // that library's entry in the relatedArtifacts of the measure
+    const { modifiedEntry, url } = addIsOwnedExtension(ent);
+    if (url) ownedUrls.push(url);
+    // check if there are other isOwned urls but already in the relatedArtifacts
+    if (ent.resource?.resourceType === 'Measure' || ent.resource?.resourceType === 'Library') {
+      ent.resource.relatedArtifact?.forEach(ra => {
+        if (ra.type === 'composed-of') {
+          if (
+            ra.extension?.some(
+              e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+            )
+          ) {
+            if (ra.resource) {
+              ownedUrls.push(ra.resource);
+            }
+          }
+        }
+      });
+    }
+    return modifiedEntry;
+  });
+  const updatedEntries = modifiedEntries.map(entry => {
+    // add Library owned extension
+    const updatedEntry = addLibraryIsOwned(entry, ownedUrls);
+    if (updatedEntry.resource?.resourceType === 'Library' || updatedEntry.resource?.resourceType === 'Measure') {
+      // Only upload Library or Measure resources
+      if (!updatedEntry.resource.id) {
+        updatedEntry.resource.id = uuidv4();
+      }
+      if (updatedEntry.resource.status != 'active') {
+        updatedEntry.resource.status = 'active';
+        console.warn(
+          `Resource ${updatedEntry.resource.resourceType}/${updatedEntry.resource.id} status has been coerced to 'active'.`
+        );
+      }
+    }
+    return updatedEntry;
+  });
+  return updatedEntries;
 }
 
 /*
@@ -216,6 +288,22 @@ if (process.argv[2] === 'delete') {
     .finally(() => {
       Connection.connection?.close();
     });
+} else if (process.argv[2] === 'postBundle') {
+  if (process.argv.length < 4) {
+    throw new Error('Filename argument required.');
+  }
+  let url = 'http://localhost:3000/4_0_1';
+  if (process.argv.length < 5) {
+    console.log('Given only filename input. Defaulting service url to http://localhost:3000/4_0_1');
+  } else {
+    url = process.argv[4];
+  }
+
+  loadBundle(process.argv[3], url)
+    .then(() => {
+      console.log('Done');
+    })
+    .catch(console.error);
 } else {
   console.log('Usage: ts-node src/scripts/dbSetup.ts <create|delete|reset>');
 }
