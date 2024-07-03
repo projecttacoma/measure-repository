@@ -3,6 +3,7 @@ import { serverConfig } from '../../src/config/serverConfig';
 import { cleanUpTestDatabase, setupTestDatabase, createTestResource } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
+import { CRMILibrary } from '../../src/types/service-types';
 
 let server: Server;
 
@@ -125,6 +126,45 @@ const LIBRARY_WITH_SAME_SYSTEM2: fhir4.Library = {
   status: 'active'
 };
 
+const PARENT_ACTIVE_LIBRARY: CRMILibrary = {
+  resourceType: 'Library',
+  type: { coding: [{ code: 'logic-library' }] },
+  status: 'active',
+  id: 'parentLibrary',
+  relatedArtifact: [
+    {
+      type: 'composed-of',
+      resource: 'http://child-library.com|1',
+      extension: [
+        {
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+          valueBoolean: true
+        }
+      ]
+    }
+  ],
+  url: 'http://parent-library.com',
+  version: '1',
+  description: 'Example description',
+  title: 'Parent Active Library'
+};
+
+const CHILD_ACTIVE_LIBRARY: CRMILibrary = {
+  resourceType: 'Library',
+  id: 'childLibrary',
+  type: { coding: [{ code: 'logic-library' }] },
+  extension: [
+    {
+      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+      valueBoolean: true
+    }
+  ],
+  status: 'active',
+  version: '1',
+  url: 'http://child-library.com',
+  description: 'Example description',
+  title: 'Child Active Library'
+};
 
 describe('LibraryService', () => {
   beforeAll(() => {
@@ -139,7 +179,9 @@ describe('LibraryService', () => {
       LIBRARY_WITH_IDENTIFIER_SYSTEM,
       LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE,
       LIBRARY_WITH_SAME_SYSTEM,
-      LIBRARY_WITH_SAME_SYSTEM2
+      LIBRARY_WITH_SAME_SYSTEM2,
+      PARENT_ACTIVE_LIBRARY,
+      CHILD_ACTIVE_LIBRARY
     ]);
   });
 
@@ -190,7 +232,7 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(7);
+          expect(response.body.total).toEqual(9);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -207,7 +249,7 @@ describe('LibraryService', () => {
     it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl'})
+        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -225,7 +267,7 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(7);
+          expect(response.body.total).toEqual(9);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -244,7 +286,7 @@ describe('LibraryService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(9);
+          expect(response.body.total).toEqual(11);
           expect(response.body.entry).toBeUndefined;
         });
     });
@@ -315,10 +357,12 @@ describe('LibraryService', () => {
           id: 'publishable-active',
           status: 'retired',
           title: 'updated',
-          type: { coding: [{ code: 'logic-library' }],
-          url: 'http://example.com',
-          version: '1',
-          description: 'Sample description' }
+          type: {
+            coding: [{ code: 'logic-library' }],
+            url: 'http://example.com',
+            version: '1',
+            description: 'Sample description'
+          }
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
@@ -404,10 +448,15 @@ describe('LibraryService', () => {
     it('revise: returns 400 when status changes', async () => {
       await supertest(server.app)
         .put('/4_0_1/Library/exampleId')
-        .send({ resourceType: 'Library', id: 'exampleId', status: 'active', title: 'updated',
+        .send({
+          resourceType: 'Library',
+          id: 'exampleId',
+          status: 'active',
+          title: 'updated',
           url: 'http://example.com',
           version: '1',
-          description: 'Sample description' })
+          description: 'Sample description'
+        })
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
@@ -506,6 +555,46 @@ describe('LibraryService', () => {
         .send()
         .set('content-type', 'application/json+fhir')
         .expect(400);
+    });
+  });
+
+  describe('$draft', () => {
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/$draft')
+        .query({ id: 'parentLibrary', version: '1.0.0.1' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for GET /Library/:id/$draft', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/parentLibrary/$draft')
+        .query({ version: '1.0.0.2' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for POST /Library/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$draft')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'parentLibrary' },
+            { name: 'version', valueString: '1.0.0.3' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for POST /Library/:id/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/parentLibrary/$draft')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'version', valueString: '1.0.0.4' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
     });
   });
 

@@ -8,6 +8,7 @@ import { PackageArgs } from '../requestSchemas';
 import fs from 'fs';
 import { getMongoQueryFromRequest } from './queryUtils';
 import { z } from 'zod';
+import { FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -21,6 +22,24 @@ export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]
     meta: { lastUpdated: new Date().toISOString() },
     id: v4(),
     type: 'searchset',
+    total: entries.length,
+    entry: entries.map(e => ({ resource: e }))
+  };
+}
+
+/**
+ * Takes in an array of FHIR resources and creates a FHIR batch-response Bundle with the
+ * created resources as entries
+ * TODO: should this response bundle be of type batch-response or something else?
+ * The CRMI IG only says the following: The Bundle result containing the new resource(s)
+ * https://build.fhir.org/ig/HL7/crmi-ig/OperationDefinition-crmi-draft.html
+ */
+export function createBatchResponseBundle<T extends FhirArtifact>(entries: T[]): fhir4.Bundle<T> {
+  return {
+    resourceType: 'Bundle',
+    meta: { lastUpdated: new Date().toISOString() },
+    id: v4(),
+    type: 'batch-response',
     total: entries.length,
     entry: entries.map(e => ({ resource: e }))
   };

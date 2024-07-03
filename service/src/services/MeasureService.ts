@@ -1,5 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  batchDraft,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -10,7 +11,12 @@ import {
   updateResource
 } from '../db/dbOperations';
 import { Service } from '../types/service';
-import { createMeasurePackageBundle, createSearchsetBundle, createSummarySearchsetBundle } from '../util/bundleUtils';
+import {
+  createBatchResponseBundle,
+  createMeasurePackageBundle,
+  createSearchsetBundle,
+  createSummarySearchsetBundle
+} from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import {
@@ -21,13 +27,23 @@ import {
   checkExpectedResourceType,
   checkFieldsForCreate,
   checkFieldsForUpdate,
-  checkFieldsForDelete
+  checkFieldsForDelete,
+  checkDraft,
+  checkExistingArtifact,
+  checkIsOwned
 } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
-import { MeasureSearchArgs, MeasureDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import {
+  MeasureSearchArgs,
+  MeasureDataRequirementsArgs,
+  PackageArgs,
+  parseRequestSchema,
+  DraftArgs
+} from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
-import { FhirLibraryWithDR } from '../types/service-types';
+import { CRMIMeasure, FhirLibraryWithDR } from '../types/service-types';
+import { getChildren, modifyResourcesForDraft } from '../util/serviceUtils';
 
 const logger = loggers.get('default');
 
@@ -144,6 +160,54 @@ export class MeasureService implements Service<fhir4.Measure> {
     }
     checkFieldsForDelete(resource);
     return deleteResource(args.id, 'Measure');
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Measure/$draft or {BASE_URL}/4_0_1/Measure/[id]/$draft
+   * drafts a new version of an existing Measure artifact in active status,
+   * as well as for all resources it is composed of
+   * requires id and version parameters
+   */
+  async draft(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkDraft();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, DraftArgs);
+
+    const activeMeasure = await findResourceById<CRMIMeasure>(parsedParams.id, 'Measure');
+    if (!activeMeasure) {
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
+    }
+    checkIsOwned(activeMeasure, 'Child artifacts cannot be directly drafted.');
+
+    await checkExistingArtifact(activeMeasure.url, parsedParams.version, 'Measure');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
+
+    const draftArtifacts = await modifyResourcesForDraft(
+      [activeMeasure, ...(await Promise.all(children))],
+      params.version
+    );
+
+    // now we want to batch insert the parent Measure artifact and any of its children
+    const newDrafts = await batchDraft(draftArtifacts);
+
+    // we want to return a Bundle containing the created artifacts
+    return createBatchResponseBundle(newDrafts);
   }
 
   /**

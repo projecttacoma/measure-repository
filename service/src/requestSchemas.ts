@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
 const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
+const VERSION_REGEX = /^\d+\.\d+\.\d+\.\d+$/;
 
 // Operation Definition: http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html
 const UNSUPPORTED_PACKAGE_ARGS = [
@@ -52,6 +53,8 @@ const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'conte
 
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
+const idAndVersion = (args: Record<string, any>) => args.id && args.version;
+
 /**
  * Returns a function that checks if any unsupported params are present, then runs the
  * other passed in functions in sequence. Each catchFunction is expected to check for
@@ -91,6 +94,20 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
 }
 
 /**
+ * Checks that id and version are included. Adds an issue to the ctx
+ * that triggers a BadRequest to be thrown if not.
+ */
+export function catchMissingIdAndVersion(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (!idAndVersion(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
+      message: 'Must provide id and version'
+    });
+  }
+}
+
+/**
  * For searches, checks that the version only appears in combination with a url. Adds an
  * issue to the ctx that triggers a BadRequest to be thrown if url is not specified when version
  * is specified.
@@ -110,6 +127,12 @@ const stringToBool = z
   .transform(x => (typeof x === 'boolean' ? x : x === 'true'));
 const stringToNumber = z.coerce.number();
 const checkDate = z.string().regex(DATE_REGEX, 'Invalid FHIR date');
+const checkVersion = z.string().regex(VERSION_REGEX, 'Invalid Semantic Version');
+
+export const DraftArgs = z
+  .object({ id: z.string(), version: checkVersion })
+  .strict()
+  .superRefine(catchInvalidParams([hasIdentifyingInfo, catchMissingIdAndVersion]));
 
 export const IdentifyingParameters = z
   .object({

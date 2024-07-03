@@ -3,6 +3,7 @@ import { serverConfig } from '../../src/config/serverConfig';
 import { cleanUpTestDatabase, createTestResource, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
+import { CRMILibrary, CRMIMeasure } from '../../src/types/service-types';
 
 let server: Server;
 // boiler plate required fields
@@ -117,6 +118,45 @@ const LIBRARY_WITH_DEPS: fhir4.Library = {
   ]
 };
 
+const PARENT_ACTIVE_MEASURE: CRMIMeasure = {
+  resourceType: 'Measure',
+  status: 'active',
+  id: 'parentMeasure',
+  relatedArtifact: [
+    {
+      type: 'composed-of',
+      resource: 'http://child-library.com|1',
+      extension: [
+        {
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+          valueBoolean: true
+        }
+      ]
+    }
+  ],
+  url: 'http://parent-measure.com',
+  version: '1',
+  description: 'Example description',
+  title: 'Parent Active Measure'
+};
+
+const CHILD_ACTIVE_LIBRARY: CRMILibrary = {
+  resourceType: 'Library',
+  id: 'childLibrary',
+  type: { coding: [{ code: 'logic-library' }] },
+  extension: [
+    {
+      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+      valueBoolean: true
+    }
+  ],
+  status: 'active',
+  version: '1',
+  url: 'http://child-library.com',
+  description: 'Example description',
+  title: 'Child Active Library'
+};
+
 describe('MeasureService', () => {
   beforeAll(() => {
     server = initialize(serverConfig);
@@ -130,7 +170,9 @@ describe('MeasureService', () => {
       LIBRARY_WITH_DEPS,
       MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB,
       MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB,
-      MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB
+      MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB,
+      PARENT_ACTIVE_MEASURE,
+      CHILD_ACTIVE_LIBRARY
     ]);
   });
 
@@ -181,7 +223,7 @@ describe('MeasureService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(7);
+          expect(response.body.total).toEqual(8);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -216,7 +258,7 @@ describe('MeasureService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(7);
+          expect(response.body.total).toEqual(8);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
@@ -235,7 +277,7 @@ describe('MeasureService', () => {
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(7);
+          expect(response.body.total).toEqual(8);
           expect(response.body.entry).toBeUndefined;
         });
     });
@@ -351,13 +393,11 @@ describe('MeasureService', () => {
   describe('update', () => {
     beforeAll(() => {
       createTestResource(
-        { resourceType: 'Measure', id: 'exampleId-active', status: 'active',
-          ...MEASURE_BASE },
+        { resourceType: 'Measure', id: 'exampleId-active', status: 'active', ...MEASURE_BASE },
         'Measure'
       );
       return createTestResource(
-        { resourceType: 'Measure', id: 'exampleId', status: 'draft',
-          ...MEASURE_BASE },
+        { resourceType: 'Measure', id: 'exampleId', status: 'draft', ...MEASURE_BASE },
         'Measure'
       );
     });
@@ -365,10 +405,15 @@ describe('MeasureService', () => {
     it('revise: returns 200 when provided correct headers and a FHIR Measure whose id is in the database', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
-        .send({ resourceType: 'Measure', id: 'exampleId', status: 'draft', title: 'updated',
+        .send({
+          resourceType: 'Measure',
+          id: 'exampleId',
+          status: 'draft',
+          title: 'updated',
           url: 'http://example.com',
           version: '1',
-          description: 'Sample description' })
+          description: 'Sample description'
+        })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -379,10 +424,15 @@ describe('MeasureService', () => {
     it('revise: returns 400 when status changes', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId')
-        .send({ resourceType: 'Measure', id: 'exampleId', status: 'active', title: 'updated',
+        .send({
+          resourceType: 'Measure',
+          id: 'exampleId',
+          status: 'active',
+          title: 'updated',
           url: 'http://example.com',
           version: '1',
-          description: 'Sample description' })
+          description: 'Sample description'
+        })
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
@@ -390,8 +440,7 @@ describe('MeasureService', () => {
     it('retire: returns 200 when provided updated status for retiring', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId-active')
-        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired',
-          ...MEASURE_BASE})
+        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired', ...MEASURE_BASE })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -477,6 +526,46 @@ describe('MeasureService', () => {
         .send()
         .set('content-type', 'application/json+fhir')
         .expect(400);
+    });
+  });
+
+  describe('$draft', () => {
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for GET /Measure/$draft', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/$draft')
+        .query({ id: 'parentMeasure', version: '1.0.0.1' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for GET /Measure/:id/$draft', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/parentMeasure/$draft')
+        .query({ version: '1.0.0.2' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for POST /Measure/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$draft')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'parentMeasure' },
+            { name: 'version', valueString: '1.0.0.3' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for POST /Measure/:id/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/parentMeasure/$draft')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'version', valueString: '1.0.0.4' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
     });
   });
 
