@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
 const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
-const VERSION_REGEX = /^\d+\.\d+\.\d+\.\d+$/;
+const VERSION_REGEX = /^\d+\.\d+\.\d+(\.\d+|)$/;
 
 // Operation Definition: http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html
 const UNSUPPORTED_PACKAGE_ARGS = [
