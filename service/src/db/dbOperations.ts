@@ -1,6 +1,7 @@
 import { FhirResourceType, loggers } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { Connection } from './Connection';
+import { ArtifactResourceType, FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -10,6 +11,18 @@ const logger = loggers.get('default');
 export async function findResourceById<T extends fhir4.FhirResource>(id: string, resourceType: FhirResourceType) {
   const collection = Connection.db.collection(resourceType);
   return collection.findOne<T>({ id: id }, { projection: { _id: 0, _dataRequirements: 0 } });
+}
+
+/**
+ * Retrieves the artifact of the given type with the given url and version
+ */
+export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
+  url: string,
+  version: string,
+  resourceType: ArtifactResourceType
+) {
+  const collection = Connection.db.collection(resourceType);
+  return collection.findOne<T>({ url, version }, { projection: { _id: 0 } });
 }
 
 /**
@@ -111,4 +124,30 @@ export async function deleteResource(id: string, resourceType: string) {
     return { id, deleted: true };
   }
   return { id, deleted: false };
+}
+
+/**
+ * Drafts an active parent artifact and all of its children (if applicable) in a batch
+ */
+export async function batchDraft(drafts: FhirArtifact[]) {
+  let error = null;
+  const results: FhirArtifact[] = [];
+  const draftSession = Connection.connection?.startSession();
+  try {
+    await draftSession?.withTransaction(async () => {
+      for (const draft of drafts) {
+        const collection = await Connection.db.collection(draft.resourceType);
+        await collection.insertOne(draft as any, { session: draftSession });
+        results.push(draft);
+      }
+    });
+    console.log('Batch draft transaction committed.');
+  } catch (err) {
+    console.log('Batch draft transaction failed: ' + err);
+    error = err;
+  } finally {
+    await draftSession?.endSession();
+  }
+  if (error) throw error;
+  return results;
 }

@@ -85,6 +85,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$data-requirements',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements'
+        },
+        {
+          name: 'draft',
+          route: '/$draft',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
+        },
+        {
+          name: 'draft',
+          route: '/$draft',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
+        },
+        {
+          name: 'draft',
+          route: '/:id/$draft',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
+        },
+        {
+          name: 'draft',
+          route: '/:id/$draft',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
         }
       ]
     },
@@ -139,6 +163,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$data-requirements',
           method: 'POST',
           reference: 'http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements'
+        },
+        {
+          name: 'draft',
+          route: '/$draft',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
+        },
+        {
+          name: 'draft',
+          route: '/$draft',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
+        },
+        {
+          name: 'draft',
+          route: '/:id/$draft',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
+        },
+        {
+          name: 'draft',
+          route: '/:id/$draft',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-draft.html'
         }
       ]
     }

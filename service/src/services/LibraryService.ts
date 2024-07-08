@@ -1,5 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  batchDraft,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -9,9 +10,20 @@ import {
   findResourcesWithQuery,
   updateResource
 } from '../db/dbOperations';
-import { LibrarySearchArgs, LibraryDataRequirementsArgs, PackageArgs, parseRequestSchema } from '../requestSchemas';
+import {
+  LibrarySearchArgs,
+  LibraryDataRequirementsArgs,
+  PackageArgs,
+  parseRequestSchema,
+  DraftArgs
+} from '../requestSchemas';
 import { Service } from '../types/service';
-import { createLibraryPackageBundle, createSearchsetBundle, createSummarySearchsetBundle } from '../util/bundleUtils';
+import {
+  createBatchResponseBundle,
+  createLibraryPackageBundle,
+  createSearchsetBundle,
+  createSummarySearchsetBundle
+} from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
 import {
@@ -22,13 +34,17 @@ import {
   checkExpectedResourceType,
   checkFieldsForCreate,
   checkFieldsForUpdate,
-  checkFieldsForDelete
+  checkFieldsForDelete,
+  checkExistingArtifact,
+  checkIsOwned,
+  checkDraft
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 import { Filter } from 'mongodb';
-import { FhirLibraryWithDR } from '../types/service-types';
+import { CRMILibrary, FhirLibraryWithDR } from '../types/service-types';
+import { getChildren, modifyResourcesForDraft } from '../util/serviceUtils';
 
 /*
  * Implementation of a service for the `Library` resource
@@ -142,6 +158,54 @@ export class LibraryService implements Service<fhir4.Library> {
     }
     checkFieldsForDelete(resource);
     return deleteResource(args.id, 'Library');
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$draft or {BASE_URL}/4_0_1/Library/[id]/$draft
+   * drafts a new version of an existing Library artifact in active status,
+   * as well as for all resource it is composed of
+   * requires id and version parameters
+   */
+  async draft(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkDraft();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, DraftArgs);
+
+    const activeLibrary = await findResourceById<CRMILibrary>(parsedParams.id, 'Library');
+    if (!activeLibrary) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
+    }
+    checkIsOwned(activeLibrary, 'Child artifacts cannot be directly drafted');
+
+    await checkExistingArtifact(activeLibrary.url, parsedParams.version, 'Library');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = activeLibrary.relatedArtifact ? await getChildren(activeLibrary.relatedArtifact) : [];
+
+    const draftArtifacts = await modifyResourcesForDraft(
+      [activeLibrary, ...(await Promise.all(children))],
+      params.version
+    );
+
+    // now we want to batch insert the parent Library artifact and any of its children
+    const newDrafts = await batchDraft(draftArtifacts);
+
+    // we want to return a Bundle containing the created artifacts
+    return createBatchResponseBundle(newDrafts);
   }
 
   /**

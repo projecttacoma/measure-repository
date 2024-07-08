@@ -22,7 +22,7 @@
     "dev:watch": "nodemon ./src/index.ts",
     "dev:clean": "npm run db:reset && npm run dev",
     "start": "node ./dist/index.js",
-    "test": "jest",
+    "test": "jest --runInBand --silent",
     "test:watch": "jest --watch"
   },
   "devDependencies": {
