@@ -55,6 +55,8 @@ const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url ||
 
 const idAndVersion = (args: Record<string, any>) => args.id && args.version;
 
+const idAndVersionAndUrl = (args: Record<string, any>) => args.id && args.url && args.version;
+
 /**
  * Returns a function that checks if any unsupported params are present, then runs the
  * other passed in functions in sequence. Each catchFunction is expected to check for
@@ -108,6 +110,20 @@ export function catchMissingIdAndVersion(val: Record<string, any>, ctx: z.Refine
 }
 
 /**
+ * Checks that id, url, and version are included. Adds an issue to the ctx
+ * that triggers a BadRequest to be thrown if not.
+ */
+export function catchMissingIdVersionUrl(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (!idAndVersionAndUrl(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
+      message: 'Must provide id, url, and version'
+    });
+  }
+}
+
+/**
  * For searches, checks that the version only appears in combination with a url. Adds an
  * issue to the ctx that triggers a BadRequest to be thrown if url is not specified when version
  * is specified.
@@ -133,6 +149,11 @@ export const DraftArgs = z
   .object({ id: z.string(), version: checkVersion })
   .strict()
   .superRefine(catchInvalidParams([hasIdentifyingInfo, catchMissingIdAndVersion]));
+
+export const CloneArgs = z
+  .object({ id: z.string(), url: z.string(), version: checkVersion })
+  .strict()
+  .superRefine(catchInvalidParams([hasIdentifyingInfo, catchMissingIdVersionUrl]));
 
 export const IdentifyingParameters = z
   .object({

@@ -87,3 +87,9 @@ export async function modifyResourcesForDraft(artifacts: FhirArtifact[], version
 
   return artifacts;
 }
+
+/**
+ * Helper function that takes an active or draft artifact and returns it with a new id,
+ * same status, url (from the $clone parameter), and version (from the $clone parameter).
+ */
+export async function modifyResourcesForClone(artifacts: FhirArtifact[], url: string, version: string) {}

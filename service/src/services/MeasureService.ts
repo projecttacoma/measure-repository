@@ -28,9 +28,9 @@ import {
   checkFieldsForCreate,
   checkFieldsForUpdate,
   checkFieldsForDelete,
-  checkDraft,
   checkExistingArtifact,
-  checkIsOwned
+  checkIsOwned,
+  checkAuthoring
 } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
 import {
@@ -38,7 +38,8 @@ import {
   MeasureDataRequirementsArgs,
   PackageArgs,
   parseRequestSchema,
-  DraftArgs
+  DraftArgs,
+  CloneArgs
 } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
@@ -173,7 +174,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`${req.method} ${req.path}`);
 
     // checks that the authoring environment variable is true
-    checkDraft();
+    checkAuthoring();
 
     if (req.method === 'POST') {
       const contentType: string | undefined = req.headers['content-type'];
@@ -208,6 +209,43 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newDrafts);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Measure/$clone or {BASE_URL}/4_0_1/Measure/[id]/$clone
+   * clones a new knowledge artifact based on the contents of an existing artifact,
+   * as well as for all resources it is composed of
+   * requires id, url, and version parameters
+   */
+  async clone(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
+
+    const activeMeasure = await findResourceById<CRMIMeasure>(parsedParams.id, 'Measure');
+    if (!activeMeasure) {
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
+    }
+    checkIsOwned(activeMeasure, 'Child artifacts cannot be directly drafted.');
+
+    await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Measure');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
   }
 
   /**
