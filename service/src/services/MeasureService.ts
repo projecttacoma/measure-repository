@@ -1,5 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  batchClone,
   batchDraft,
   createResource,
   deleteResource,
@@ -44,7 +45,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
 import { CRMIMeasure, FhirLibraryWithDR } from '../types/service-types';
-import { getChildren, modifyResourcesForDraft } from '../util/serviceUtils';
+import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
 
 const logger = loggers.get('default');
 
@@ -240,12 +241,24 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (!activeMeasure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
-    checkIsOwned(activeMeasure, 'Child artifacts cannot be directly drafted.');
+    checkIsOwned(activeMeasure, 'Child artifacts cannot be directly cloned.');
 
     await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Measure');
 
     // recursively get any child artifacts from the artifact if they exist
     const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
+
+    const clonedArtifacts = await modifyResourcesForClone(
+      [activeMeasure, ...(await Promise.all(children))],
+      params.url,
+      params.version
+    );
+
+    // now we want to batch insert the cloned parent Measure artifact and any of its children
+    const newClones = await batchClone(clonedArtifacts);
+
+    // we want to return a Bundle containing the created artifacts
+    return createBatchResponseBundle(newClones);
   }
 
   /**

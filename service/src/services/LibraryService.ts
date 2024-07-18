@@ -1,5 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  batchClone,
   batchDraft,
   createResource,
   deleteResource,
@@ -15,7 +16,8 @@ import {
   LibraryDataRequirementsArgs,
   PackageArgs,
   parseRequestSchema,
-  DraftArgs
+  DraftArgs,
+  CloneArgs
 } from '../requestSchemas';
 import { Service } from '../types/service';
 import {
@@ -37,14 +39,14 @@ import {
   checkFieldsForDelete,
   checkExistingArtifact,
   checkIsOwned,
-  checkDraft
+  checkAuthoring
 } from '../util/inputUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 import { Filter } from 'mongodb';
 import { CRMILibrary, FhirLibraryWithDR } from '../types/service-types';
-import { getChildren, modifyResourcesForDraft } from '../util/serviceUtils';
+import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
 
 /*
  * Implementation of a service for the `Library` resource
@@ -171,7 +173,7 @@ export class LibraryService implements Service<fhir4.Library> {
     logger.info(`${req.method} ${req.path}`);
 
     // checks that the authoring environment variable is true
-    checkDraft();
+    checkAuthoring();
 
     if (req.method === 'POST') {
       const contentType: string | undefined = req.headers['content-type'];
@@ -206,6 +208,55 @@ export class LibraryService implements Service<fhir4.Library> {
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newDrafts);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$clone or {BASE_URL}/4_0_1/Library/[id]/$clone
+   * clones a new knowledge artifact based on the contents of an existing artifact,
+   * as well as for all resources it is composed of
+   * requires id, url, and version parameters
+   */
+  async clone(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
+
+    const activeLibrary = await findResourceById<CRMILibrary>(parsedParams.id, 'Library');
+    if (!activeLibrary) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
+    }
+    checkIsOwned(activeLibrary, 'Child artifacts cannot be directly cloned.');
+
+    await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Library');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = activeLibrary.relatedArtifact ? await getChildren(activeLibrary.relatedArtifact) : [];
+
+    const clonedArtifacts = await modifyResourcesForClone(
+      [activeLibrary, ...(await Promise.all(children))],
+      params.url,
+      params.version
+    );
+
+    // now we want to batch insert the cloned parent Library artifact and any of its children
+    const newClones = await batchClone(clonedArtifacts);
+
+    // we want to return a Bundle containing the created artifacts
+    return createBatchResponseBundle(newClones);
   }
 
   /**
