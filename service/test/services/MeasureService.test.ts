@@ -569,6 +569,53 @@ describe('MeasureService', () => {
     });
   });
 
+  describe('$clone', () => {
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for GET /Measure/$clone', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/$clone')
+        .query({ id: 'parentMeasure', version: '1.0.0.5', url: 'http://clone-example.com' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for GET /Measure/:id/$draft', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/parentMeasure/$clone')
+        .query({ version: '1.0.0.6', url: 'http://clone-example.com' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for POST/Measure/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'parentMeasure' },
+            { name: 'version', valueString: '1.0.0.7' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Measure artifact and any children it has for POST /Measure/:id/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/parentMeasure/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'version', valueString: '1.0.0.8' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
+    });
+  });
+
   describe('$cqfm.package', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through args', async () => {
       await supertest(server.app)

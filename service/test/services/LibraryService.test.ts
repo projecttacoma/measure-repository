@@ -598,6 +598,53 @@ describe('LibraryService', () => {
     });
   });
 
+  describe('$clone', () => {
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for GET /Library/$clone', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/$clone')
+        .query({ id: 'parentLibrary', version: '1.0.0.5', url: 'http://clone-example.com' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for GET /Library/:id/$draft', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/parentLibrary/$clone')
+        .query({ version: '1.0.0.6', url: 'http://clone-example.com' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for POST/Library/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'parentLibrary' },
+            { name: 'version', valueString: '1.0.0.7' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
+    });
+
+    it('returns 200 status with a Bundle result containing the created parent Library artifact and any children it has for POST /Library/:id/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/parentLibrary/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'version', valueString: '1.0.0.8' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200);
+    });
+  });
+
   describe('$cqfm.package', () => {
     it('returns a Bundle including the Library when the Library has no dependencies and id passed through args', async () => {
       await supertest(server.app)

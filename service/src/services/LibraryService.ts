@@ -239,16 +239,19 @@ export class LibraryService implements Service<fhir4.Library> {
     if (!activeLibrary) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
+    activeLibrary.url = parsedParams.url;
     checkIsOwned(activeLibrary, 'Child artifacts cannot be directly cloned.');
 
     await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Library');
 
     // recursively get any child artifacts from the artifact if they exist
     const children = activeLibrary.relatedArtifact ? await getChildren(activeLibrary.relatedArtifact) : [];
+    children.forEach(child => {
+      child.url = child.url + '-clone';
+    });
 
     const clonedArtifacts = await modifyResourcesForClone(
       [activeLibrary, ...(await Promise.all(children))],
-      params.url,
       params.version
     );
 

@@ -241,18 +241,18 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (!activeMeasure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
+    activeMeasure.url = parsedParams.url;
     checkIsOwned(activeMeasure, 'Child artifacts cannot be directly cloned.');
 
     await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Measure');
 
     // recursively get any child artifacts from the artifact if they exist
     const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
+    children.forEach(child => {
+      child.url = child.url + '-clone';
+    });
 
-    const clonedArtifacts = await modifyResourcesForClone(
-      [activeMeasure, ...(await Promise.all(children))],
-      params.url,
-      params.version
-    );
+    const clonedArtifacts = await modifyResourcesForClone([activeMeasure, ...children], parsedParams.version);
 
     // now we want to batch insert the cloned parent Measure artifact and any of its children
     const newClones = await batchClone(clonedArtifacts);

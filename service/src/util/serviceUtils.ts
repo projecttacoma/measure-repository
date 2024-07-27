@@ -92,11 +92,10 @@ export async function modifyResourcesForDraft(artifacts: FhirArtifact[], version
  * Helper function that takes an active or draft artifact and returns it with a new id,
  * same status, url (from the $clone parameter), and version (from the $clone parameter).
  */
-export async function modifyResourcesForClone(artifacts: FhirArtifact[], url: string, version: string) {
+export async function modifyResourcesForClone(artifacts: FhirArtifact[], version: string) {
   for (const artifact of artifacts) {
     artifact.id = uuidv4();
     artifact.version = version;
-    artifact.url = url;
     if (artifact.relatedArtifact) {
       artifact.relatedArtifact.forEach(ra => {
         if (
@@ -107,7 +106,7 @@ export async function modifyResourcesForClone(artifacts: FhirArtifact[], url: st
           )
         ) {
           const oldUrl = ra.resource.split('|')[0];
-          ra.resource = oldUrl + '|' + version;
+          ra.resource = oldUrl + '-clone|' + version;
         }
       });
     }
