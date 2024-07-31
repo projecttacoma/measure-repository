@@ -106,7 +106,7 @@ export function checkIsOwned(resource: fhir4.Measure | fhir4.Library, message: s
 
 export function checkAuthoring() {
   if (process.env.AUTHORING === 'false') {
-    throw new BadRequestError('The Publishable repository service does not support the $draft operation.');
+    throw new BadRequestError('The Publishable repository service does not support this operation.');
   }
 }
 

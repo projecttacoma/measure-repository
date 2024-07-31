@@ -1,7 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
-  batchClone,
-  batchDraft,
+  batchInsert,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -204,7 +203,7 @@ export class LibraryService implements Service<fhir4.Library> {
     );
 
     // now we want to batch insert the parent Library artifact and any of its children
-    const newDrafts = await batchDraft(draftArtifacts);
+    const newDrafts = await batchInsert(draftArtifacts, 'draft');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newDrafts);
@@ -256,7 +255,7 @@ export class LibraryService implements Service<fhir4.Library> {
     );
 
     // now we want to batch insert the cloned parent Library artifact and any of its children
-    const newClones = await batchClone(clonedArtifacts);
+    const newClones = await batchInsert(clonedArtifacts, 'clone');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newClones);

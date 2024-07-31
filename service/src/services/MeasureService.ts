@@ -1,7 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
-  batchClone,
-  batchDraft,
+  batchInsert,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -206,7 +205,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     );
 
     // now we want to batch insert the parent Measure artifact and any of its children
-    const newDrafts = await batchDraft(draftArtifacts);
+    const newDrafts = await batchInsert(draftArtifacts, 'draft');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newDrafts);
@@ -255,7 +254,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     const clonedArtifacts = await modifyResourcesForClone([activeMeasure, ...children], parsedParams.version);
 
     // now we want to batch insert the cloned parent Measure artifact and any of its children
-    const newClones = await batchClone(clonedArtifacts);
+    const newClones = await batchInsert(clonedArtifacts, 'clone');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newClones);
