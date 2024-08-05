@@ -1,7 +1,6 @@
 import { findArtifactByUrlAndVersion } from '../db/dbOperations';
 import { ArtifactResourceType, FhirArtifact } from '../types/service-types';
 import { v4 as uuidv4 } from 'uuid';
-import { BadRequestError } from './errorUtils';
 
 export type ChildArtifactInfo = {
   resourceType: 'Measure' | 'Library';
@@ -76,13 +75,6 @@ export async function modifyResourcesForDraft(artifacts: FhirArtifact[], version
         }
       });
     }
-
-    const checkExisting = await findArtifactByUrlAndVersion(artifact.url, version, artifact.resourceType);
-    if (checkExisting) {
-      throw new BadRequestError(
-        `A ${artifact.resourceType} with url ${artifact.url} and version ${artifact.version} already exists in the database.`
-      );
-    }
   }
 
   return artifacts;
@@ -109,13 +101,6 @@ export async function modifyResourcesForClone(artifacts: FhirArtifact[], version
           ra.resource = oldUrl + '-clone|' + version;
         }
       });
-    }
-
-    const checkExisting = await findArtifactByUrlAndVersion(artifact.url, version, artifact.resourceType);
-    if (checkExisting) {
-      throw new BadRequestError(
-        `A ${artifact.resourceType} with url ${artifact.url} and version ${artifact.version} already exists in the database.`
-      );
     }
   }
 

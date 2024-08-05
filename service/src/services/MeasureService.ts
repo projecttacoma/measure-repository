@@ -28,7 +28,6 @@ import {
   checkFieldsForCreate,
   checkFieldsForUpdate,
   checkFieldsForDelete,
-  checkExistingArtifact,
   checkIsOwned,
   checkAuthoring
 } from '../util/inputUtils';
@@ -194,8 +193,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     }
     checkIsOwned(activeMeasure, 'Child artifacts cannot be directly drafted.');
 
-    await checkExistingArtifact(activeMeasure.url, parsedParams.version, 'Measure');
-
     // recursively get any child artifacts from the artifact if they exist
     const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
 
@@ -242,8 +239,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     }
     activeMeasure.url = parsedParams.url;
     checkIsOwned(activeMeasure, 'Child artifacts cannot be directly cloned.');
-
-    await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Measure');
 
     // recursively get any child artifacts from the artifact if they exist
     const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];

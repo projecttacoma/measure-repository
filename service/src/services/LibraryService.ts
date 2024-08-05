@@ -36,7 +36,6 @@ import {
   checkFieldsForCreate,
   checkFieldsForUpdate,
   checkFieldsForDelete,
-  checkExistingArtifact,
   checkIsOwned,
   checkAuthoring
 } from '../util/inputUtils';
@@ -192,8 +191,6 @@ export class LibraryService implements Service<fhir4.Library> {
     }
     checkIsOwned(activeLibrary, 'Child artifacts cannot be directly drafted');
 
-    await checkExistingArtifact(activeLibrary.url, parsedParams.version, 'Library');
-
     // recursively get any child artifacts from the artifact if they exist
     const children = activeLibrary.relatedArtifact ? await getChildren(activeLibrary.relatedArtifact) : [];
 
@@ -240,8 +237,6 @@ export class LibraryService implements Service<fhir4.Library> {
     }
     activeLibrary.url = parsedParams.url;
     checkIsOwned(activeLibrary, 'Child artifacts cannot be directly cloned.');
-
-    await checkExistingArtifact(parsedParams.url, parsedParams.version, 'Library');
 
     // recursively get any child artifacts from the artifact if they exist
     const children = activeLibrary.relatedArtifact ? await getChildren(activeLibrary.relatedArtifact) : [];
