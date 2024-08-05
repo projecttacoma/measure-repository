@@ -127,26 +127,27 @@ export async function deleteResource(id: string, resourceType: string) {
 }
 
 /**
- * Drafts an active parent artifact and all of its children (if applicable) in a batch
+ * Inserts a parent artifact and all of its children (if applicable) in a batch
+ * Error message depends on whether draft or cloned artifacts are being inserted
  */
-export async function batchDraft(drafts: FhirArtifact[]) {
+export async function batchInsert(artifacts: FhirArtifact[], action: string) {
   let error = null;
   const results: FhirArtifact[] = [];
-  const draftSession = Connection.connection?.startSession();
+  const insertSession = Connection.connection?.startSession();
   try {
-    await draftSession?.withTransaction(async () => {
-      for (const draft of drafts) {
-        const collection = await Connection.db.collection(draft.resourceType);
-        await collection.insertOne(draft as any, { session: draftSession });
-        results.push(draft);
+    await insertSession?.withTransaction(async () => {
+      for (const artifact of artifacts) {
+        const collection = await Connection.db.collection(artifact.resourceType);
+        await collection.insertOne(artifact as any, { session: insertSession });
+        results.push(artifact);
       }
     });
-    console.log('Batch draft transaction committed.');
+    console.log(`Batch ${action} transaction committed.`);
   } catch (err) {
-    console.log('Batch draft transaction failed: ' + err);
+    console.log(`Batch ${action} transaction failed: ` + err);
     error = err;
   } finally {
-    await draftSession?.endSession();
+    await insertSession?.endSession();
   }
   if (error) throw error;
   return results;

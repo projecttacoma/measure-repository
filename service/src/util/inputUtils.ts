@@ -2,8 +2,6 @@ import { RequestArgs, RequestQuery, FhirResourceType } from '@projecttacoma/node
 import { Filter } from 'mongodb';
 import { BadRequestError } from './errorUtils';
 import _ from 'lodash';
-import { ArtifactResourceType } from '../types/service-types';
-import { findArtifactByUrlAndVersion } from '../db/dbOperations';
 
 /*
  * Gathers parameters from both the query and the FHIR parameter request body resource
@@ -104,18 +102,9 @@ export function checkIsOwned(resource: fhir4.Measure | fhir4.Library, message: s
   }
 }
 
-export function checkDraft() {
+export function checkAuthoring() {
   if (process.env.AUTHORING === 'false') {
-    throw new BadRequestError('The Publishable repository service does not support the $draft operation.');
-  }
-}
-
-export async function checkExistingArtifact(url: string, version: string, resourceType: ArtifactResourceType) {
-  const existingArtifact = await findArtifactByUrlAndVersion(url, version, resourceType);
-  if (existingArtifact) {
-    throw new BadRequestError(
-      `A ${resourceType} artifact with url ${url} and version ${version} already exists in the database`
-    );
+    throw new BadRequestError('The Publishable repository service does not support this operation.');
   }
 }
 

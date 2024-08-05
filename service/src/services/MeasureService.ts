@@ -1,6 +1,6 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
-  batchDraft,
+  batchInsert,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -28,9 +28,8 @@ import {
   checkFieldsForCreate,
   checkFieldsForUpdate,
   checkFieldsForDelete,
-  checkDraft,
-  checkExistingArtifact,
-  checkIsOwned
+  checkIsOwned,
+  checkAuthoring
 } from '../util/inputUtils';
 import { Calculator } from 'fqm-execution';
 import {
@@ -38,12 +37,13 @@ import {
   MeasureDataRequirementsArgs,
   PackageArgs,
   parseRequestSchema,
-  DraftArgs
+  DraftArgs,
+  CloneArgs
 } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
 import { CRMIMeasure, FhirLibraryWithDR } from '../types/service-types';
-import { getChildren, modifyResourcesForDraft } from '../util/serviceUtils';
+import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
 
 const logger = loggers.get('default');
 
@@ -173,7 +173,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     logger.info(`${req.method} ${req.path}`);
 
     // checks that the authoring environment variable is true
-    checkDraft();
+    checkAuthoring();
 
     if (req.method === 'POST') {
       const contentType: string | undefined = req.headers['content-type'];
@@ -193,8 +193,6 @@ export class MeasureService implements Service<fhir4.Measure> {
     }
     checkIsOwned(activeMeasure, 'Child artifacts cannot be directly drafted.');
 
-    await checkExistingArtifact(activeMeasure.url, parsedParams.version, 'Measure');
-
     // recursively get any child artifacts from the artifact if they exist
     const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
 
@@ -204,10 +202,57 @@ export class MeasureService implements Service<fhir4.Measure> {
     );
 
     // now we want to batch insert the parent Measure artifact and any of its children
-    const newDrafts = await batchDraft(draftArtifacts);
+    const newDrafts = await batchInsert(draftArtifacts, 'draft');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newDrafts);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Measure/$clone or {BASE_URL}/4_0_1/Measure/[id]/$clone
+   * clones a new knowledge artifact based on the contents of an existing artifact,
+   * as well as for all resources it is composed of
+   * requires id, url, and version parameters
+   */
+  async clone(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
+
+    const activeMeasure = await findResourceById<CRMIMeasure>(parsedParams.id, 'Measure');
+    if (!activeMeasure) {
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
+    }
+    activeMeasure.url = parsedParams.url;
+    checkIsOwned(activeMeasure, 'Child artifacts cannot be directly cloned.');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
+    children.forEach(child => {
+      child.url = child.url + '-clone';
+    });
+
+    const clonedArtifacts = await modifyResourcesForClone([activeMeasure, ...children], parsedParams.version);
+
+    // now we want to batch insert the cloned parent Measure artifact and any of its children
+    const newClones = await batchInsert(clonedArtifacts, 'clone');
+
+    // we want to return a Bundle containing the created artifacts
+    return createBatchResponseBundle(newClones);
   }
 
   /**
