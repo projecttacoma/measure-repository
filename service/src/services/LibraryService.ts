@@ -43,14 +43,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 import { Filter } from 'mongodb';
-import { CRMILibrary, FhirLibraryWithDR } from '../types/service-types';
+import { CRMIShareableLibrary, FhirLibraryWithDR } from '../types/service-types';
 import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
 
 /*
  * Implementation of a service for the `Library` resource
  * The Service interface contains all possible functions
  */
-export class LibraryService implements Service<fhir4.Library> {
+export class LibraryService implements Service<CRMIShareableLibrary> {
   /**
    * result of sending a GET request to {BASE_URL}/4_0_1/Library?{QUERY}
    * searches for all libraries that match the included query and returns a FHIR searchset Bundle
@@ -66,13 +66,13 @@ export class LibraryService implements Service<fhir4.Library> {
     // return a searchset bundle that excludes the entries
     if (parsedQuery._summary && parsedQuery._summary === 'count') {
       const count = await findResourceCountWithQuery(mongoQuery, 'Library');
-      return createSummarySearchsetBundle<fhir4.Library>(count);
+      return createSummarySearchsetBundle<CRMIShareableLibrary>(count);
     }
     // if the _elements parameter with a comma-separated string is included
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const entries = await findResourceElementsWithQuery<fhir4.Library>(mongoQuery, 'Library');
+      const entries = await findResourceElementsWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
       entries.map(e => {
         if (e.meta) {
@@ -89,7 +89,7 @@ export class LibraryService implements Service<fhir4.Library> {
       });
       return createSearchsetBundle(entries);
     } else {
-      const entries = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
+      const entries = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
       return createSearchsetBundle(entries);
     }
   }
@@ -100,7 +100,7 @@ export class LibraryService implements Service<fhir4.Library> {
    */
   async searchById(args: RequestArgs) {
     logger.info(`GET /Library/${args.id}`);
-    const result = await findResourceById<fhir4.Library>(args.id, 'Library');
+    const result = await findResourceById<CRMIShareableLibrary>(args.id, 'Library');
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
@@ -138,7 +138,7 @@ export class LibraryService implements Service<fhir4.Library> {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
     // note: the distance between this database call and the update resource call, could cause a race condition
-    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Library | null;
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableLibrary | null;
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
     } else {
@@ -152,7 +152,7 @@ export class LibraryService implements Service<fhir4.Library> {
    * deletes the library with the passed in id if it exists in the database
    */
   async remove(args: RequestArgs) {
-    const resource = (await findResourceById(args.id, 'Library')) as fhir4.Library | null;
+    const resource = (await findResourceById(args.id, 'Library')) as CRMIShareableLibrary | null;
     if (!resource) {
       throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
     }
@@ -185,7 +185,7 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, DraftArgs);
 
-    const activeLibrary = await findResourceById<CRMILibrary>(parsedParams.id, 'Library');
+    const activeLibrary = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
     if (!activeLibrary) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
@@ -231,7 +231,7 @@ export class LibraryService implements Service<fhir4.Library> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
 
-    const activeLibrary = await findResourceById<CRMILibrary>(parsedParams.id, 'Library');
+    const activeLibrary = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
     if (!activeLibrary) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }

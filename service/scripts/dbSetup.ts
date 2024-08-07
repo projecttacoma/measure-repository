@@ -5,6 +5,7 @@ import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { addIsOwnedExtension, addLibraryIsOwned } from '../src/util/baseUtils';
+import { FhirArtifact } from '../src/types/service-types';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -39,7 +40,7 @@ async function deleteCollections() {
 /*
  * Gathers necessary file path(s) for bundle(s) to upload, then uploads all measure and
  * library resources found in the bundle(s).
- * If a connectionURL is provided, then posts the resources to the server at the 
+ * If a connectionURL is provided, then posts the resources to the server at the
  * connectionURL (as a transaction bundle), otherwise, loads the resources directly to the database
  */
 async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string) {
@@ -114,7 +115,7 @@ async function postBundleResources(filePath: string, url: string) {
   if (data) {
     console.log(`POSTing ${filePath.split('/').slice(-1)}...`);
     const bundle: fhir4.Bundle = JSON.parse(data);
-    const entries = bundle.entry as fhir4.BundleEntry<fhir4.FhirResource>[];
+    const entries = bundle.entry as fhir4.BundleEntry<FhirArtifact>[];
     // modify bundles before posting
     if (entries) {
       const modifiedEntries = modifyEntriesForUpload(entries);
