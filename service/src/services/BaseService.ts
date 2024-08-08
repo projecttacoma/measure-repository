@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createResource, findResourceById, updateResource } from '../db/dbOperations';
 import path from 'path';
 import { DetailedEntry, addIsOwnedExtension, addLibraryIsOwned, replaceReferences } from '../util/baseUtils';
+import { FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -77,7 +78,7 @@ async function insertBundleResources(entry: DetailedEntry) {
     if (entry.isPost) {
       checkFieldsForCreate(entry.resource);
       entry.resource.id = uuidv4();
-      const { id } = await createResource(entry.resource, entry.resource.resourceType);
+      const { id } = await createResource(entry.resource as FhirArtifact, entry.resource.resourceType);
       if (id != null) {
         entry.status = 201;
         entry.statusText = 'Created';
@@ -85,16 +86,20 @@ async function insertBundleResources(entry: DetailedEntry) {
     } else {
       if (entry.resource.id) {
         // note: the distance between this database call and the update resource call, could cause a race condition
-        const oldResource = (await findResourceById(entry.resource.id, entry.resource.resourceType)) as
-          | fhir4.Library
-          | fhir4.Measure
-          | null;
+        const oldResource = (await findResourceById(
+          entry.resource.id,
+          entry.resource.resourceType
+        )) as FhirArtifact | null;
         if (oldResource) {
-          checkFieldsForUpdate(entry.resource, oldResource);
+          checkFieldsForUpdate(entry.resource as FhirArtifact, oldResource);
         } else {
           checkFieldsForCreate(entry.resource);
         }
-        const { id, created } = await updateResource(entry.resource.id, entry.resource, entry.resource.resourceType);
+        const { id, created } = await updateResource(
+          entry.resource.id,
+          entry.resource as FhirArtifact,
+          entry.resource.resourceType
+        );
         if (created === true) {
           entry.status = 201;
           entry.statusText = 'Created';

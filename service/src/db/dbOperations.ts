@@ -1,4 +1,4 @@
-import { FhirResourceType, loggers } from '@projecttacoma/node-fhir-server-core';
+import { loggers } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { Connection } from './Connection';
 import { ArtifactResourceType, CRMIShareableLibrary, FhirArtifact } from '../types/service-types';
@@ -8,7 +8,7 @@ const logger = loggers.get('default');
 /**
  * searches the database for the desired resource and returns the data
  */
-export async function findResourceById<T extends FhirArtifact>(id: string, resourceType: FhirResourceType) {
+export async function findResourceById<T extends FhirArtifact>(id: string, resourceType: ArtifactResourceType) {
   const collection = Connection.db.collection(resourceType);
   return collection.findOne<T>({ id: id }, { projection: { _id: 0, _dataRequirements: 0 } });
 }
@@ -30,7 +30,7 @@ export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
  */
 export async function findResourcesWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
-  resourceType: FhirResourceType
+  resourceType: ArtifactResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
@@ -45,7 +45,7 @@ export async function findResourcesWithQuery<T extends FhirArtifact>(
  */
 export async function findResourceElementsWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
-  resourceType: FhirResourceType
+  resourceType: ArtifactResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
 
@@ -70,7 +70,7 @@ export async function findResourceElementsWithQuery<T extends FhirArtifact>(
  * searches the database for all resources of the given type that match the given query
  * but only returns the number of matches
  */
-export async function findResourceCountWithQuery(query: Filter<any>, resourceType: FhirResourceType) {
+export async function findResourceCountWithQuery(query: Filter<any>, resourceType: ArtifactResourceType) {
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };

@@ -141,7 +141,7 @@ const LIBRARY_WITH_SAME_SYSTEM: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_SAME_SYSTEM2: fhir4.Library = {
+const LIBRARY_WITH_SAME_SYSTEM2: CRMIShareableLibrary = {
   resourceType: 'Library',
   id: 'libraryWithSameSystem2',
   url: 'http://example.com/libraryWithSameSystem2',

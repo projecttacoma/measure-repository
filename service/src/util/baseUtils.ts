@@ -1,10 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { loggers } from '@projecttacoma/node-fhir-server-core';
-import { FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
-export type DetailedEntry = fhir4.BundleEntry<FhirArtifact> & {
+export type DetailedEntry = fhir4.BundleEntry<fhir4.FhirResource> & {
   isPost: boolean;
   oldId?: string;
   newId: string;

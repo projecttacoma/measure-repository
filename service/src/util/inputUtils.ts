@@ -1,7 +1,8 @@
-import { RequestArgs, RequestQuery, FhirResourceType } from '@projecttacoma/node-fhir-server-core';
+import { RequestArgs, RequestQuery } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { BadRequestError } from './errorUtils';
 import _ from 'lodash';
+import { ArtifactResourceType, FhirArtifact } from '../types/service-types';
 
 /*
  * Gathers parameters from both the query and the FHIR parameter request body resource
@@ -63,7 +64,7 @@ export function checkContentTypeHeader(contentType?: string) {
 /**
  * Checks that the type of the resource in the body matches the resource type we expect.
  */
-export function checkExpectedResourceType(resourceType: string, expectedResourceType: FhirResourceType) {
+export function checkExpectedResourceType(resourceType: string, expectedResourceType: ArtifactResourceType) {
   if (resourceType !== expectedResourceType) {
     throw new BadRequestError(`Expected resourceType '${expectedResourceType}' in body. Received '${resourceType}'.`);
   }
@@ -92,7 +93,7 @@ export function checkFieldsForCreate(resource: fhir4.Measure | fhir4.Library) {
   }
 }
 
-export function checkIsOwned(resource: fhir4.Measure | fhir4.Library, message: string) {
+export function checkIsOwned(resource: FhirArtifact, message: string) {
   if (
     resource.extension?.some(
       e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
@@ -108,10 +109,7 @@ export function checkAuthoring() {
   }
 }
 
-export function checkFieldsForUpdate(
-  resource: fhir4.Measure | fhir4.Library,
-  oldResource: fhir4.Measure | fhir4.Library
-) {
+export function checkFieldsForUpdate(resource: FhirArtifact, oldResource: FhirArtifact) {
   if (process.env.AUTHORING !== 'true' || oldResource.status === 'active') {
     // publishable or active status requires retire functionality
     if (process.env.AUTHORING !== 'true' && oldResource.status !== 'active') {
@@ -143,7 +141,7 @@ export function checkFieldsForUpdate(
   }
 }
 
-export function checkFieldsForDelete(resource: fhir4.Measure | fhir4.Library) {
+export function checkFieldsForDelete(resource: FhirArtifact) {
   if (process.env.AUTHORING === 'true') {
     // authoring requires draft or retired status
     if (resource.status !== 'draft' && resource.status !== 'retired') {

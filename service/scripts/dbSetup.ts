@@ -5,11 +5,11 @@ import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { addIsOwnedExtension, addLibraryIsOwned } from '../src/util/baseUtils';
-import { FhirArtifact } from '../src/types/service-types';
+import { CRMIShareableLibrary, FhirArtifact } from '../src/types/service-types';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
-const COLLECTION_NAMES = ['Measure', 'Library', 'MeasureReport'];
+const COLLECTION_NAMES = ['Measure', 'Library'];
 
 async function createCollections() {
   await Connection.connect(DB_URL);
@@ -148,9 +148,9 @@ async function uploadBundleResources(filePath: string) {
         if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
           // Only upload Library or Measure resources
           try {
-            const collection = Connection.db.collection<fhir4.FhirResource>(entry.resource.resourceType);
+            const collection = Connection.db.collection<FhirArtifact>(entry.resource.resourceType);
             console.log(`Inserting ${entry.resource.resourceType}/${entry.resource.id} into database`);
-            await collection.insertOne(entry.resource);
+            await collection.insertOne(entry.resource as FhirArtifact);
             resourcesUploaded += 1;
           } catch (e) {
             // ignore duplicate key errors for Libraries, Note: if ValueSets added, also ignore for those
@@ -234,9 +234,9 @@ function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]
  */
 async function insertFHIRModelInfoLibrary() {
   const fhirModelInfo = fs.readFileSync('scripts/fixtures/Library-FHIR-ModelInfo.json', 'utf8');
-  const fhirModelInfoLibrary: fhir4.Library = JSON.parse(fhirModelInfo);
+  const fhirModelInfoLibrary: CRMIShareableLibrary = JSON.parse(fhirModelInfo);
 
-  const collection = Connection.db.collection<fhir4.FhirResource>('Library');
+  const collection = Connection.db.collection<FhirArtifact>('Library');
   console.log(`Inserting Library/${fhirModelInfoLibrary.id} into database`);
   await collection.insertOne(fhirModelInfoLibrary);
 }
