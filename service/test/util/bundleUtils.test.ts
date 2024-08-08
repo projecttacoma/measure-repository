@@ -8,6 +8,20 @@ import {
   getQueryFromReference
 } from '../../src/util/bundleUtils';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
+import { CRMIShareableLibrary, CRMIShareableMeasure } from '../../src/types/service-types';
+
+const LIBRARY_BASE = {
+  type: { coding: [{ code: 'logic-library' }] },
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
+const MEASURE_BASE = {
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
 
 const MOCK_VS_1: fhir4.ValueSet = {
   resourceType: 'ValueSet',
@@ -27,26 +41,19 @@ const MOCK_VS_3: fhir4.ValueSet = {
   url: 'http://example.com/ValueSet/4'
 };
 
-const LIB_WITH_NO_DEPS: fhir4.Library = {
+const LIB_WITH_NO_DEPS: CRMIShareableLibrary = {
+  resourceType: 'Library',
   id: 'LibWithNoDeps',
   url: 'http://example.com/LibraryWithNoDeps',
-  resourceType: 'Library',
   status: 'draft',
-  type: { coding: [{ code: 'logic-library' }] }
+  ...LIBRARY_BASE
 };
 
-const LIB_WITH_NO_URL: fhir4.Library = {
-  id: 'LibWithNoUrl',
+const LIB_WITH_DEPS: CRMIShareableLibrary = {
   resourceType: 'Library',
-  status: 'draft',
-  type: { coding: [{ code: 'logic-library' }] }
-};
-
-const LIB_WITH_DEPS: fhir4.Library = {
   id: 'LibraryWithDeps',
   url: 'http://example.com/LibraryWithDeps',
   version: '0.0.1-test',
-  resourceType: 'Library',
   status: 'draft',
   type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
@@ -62,15 +69,16 @@ const LIB_WITH_DEPS: fhir4.Library = {
       type: 'depends-on',
       resource: MOCK_VS_2.url
     }
-  ]
+  ],
+  title: 'Sample title',
+  description: 'Sample description'
 };
 
-const LIB_WITH_VALUESET: fhir4.Library = {
+const LIB_WITH_VALUESET: CRMIShareableLibrary = {
+  resourceType: 'Library',
   id: 'LibraryWithValueSet',
   url: 'http://example.com/LibraryWithVS',
-  resourceType: 'Library',
   status: 'draft',
-  type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
     {
       type: 'depends-on',
@@ -84,55 +92,63 @@ const LIB_WITH_VALUESET: fhir4.Library = {
       type: 'depends-on',
       resource: MOCK_VS_2.url
     }
-  ]
+  ],
+  ...LIBRARY_BASE
 };
 
-const LIB_WITH_EXTRA_VALUESET: fhir4.Library = {
+const LIB_WITH_EXTRA_VALUESET: CRMIShareableLibrary = {
+  resourceType: 'Library',
   id: 'LibraryWithExtraValueSet',
   url: 'http://example.com/LibraryWithExtraVS',
-  resourceType: 'Library',
   status: 'draft',
-  type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
     {
       type: 'depends-on',
       resource: MOCK_VS_3.url
     }
-  ]
+  ],
+  ...LIBRARY_BASE
 };
 
-const LIB_WITH_MISSING_DEPS: fhir4.Library = {
-  id: 'LibraryWithMissingDeps',
+const LIB_WITH_MISSING_DEPS: CRMIShareableLibrary = {
   resourceType: 'Library',
+  id: 'LibraryWithMissingDeps',
+  url: 'http://example.com/LibraryWithMissingDeps',
   status: 'draft',
-  type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
     {
       type: 'depends-on',
       resource: 'http://example.com/MissingLibrary'
     }
-  ]
+  ],
+  ...LIBRARY_BASE
 };
 
-const MEASURE_WITH_MISSING_LIBRARY: fhir4.Measure = {
+const MEASURE_WITH_MISSING_LIBRARY: CRMIShareableMeasure = {
   resourceType: 'Measure',
   id: 'MeasureMissingLib',
+  url: 'http://example.com/MeasureMissingLib',
   status: 'draft',
-  library: ['http://example.com/MissingLibrary']
+  library: ['http://example.com/MissingLibrary'],
+  ...MEASURE_BASE
 };
 
-const MEASURE_WITH_NO_LIBRARY: fhir4.Measure = {
+const MEASURE_WITH_NO_LIBRARY: CRMIShareableMeasure = {
   resourceType: 'Measure',
   id: 'MeasureNoLib',
+  url: 'http://example.com/MeasureNoLib',
   status: 'draft',
-  library: []
+  library: [],
+  ...MEASURE_BASE
 };
 
-const MEASURE_WITH_LIBRARY: fhir4.Measure = {
+const MEASURE_WITH_LIBRARY: CRMIShareableMeasure = {
   resourceType: 'Measure',
   id: 'MeasureWithLib',
+  url: 'http://example.com/MeasureNoLib',
   status: 'draft',
-  library: ['http://example.com/LibraryWithDeps']
+  library: ['http://example.com/LibraryWithDeps'],
+  ...MEASURE_BASE
 };
 
 describe('bundleUtils', () => {
@@ -140,7 +156,6 @@ describe('bundleUtils', () => {
     return setupTestDatabase([
       LIB_WITH_DEPS,
       LIB_WITH_NO_DEPS,
-      LIB_WITH_NO_URL,
       LIB_WITH_MISSING_DEPS,
       LIB_WITH_EXTRA_VALUESET,
       MEASURE_WITH_MISSING_LIBRARY,
@@ -280,16 +295,6 @@ describe('bundleUtils', () => {
     it('returns rootLibRef with url and version when both present', async () => {
       const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibraryWithDeps' }, {});
       expect(rootLibRef).toEqual('http://example.com/LibraryWithDeps|0.0.1-test');
-    });
-
-    it('returns rootLibRef with just url when url present and version missing', async () => {
-      const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibWithNoDeps' }, {});
-      expect(rootLibRef).toEqual('http://example.com/LibraryWithNoDeps');
-    });
-
-    it('returns rootLibRef with id when url and version missing', async () => {
-      const { rootLibRef } = await createLibraryPackageBundle({ id: 'LibWithNoUrl' }, {});
-      expect(rootLibRef).toEqual('LibWithNoUrl');
     });
   });
 

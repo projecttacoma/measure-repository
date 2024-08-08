@@ -42,7 +42,7 @@ import {
 } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
-import { CRMIMeasure, FhirLibraryWithDR } from '../types/service-types';
+import { CRMIShareableMeasure, FhirLibraryWithDR } from '../types/service-types';
 import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
 
 const logger = loggers.get('default');
@@ -51,7 +51,7 @@ const logger = loggers.get('default');
  * Implementation of a service for the `Measure` resource
  * The Service interface contains all possible functions
  */
-export class MeasureService implements Service<fhir4.Measure> {
+export class MeasureService implements Service<CRMIShareableMeasure> {
   /**
    * result of sending a GET request to {BASE_URL}/4_0_1/Measure?{QUERY}
    * searches for all measures that match the included query and returns a FHIR searchset Bundle
@@ -67,13 +67,13 @@ export class MeasureService implements Service<fhir4.Measure> {
     // return a searchset bundle that excludes the entries
     if (parsedQuery._summary && parsedQuery._summary === 'count') {
       const count = await findResourceCountWithQuery(mongoQuery, 'Measure');
-      return createSummarySearchsetBundle<fhir4.Measure>(count);
+      return createSummarySearchsetBundle<CRMIShareableMeasure>(count);
     }
     // if the _elements parameter with a comma-separated string is included
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const entries = await findResourceElementsWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      const entries = await findResourceElementsWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
       entries.map(e => {
         if (e.meta) {
@@ -90,7 +90,7 @@ export class MeasureService implements Service<fhir4.Measure> {
       });
       return createSearchsetBundle(entries);
     } else {
-      const entries = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+      const entries = await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
       return createSearchsetBundle(entries);
     }
   }
@@ -101,7 +101,7 @@ export class MeasureService implements Service<fhir4.Measure> {
    */
   async searchById(args: RequestArgs) {
     logger.info(`GET /Measure/${args.id}`);
-    const result = await findResourceById<fhir4.Measure>(args.id, 'Measure');
+    const result = await findResourceById<CRMIShareableMeasure>(args.id, 'Measure');
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
@@ -138,7 +138,7 @@ export class MeasureService implements Service<fhir4.Measure> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as fhir4.Measure | null;
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableMeasure | null;
     // note: the distance between this database call and the update resource call, could cause a race condition
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
@@ -154,7 +154,7 @@ export class MeasureService implements Service<fhir4.Measure> {
    * deletes the measure with the passed in id if it exists in the database
    */
   async remove(args: RequestArgs) {
-    const resource = (await findResourceById(args.id, 'Measure')) as fhir4.Measure | null;
+    const resource = (await findResourceById(args.id, 'Measure')) as CRMIShareableMeasure | null;
     if (!resource) {
       throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
     }
@@ -187,7 +187,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, DraftArgs);
 
-    const activeMeasure = await findResourceById<CRMIMeasure>(parsedParams.id, 'Measure');
+    const activeMeasure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
     if (!activeMeasure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
@@ -233,7 +233,7 @@ export class MeasureService implements Service<fhir4.Measure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
 
-    const activeMeasure = await findResourceById<CRMIMeasure>(parsedParams.id, 'Measure');
+    const activeMeasure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
     if (!activeMeasure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }

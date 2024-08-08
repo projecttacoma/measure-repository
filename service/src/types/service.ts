@@ -1,7 +1,8 @@
 import { RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
+import { FhirArtifact } from './service-types';
 
 // See https://github.com/projecttacoma/node-fhir-server-core/blob/master/docs/ConfiguringProfiles.md
-export interface Service<T extends fhir4.FhirResource> {
+export interface Service<T extends FhirArtifact> {
   /*
    * GET /:base_version/[profile_name]
    * POST /:base_version/[profile_name]/_search

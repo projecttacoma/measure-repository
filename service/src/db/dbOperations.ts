@@ -1,14 +1,14 @@
-import { FhirResourceType, loggers } from '@projecttacoma/node-fhir-server-core';
+import { loggers } from '@projecttacoma/node-fhir-server-core';
 import { Filter } from 'mongodb';
 import { Connection } from './Connection';
-import { ArtifactResourceType, FhirArtifact } from '../types/service-types';
+import { ArtifactResourceType, CRMIShareableLibrary, FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
 /**
  * searches the database for the desired resource and returns the data
  */
-export async function findResourceById<T extends fhir4.FhirResource>(id: string, resourceType: FhirResourceType) {
+export async function findResourceById<T extends FhirArtifact>(id: string, resourceType: ArtifactResourceType) {
   const collection = Connection.db.collection(resourceType);
   return collection.findOne<T>({ id: id }, { projection: { _id: 0, _dataRequirements: 0 } });
 }
@@ -28,9 +28,9 @@ export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
 /**
  * searches the database and returns an array of all resources of the given type that match the given query
  */
-export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
+export async function findResourcesWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
-  resourceType: FhirResourceType
+  resourceType: ArtifactResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
@@ -43,15 +43,17 @@ export async function findResourcesWithQuery<T extends fhir4.FhirResource>(
  * searches the database and returns an array of all resources of the given type that match the given query
  * but the resources only include the elements specified by the _elements parameter
  */
-export async function findResourceElementsWithQuery<T extends fhir4.FhirResource>(
+export async function findResourceElementsWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
-  resourceType: FhirResourceType
+  resourceType: ArtifactResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
 
   // if the resourceType is Library, then we want to include type in the projection
   const projection: any =
-    resourceType === 'Library' ? { status: 1, resourceType: 1, type: 1 } : { status: 1, resourceType: 1 };
+    resourceType === 'Library'
+      ? { id: 1, status: 1, resourceType: 1, type: 1, url: 1, title: 1, description: 1, version: 1 }
+      : { id: 1, status: 1, resourceType: 1, url: 1, title: 1, description: 1, version: 1 };
 
   (query._elements as string[]).forEach(elem => {
     projection[elem] = 1;
@@ -68,7 +70,7 @@ export async function findResourceElementsWithQuery<T extends fhir4.FhirResource
  * searches the database for all resources of the given type that match the given query
  * but only returns the number of matches
  */
-export async function findResourceCountWithQuery(query: Filter<any>, resourceType: FhirResourceType) {
+export async function findResourceCountWithQuery(query: Filter<any>, resourceType: ArtifactResourceType) {
   const collection = Connection.db.collection(resourceType);
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
@@ -79,7 +81,7 @@ export async function findResourceCountWithQuery(query: Filter<any>, resourceTyp
 /**
  * searches the database for the data requirements Library resource of the desired artifact and parameters
  */
-export async function findDataRequirementsWithQuery<T extends fhir4.Library>(query: Filter<any>) {
+export async function findDataRequirementsWithQuery<T extends CRMIShareableLibrary>(query: Filter<any>) {
   const collection = Connection.db.collection('Library');
   return collection.findOne<T>({ _dataRequirements: query }, { projection: { _id: 0, _dataRequirements: 0, url: 0 } });
 }
@@ -87,8 +89,8 @@ export async function findDataRequirementsWithQuery<T extends fhir4.Library>(que
 /**
  * Inserts one data object into database with specified FHIR resource type
  */
-export async function createResource(data: fhir4.FhirResource, resourceType: string) {
-  const collection = Connection.db.collection<fhir4.FhirResource>(resourceType);
+export async function createResource(data: FhirArtifact, resourceType: string) {
+  const collection = Connection.db.collection<FhirArtifact>(resourceType);
   logger.info(`Inserting ${resourceType}/${data.id} into database`);
   await collection.insertOne(data);
   return { id: data.id as string };
@@ -97,7 +99,7 @@ export async function createResource(data: fhir4.FhirResource, resourceType: str
 /**
  * Searches for a document for a resource and updates it if found, creates it if not
  */
-export async function updateResource(id: string, data: fhir4.FhirResource, resourceType: string) {
+export async function updateResource(id: string, data: FhirArtifact, resourceType: string) {
   const collection = Connection.db.collection(resourceType);
   logger.debug(`Finding and updating ${resourceType}/${data.id} in database`);
 

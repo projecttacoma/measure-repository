@@ -3,13 +3,13 @@
   "resource": [
     {
       "type": "Library",
-      "profile": "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/library-cqfm",
+      "profile": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablelibrary",
       "supportedProfile": [
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-library-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-library-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/executable-library-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/modelinfo-library-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/quality-program-cqfm"
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablelibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablelibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-executablelibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-moduledefinitionlibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-manifestlibrary"
       ],
       "interaction": [
         {
@@ -187,16 +187,8 @@
     },
     {
       "type": "Measure",
-      "profile": "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/measure-cqfm",
-      "supportedProfile": [
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-measure-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-measure-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cohort-measure-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/proportion-measure-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/ratio-measure-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cv-measure-cqfm",
-        "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/composite-measure-cqfm"
-      ],
+      "profile": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablemeasure",
+      "supportedProfile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablemeasure"],
       "interaction": [
         {
           "extension": [

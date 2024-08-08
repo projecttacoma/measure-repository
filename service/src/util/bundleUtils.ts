@@ -8,7 +8,7 @@ import { PackageArgs } from '../requestSchemas';
 import fs from 'fs';
 import { getMongoQueryFromRequest } from './queryUtils';
 import { z } from 'zod';
-import { FhirArtifact } from '../types/service-types';
+import { CRMIShareableLibrary, CRMIShareableMeasure, FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -16,7 +16,7 @@ const logger = loggers.get('default');
  * Takes in an array of FHIR resources and creates a FHIR searchset Bundle with the
  * inputted resources as entries
  */
-export function createSearchsetBundle<T extends fhir4.FhirResource>(entries: T[]): fhir4.Bundle<T> {
+export function createSearchsetBundle<T extends FhirArtifact>(entries: T[]): fhir4.Bundle<T> {
   return {
     resourceType: 'Bundle',
     meta: { lastUpdated: new Date().toISOString() },
@@ -49,7 +49,7 @@ export function createBatchResponseBundle<T extends FhirArtifact>(entries: T[]):
  *
  * Takes in a number of FHIR resources and creates a FHIR searchset Bundle without entries
  */
-export function createSummarySearchsetBundle<T extends fhir4.FhirResource>(count: number): fhir4.Bundle<T> {
+export function createSummarySearchsetBundle<T extends FhirArtifact>(count: number): fhir4.Bundle<T> {
   return {
     resourceType: 'Bundle',
     meta: { lastUpdated: new Date().toISOString() },
@@ -66,9 +66,9 @@ export function createSummarySearchsetBundle<T extends fhir4.FhirResource>(count
 export async function createMeasurePackageBundle(
   query: Filter<any>,
   params: z.infer<typeof PackageArgs>
-): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+): Promise<fhir4.Bundle<FhirArtifact>> {
   const mongoQuery = getMongoQueryFromRequest(query);
-  const measure = await findResourcesWithQuery<fhir4.Measure>(mongoQuery, 'Measure');
+  const measure = await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
   if (!measure || !(measure.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Measure, with ${Object.keys(query)
@@ -90,7 +90,7 @@ export async function createMeasurePackageBundle(
   if (measureForPackaging.library && measureForPackaging.library.length > 0) {
     const [mainLibraryRef] = measureForPackaging.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
-    const libs = await findResourcesWithQuery<fhir4.Library>(mainLibQuery, 'Library');
+    const libs = await findResourcesWithQuery<CRMIShareableLibrary>(mainLibQuery, 'Library');
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(
         `Could not find Library ${mainLibraryRef} referenced by Measure ${measureForPackaging.id}`
@@ -114,9 +114,9 @@ export async function createMeasurePackageBundle(
 export async function createLibraryPackageBundle(
   query: Filter<any>,
   params: z.infer<typeof PackageArgs>
-): Promise<{ libraryBundle: fhir4.Bundle<fhir4.FhirResource>; rootLibRef?: string }> {
+): Promise<{ libraryBundle: fhir4.Bundle<FhirArtifact>; rootLibRef?: string }> {
   const mongoQuery = getMongoQueryFromRequest(query);
-  const library = await findResourcesWithQuery<fhir4.Library>(mongoQuery, 'Library');
+  const library = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
   if (!library || !(library.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Library, with ${Object.keys(query)
@@ -151,14 +151,14 @@ export async function createLibraryPackageBundle(
  * and returns a bundle of all the dependent libraries
  */
 export async function createDepLibraryBundle(
-  mainLib: fhir4.Library,
+  mainLib: CRMIShareableLibrary,
   includeTerminology?: boolean
-): Promise<fhir4.Bundle<fhir4.FhirResource>> {
+): Promise<fhir4.Bundle<FhirArtifact>> {
   const allLibsDups = await getAllDependentLibraries(mainLib);
   // de-dup by id using map
   const idMap = new Map(allLibsDups.map(lib => [lib.id, lib]));
   const allLibs = Array.from(idMap.values());
-  const result: fhir4.Bundle = { resourceType: 'Bundle', type: 'collection', id: v4() };
+  const result: fhir4.Bundle<FhirArtifact> = { resourceType: 'Bundle', type: 'collection', id: v4() };
   result.entry = allLibs.map(r => ({
     resource: r
   }));
@@ -186,7 +186,7 @@ export function getQueryFromReference(reference: string): Filter<any> {
   }
 }
 
-function hasNoDependencies(lib: fhir4.Library) {
+function hasNoDependencies(lib: CRMIShareableLibrary) {
   return !lib.relatedArtifact || (Array.isArray(lib.relatedArtifact) && lib.relatedArtifact.length === 0);
 }
 
@@ -194,7 +194,7 @@ function hasNoDependencies(lib: fhir4.Library) {
  * Resolves ValueSets listed in the relatedArtifact property of a library
  * Optionally uses a file-system cache to grab ValueSets that have been resolved previously
  */
-export async function getDependentValueSets(lib: fhir4.Library, useFileCache = true) {
+export async function getDependentValueSets(lib: CRMIShareableLibrary, useFileCache = true) {
   if (hasNoDependencies(lib)) {
     return [];
   }
@@ -271,7 +271,7 @@ export async function getDependentValueSets(lib: fhir4.Library, useFileCache = t
 /*
  * Updates the bundle entry array in-place to include any resolved ValueSets
  */
-async function addValueSetsToBundle(rootLibrary: fhir4.Library, currentBundle: fhir4.Bundle) {
+async function addValueSetsToBundle(rootLibrary: CRMIShareableLibrary, currentBundle: fhir4.Bundle) {
   const valueSets = await getDependentValueSets(rootLibrary);
 
   currentBundle.entry?.push(
@@ -284,7 +284,7 @@ async function addValueSetsToBundle(rootLibrary: fhir4.Library, currentBundle: f
 /**
  * Iterate through relatedArtifact of library and return list of all dependent libraries used
  */
-export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir4.Library[]> {
+export async function getAllDependentLibraries(lib: CRMIShareableLibrary): Promise<CRMIShareableLibrary[]> {
   logger.debug(`Retrieving all dependent libraries for library: ${lib.id}`);
   const results = [lib];
 
@@ -308,7 +308,7 @@ export async function getAllDependentLibraries(lib: fhir4.Library): Promise<fhir
         }${libQuery.version ? ` and version: ${libQuery.version}` : ''}`
       );
     }
-    return getAllDependentLibraries(libs[0] as fhir4.Library);
+    return getAllDependentLibraries(libs[0] as CRMIShareableLibrary);
   });
 
   const allDeps = await Promise.all(libraryGets);

@@ -1,4 +1,4 @@
-import { CRMILibrary } from '../../src/types/service-types';
+import { CRMIShareableLibrary } from '../../src/types/service-types';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 import { getChildren, modifyResourcesForDraft } from '../../src/util/serviceUtils';
 
@@ -15,7 +15,7 @@ const PARENT_RELATED_ARTIFACTS: fhir4.RelatedArtifact[] = [
   }
 ];
 
-const CHILD_LIBRARY_1: CRMILibrary = {
+const CHILD_LIBRARY_1: CRMIShareableLibrary = {
   resourceType: 'Library',
   status: 'active',
   type: { coding: [{ code: 'logic-library' }] },
@@ -44,7 +44,7 @@ const CHILD_LIBRARY_1: CRMILibrary = {
   ]
 };
 
-const CHILD_LIBRARY_2: CRMILibrary = {
+const CHILD_LIBRARY_2: CRMIShareableLibrary = {
   resourceType: 'Library',
   status: 'active',
   type: { coding: [{ code: 'logic-library' }] },
