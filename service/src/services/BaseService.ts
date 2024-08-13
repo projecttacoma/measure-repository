@@ -91,7 +91,7 @@ async function insertBundleResources(entry: DetailedEntry) {
           entry.resource.resourceType
         )) as FhirArtifact | null;
         if (oldResource) {
-          checkFieldsForUpdate(entry.resource as FhirArtifact, oldResource);
+          checkFieldsForUpdate(entry.resource, oldResource);
         } else {
           checkFieldsForCreate(entry.resource);
         }

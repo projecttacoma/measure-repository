@@ -109,7 +109,7 @@ export function checkAuthoring() {
   }
 }
 
-export function checkFieldsForUpdate(resource: FhirArtifact, oldResource: FhirArtifact) {
+export function checkFieldsForUpdate(resource: fhir4.Measure | fhir4.Library, oldResource: FhirArtifact) {
   if (process.env.AUTHORING !== 'true' || oldResource.status === 'active') {
     // publishable or active status requires retire functionality
     if (process.env.AUTHORING !== 'true' && oldResource.status !== 'active') {
