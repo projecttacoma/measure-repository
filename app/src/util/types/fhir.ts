@@ -1,11 +1,17 @@
 export interface CRMIShareableMeasure extends fhir4.Measure {
   id: string;
+  url: string;
   version: string;
+  title: string;
+  description: string;
 }
 
 export interface CRMIShareableLibrary extends fhir4.Library {
   id: string;
+  url: string;
   version: string;
+  title: string;
+  description: string;
 }
 
 // type representing the resource types that are relevant to the Measure Repository Service
