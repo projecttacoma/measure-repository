@@ -137,7 +137,7 @@ describe('BaseService', () => {
   beforeAll(async () => {
     server = initialize(serverConfig, app);
     process.env.AUTHORING = 'true';
-    return setupTestDatabase([]);
+    await setupTestDatabase([]);
   });
 
   describe('uploadTransactionBundle', () => {
@@ -260,7 +260,5 @@ describe('BaseService', () => {
         });
     });
   });
-  afterAll(() => {
-    return cleanUpTestDatabase();
-  });
+  afterAll(cleanUpTestDatabase);
 });

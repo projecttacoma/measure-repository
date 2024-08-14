@@ -28,6 +28,14 @@ const ACTIVE_MEASURE: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
+const EXTRA_ACTIVE_MEASURE: CRMIShareableMeasure = {
+  resourceType: 'Measure',
+  id: 'testExtraActiveMeasure',
+  url: 'http://example.com/testExtraActiveMeasure',
+  status: 'active',
+  ...MEASURE_BASE
+};
+
 const ACTIVE_MEASURE_2: CRMIShareableMeasure = {
   resourceType: 'Measure',
   id: 'testActiveMeasure2',
@@ -183,10 +191,10 @@ const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
 };
 
 describe('MeasureService', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     server = initialize(serverConfig);
     process.env.AUTHORING = 'true';
-    return setupTestDatabase([
+    await setupTestDatabase([
       ACTIVE_MEASURE,
       ACTIVE_MEASURE_2,
       MEASURE_WITH_ROOT_LIB,
@@ -419,12 +427,20 @@ describe('MeasureService', () => {
     it('publish: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
-        .send(ACTIVE_MEASURE)
+        .send(EXTRA_ACTIVE_MEASURE)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
           expect(response.headers.location).toBeDefined();
         });
+    });
+
+    it('publish: returns 400 status for Measure with same url and version pair already in repository', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send(ACTIVE_MEASURE)
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
     });
   });
 

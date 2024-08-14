@@ -185,10 +185,10 @@ const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
 };
 
 describe('LibraryService', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     server = initialize(serverConfig);
     process.env.AUTHORING = 'true';
-    return setupTestDatabase([
+    await setupTestDatabase([
       ACTIVE_LIBRARY,
       ACTIVE_LIBRARY_2,
       LIBRARY_WITH_NESTED_DEPS,
@@ -430,6 +430,14 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.headers.location).toBeDefined();
         });
+    });
+
+    it('publish: returns 400 status when Library with same url and version pair already exists', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library')
+        .send(ACTIVE_LIBRARY)
+        .set('content-type', 'application/json+fhir')
+        .expect(400);
     });
   });
 

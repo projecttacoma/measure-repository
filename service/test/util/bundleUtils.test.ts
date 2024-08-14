@@ -145,15 +145,15 @@ const MEASURE_WITH_NO_LIBRARY: CRMIShareableMeasure = {
 const MEASURE_WITH_LIBRARY: CRMIShareableMeasure = {
   resourceType: 'Measure',
   id: 'MeasureWithLib',
-  url: 'http://example.com/MeasureNoLib',
+  url: 'http://example.com/MeasureWithLib',
   status: 'draft',
   library: ['http://example.com/LibraryWithDeps'],
   ...MEASURE_BASE
 };
 
 describe('bundleUtils', () => {
-  beforeAll(() => {
-    return setupTestDatabase([
+  beforeAll(async () => {
+    await setupTestDatabase([
       LIB_WITH_DEPS,
       LIB_WITH_NO_DEPS,
       LIB_WITH_MISSING_DEPS,
