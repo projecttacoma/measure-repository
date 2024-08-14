@@ -1,15 +1,21 @@
-export interface CQFMMeasure extends fhir4.Measure {
+export interface CRMIShareableMeasure extends fhir4.Measure {
   id: string;
+  url: string;
   version: string;
+  title: string;
+  description: string;
 }
 
-export interface CQFMLibrary extends fhir4.Library {
+export interface CRMIShareableLibrary extends fhir4.Library {
   id: string;
+  url: string;
   version: string;
+  title: string;
+  description: string;
 }
 
 // type representing the resource types that are relevant to the Measure Repository Service
-export type FhirArtifact = CQFMMeasure | CQFMLibrary;
+export type FhirArtifact = CRMIShareableMeasure | CRMIShareableLibrary;
 export type ArtifactResourceType = FhirArtifact['resourceType'];
 
 /**

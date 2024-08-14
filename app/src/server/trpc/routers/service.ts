@@ -1,7 +1,7 @@
 import { publicProcedure, router } from '../trpc';
 import { batchCreateDraft, getDraftById, getDraftByUrl } from '@/server/db/dbOperations';
 import { modifyResource } from '@/util/modifyResourceFields';
-import { FhirArtifact } from '@/util/types/fhir';
+import { CRMIShareableLibrary, FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
@@ -61,7 +61,7 @@ export const serviceRouter = router({
           message: resource?.issue[0]?.details?.text
         });
       }
-      return resource as fhir4.Library;
+      return resource as CRMIShareableLibrary;
     }),
 
   getArtifactById: publicProcedure

@@ -1,6 +1,6 @@
 # Measure Repository
 
-A prototype implementation of a [FHIR Measure Repository Service](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html) and associated frontend application. This repository is a monorepo that consists of:
+A prototype implementation of a [FHIR Measure Repository Service](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html) and associated frontend application. The Measure Repository Service is a specific case of the more general [Artifact Repository Service](https://hl7.org/fhir/uv/crmi/artifact-repository-service.html#artifact-repository-service) that supports measures and libraries that exist in the CRMI Artifact Lifecycle as [CRMIShareableMeasure](https://hl7.org/fhir/uv/crmi/StructureDefinition-crmi-shareablemeasure.html) and [CRMIShareableLibrary](https://hl7.org/fhir/uv/crmi/StructureDefinition-crmi-shareablelibrary.html) artifacts. This repository is a monorepo that consists of:
 
 - [Measure Repository Service](https://github.com/projecttacoma/measure-repository/blob/main/service/README.md)
   - Implements portions of the [FHIR Measure Repository Service](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html) specification
@@ -43,12 +43,12 @@ cp app/.env.example app/.env.local
 cp service/.env.example service/.env
 ```
 
-Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups. 
+Make any changes to point to the measure repository service, Mongo database, and optionally the VSAC API. `0.0.0.0` may be a more appropriate database address than `localhost` for certain environment setups.
 Additionally, some versions of tooling may have issues with running `next dev` within workspaces. Disabling telemetry can prevent the disallowed npm command from running under the hood.
+
 ```bash
 npx next telemetry disable
 ```
-
 
 ### Mongo Replica Set Setup
 

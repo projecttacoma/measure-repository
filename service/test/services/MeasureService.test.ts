@@ -3,43 +3,43 @@ import { serverConfig } from '../../src/config/serverConfig';
 import { cleanUpTestDatabase, createTestResource, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
-import { CRMILibrary, CRMIMeasure } from '../../src/types/service-types';
+import { CRMIShareableLibrary, CRMIShareableMeasure } from '../../src/types/service-types';
 
 let server: Server;
 // boiler plate required fields
-const MEASURE_BASE = {
-  url: 'http://example.com',
+const LIBRARY_BASE = {
+  type: { coding: [{ code: 'logic-library' }] },
   version: '1',
   title: 'Sample title',
   description: 'Sample description'
 };
 
-const MEASURE: fhir4.Measure = { resourceType: 'Measure', id: 'test', status: 'active', ...MEASURE_BASE };
+const MEASURE_BASE = {
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
 
-const MEASURE_WITH_URL: fhir4.Measure = {
+const ACTIVE_MEASURE: CRMIShareableMeasure = {
   resourceType: 'Measure',
-  id: 'testWithUrl',
+  id: 'testActiveMeasure',
+  url: 'http://example.com/testActiveMeasure',
   status: 'active',
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_URL_2: fhir4.Measure = {
+const ACTIVE_MEASURE_2: CRMIShareableMeasure = {
   resourceType: 'Measure',
-  id: 'testWithUrl2',
-  status: 'draft',
-  ...MEASURE_BASE
-};
-
-const DRAFT_MEASURE_WITH_URL: fhir4.Measure = {
-  resourceType: 'Measure',
-  id: 'testWithUrl',
+  id: 'testActiveMeasure2',
+  url: 'http://example.com/testActiveMeasure2',
   status: 'active',
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
+const ACTIVE_MEASURE_NO_NAME: CRMIShareableMeasure = {
   resourceType: 'Measure',
-  id: 'testWithUrl',
+  id: 'testActiveMeasure',
+  url: 'http://example.com/testActiveMeasure',
   status: 'active',
   meta: {
     tag: [
@@ -48,77 +48,102 @@ const MEASURE_WITH_URL_ONLY_ID: fhir4.Measure = {
         system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue'
       }
     ]
-  }
+  },
+  ...MEASURE_BASE
 };
 
-const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: fhir4.Measure = {
+const NEW_ACTIVE_MEASURE: CRMIShareableMeasure = {
   resourceType: 'Measure',
+  id: 'newTestActiveMeasure',
+  url: 'http://example.com/newTestActiveMeasure',
+  status: 'active',
+  ...MEASURE_BASE
+};
+
+const DRAFT_MEASURE: CRMIShareableMeasure = {
+  resourceType: 'Measure',
+  id: 'testDraftMeasure',
+  url: 'http://example.com/testDraftMeasure',
+  status: 'draft',
+  ...MEASURE_BASE
+};
+
+const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: CRMIShareableMeasure = {
+  resourceType: 'Measure',
+  id: 'measureWithIdentifierValueRootLib',
+  url: 'http://example.com/measureWithIdentifierValueRootLib',
   identifier: [{ value: 'measureWithIdentifierValueRootLib' }],
-  library: ['http://example.com/testLibrary'],
+  library: ['http://example.com/testActiveLibraryWithNoDeps'],
   status: 'active',
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: fhir4.Measure = {
+const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: CRMIShareableMeasure = {
   resourceType: 'Measure',
+  id: 'measureWithIdentifierSystemRootLib',
+  url: 'http://example.com/measureWithIdentifierSystemRootLib',
   identifier: [{ system: 'http://example.com/measureWithIdentifierSystemRootLib' }],
-  library: ['http://example.com/testLibrary'],
+  library: ['http://example.com/testActiveLibraryWithNoDeps'],
   status: 'active',
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: fhir4.Measure = {
+const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: CRMIShareableMeasure = {
   resourceType: 'Measure',
+  id: 'measureWithIdentifierSystemAndValueRootLib',
+  url: 'http://example.com/measureWithIdentifierSystemAndValueRootLib',
   identifier: [
     {
       value: 'measureWithIdentifierSystemAndValueRootLib',
       system: 'http://example.com/measureWithIdentifierSystemAndValueRootLib'
     }
   ],
-  library: ['http://example.com/testLibrary'],
+  library: ['http://example.com/testActiveLibraryWithNoDeps'],
   status: 'active',
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_ROOT_LIB: fhir4.Measure = {
+const MEASURE_WITH_ROOT_LIB: CRMIShareableMeasure = {
   resourceType: 'Measure',
-  id: 'testWithRootLib',
-  status: 'active',
+  id: 'testMeasureWithRootLib',
   url: 'http://example.com/testMeasureWithRootLib',
-  library: ['http://example.com/testLibrary']
-};
-
-const MEASURE_WITH_ROOT_LIB_AND_DEPS: fhir4.Measure = {
-  resourceType: 'Measure',
-  id: 'testWithRootLibAndDeps',
   status: 'active',
-  url: 'http://example.com/testMeasureWithDeps',
-  library: ['http://example.com/testLibraryWithDeps']
+  library: ['http://example.com/testActiveLibraryWithNoDeps'],
+  ...MEASURE_BASE
 };
 
-const LIBRARY_WITH_NO_DEPS: fhir4.Library = {
-  resourceType: 'Library',
-  id: 'testLibraryWithNoDeps',
-  status: 'draft',
-  url: 'http://example.com/testLibrary',
-  type: { coding: [{ code: 'logic-library' }] }
+const MEASURE_WITH_ROOT_LIB_AND_DEPS: CRMIShareableMeasure = {
+  resourceType: 'Measure',
+  id: 'testMeasureWithRootLibAndDeps',
+  url: 'http://example.com/testMeasureWithRootLibAndDeps',
+  status: 'active',
+  library: ['http://example.com/testActiveLibraryWithDeps'],
+  ...MEASURE_BASE
 };
 
-const LIBRARY_WITH_DEPS: fhir4.Library = {
+const ACTIVE_LIBRARY: CRMIShareableLibrary = {
   resourceType: 'Library',
-  id: 'testLibraryWithDeps',
+  id: 'testActiveLibraryWithNoDeps',
+  url: 'http://example.com/testActiveLibraryWithNoDeps',
+  status: 'active',
+  ...LIBRARY_BASE
+};
+
+const ACTIVE_LIBRARY_WITH_DEPS: CRMIShareableLibrary = {
+  resourceType: 'Library',
+  id: 'testActiveLibraryWithDeps',
+  url: 'http://example.com/testActiveLibraryWithDeps',
   status: 'draft',
-  url: 'http://example.com/testLibraryWithDeps',
-  type: { coding: [{ code: 'logic-library' }] },
   relatedArtifact: [
     {
       type: 'depends-on',
-      resource: 'http://example.com/testLibrary'
+      resource: 'http://example.com/testActiveLibraryWithNoDeps'
     }
-  ]
+  ],
+  ...LIBRARY_BASE
 };
 
-const PARENT_ACTIVE_MEASURE: CRMIMeasure = {
+const PARENT_ACTIVE_MEASURE: CRMIShareableMeasure = {
   resourceType: 'Measure',
   status: 'active',
   id: 'parentMeasure',
@@ -140,7 +165,7 @@ const PARENT_ACTIVE_MEASURE: CRMIMeasure = {
   title: 'Parent Active Measure'
 };
 
-const CHILD_ACTIVE_LIBRARY: CRMILibrary = {
+const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
   resourceType: 'Library',
   id: 'childLibrary',
   type: { coding: [{ code: 'logic-library' }] },
@@ -162,12 +187,12 @@ describe('MeasureService', () => {
     server = initialize(serverConfig);
     process.env.AUTHORING = 'true';
     return setupTestDatabase([
-      MEASURE,
-      MEASURE_WITH_URL,
+      ACTIVE_MEASURE,
+      ACTIVE_MEASURE_2,
       MEASURE_WITH_ROOT_LIB,
       MEASURE_WITH_ROOT_LIB_AND_DEPS,
-      LIBRARY_WITH_NO_DEPS,
-      LIBRARY_WITH_DEPS,
+      ACTIVE_LIBRARY,
+      ACTIVE_LIBRARY_WITH_DEPS,
       MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB,
       MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB,
       MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB,
@@ -179,11 +204,11 @@ describe('MeasureService', () => {
   describe('searchById', () => {
     it('returns 200 when passed correct headers and the id is in database', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/test')
+        .get('/4_0_1/Measure/testActiveMeasure')
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
-          expect(response.body.id).toEqual(MEASURE.id);
+          expect(response.body.id).toEqual(ACTIVE_MEASURE.id);
         });
     });
 
@@ -205,13 +230,13 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ url: 'http://example.com', status: 'active', id: 'testWithUrl' })
+        .query({ url: 'http://example.com/testActiveMeasure', status: 'active', id: 'testActiveMeasure' })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.total).toEqual(1);
-          expect(response.body.entry[0].resource).toEqual(MEASURE_WITH_URL);
+          expect(response.body.entry[0].resource).toEqual(ACTIVE_MEASURE);
         });
     });
 
@@ -227,10 +252,10 @@ describe('MeasureService', () => {
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
-                resource: MEASURE
+                resource: ACTIVE_MEASURE
               }),
               expect.objectContaining<fhir4.BundleEntry>({
-                resource: MEASURE_WITH_URL
+                resource: ACTIVE_MEASURE_2
               })
             ])
           );
@@ -240,13 +265,18 @@ describe('MeasureService', () => {
     it('returns 200 and correct searchset bundle with only id element when query matches single resource', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ _elements: 'id', status: 'active', url: 'http://example.com', id: 'testWithUrl' })
+        .query({
+          _elements: 'id',
+          status: 'active',
+          url: 'http://example.com/testActiveMeasure',
+          id: 'testActiveMeasure'
+        })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.total).toEqual(1);
-          expect(response.body.entry[0].resource).toEqual(MEASURE_WITH_URL_ONLY_ID);
+          expect(response.body.entry[0].resource).toEqual(ACTIVE_MEASURE_NO_NAME);
         });
     });
 
@@ -262,7 +292,7 @@ describe('MeasureService', () => {
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
               expect.objectContaining<fhir4.BundleEntry>({
-                resource: MEASURE_WITH_URL_ONLY_ID
+                resource: ACTIVE_MEASURE_NO_NAME
               })
             ])
           );
@@ -305,6 +335,7 @@ describe('MeasureService', () => {
         {
           resourceType: 'Measure',
           id: 'publishable-retired',
+          url: 'http://example.com/publishable-retired',
           status: 'retired',
           ...MEASURE_BASE
         },
@@ -314,12 +345,14 @@ describe('MeasureService', () => {
         {
           resourceType: 'Measure',
           id: 'publishable-active',
+          url: 'http://example.com/publishable-active',
           status: 'active',
           ...MEASURE_BASE
         },
         'Measure'
       );
     });
+
     it('publish: returns 400 status when provided with artifact in non-active status', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
@@ -327,12 +360,14 @@ describe('MeasureService', () => {
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
+
     it('retire: returns 400 when artifact to update is not in active status', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/publishable-retired')
         .send({
           resourceType: 'Measure',
           id: 'publishable-retired',
+          url: 'http://example.com/publishable-retired',
           status: 'active',
           ...MEASURE_BASE
         })
@@ -348,13 +383,14 @@ describe('MeasureService', () => {
           id: 'publishable-active',
           status: 'retired',
           title: 'updated',
-          url: 'http://example.com',
+          url: 'http://example.com/publishable-active',
           version: '1',
           description: 'Sample description'
         })
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
+
     it('archive: returns 400 status when deleting an active artifact', async () => {
       await supertest(server.app)
         .delete('/4_0_1/Measure/publishable-active')
@@ -362,6 +398,7 @@ describe('MeasureService', () => {
         .set('content-type', 'application/json+fhir')
         .expect(400);
     });
+
     afterAll(() => {
       process.env.AUTHORING = ORIGINAL_AUTHORING;
     });
@@ -371,17 +408,18 @@ describe('MeasureService', () => {
     it('submit: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
-        .send(DRAFT_MEASURE_WITH_URL)
+        .send(DRAFT_MEASURE)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
           expect(response.headers.location).toBeDefined();
         });
     });
+
     it('publish: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
-        .send(MEASURE_WITH_URL)
+        .send(ACTIVE_MEASURE)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -393,11 +431,23 @@ describe('MeasureService', () => {
   describe('update', () => {
     beforeAll(() => {
       createTestResource(
-        { resourceType: 'Measure', id: 'exampleId-active', status: 'active', ...MEASURE_BASE },
+        {
+          resourceType: 'Measure',
+          id: 'exampleId-active',
+          url: 'http://example.com/exampleId-active',
+          status: 'active',
+          ...MEASURE_BASE
+        },
         'Measure'
       );
       return createTestResource(
-        { resourceType: 'Measure', id: 'exampleId', status: 'draft', ...MEASURE_BASE },
+        {
+          resourceType: 'Measure',
+          id: 'exampleId',
+          url: 'http://example.com/exampleId',
+          status: 'draft',
+          ...MEASURE_BASE
+        },
         'Measure'
       );
     });
@@ -410,7 +460,7 @@ describe('MeasureService', () => {
           id: 'exampleId',
           status: 'draft',
           title: 'updated',
-          url: 'http://example.com',
+          url: 'http://example.com/exampleId',
           version: '1',
           description: 'Sample description'
         })
@@ -429,7 +479,7 @@ describe('MeasureService', () => {
           id: 'exampleId',
           status: 'active',
           title: 'updated',
-          url: 'http://example.com',
+          url: 'http://example.com/exampleId',
           version: '1',
           description: 'Sample description'
         })
@@ -440,7 +490,13 @@ describe('MeasureService', () => {
     it('retire: returns 200 when provided updated status for retiring', async () => {
       await supertest(server.app)
         .put('/4_0_1/Measure/exampleId-active')
-        .send({ resourceType: 'Measure', id: 'exampleId-active', status: 'retired', ...MEASURE_BASE })
+        .send({
+          resourceType: 'Measure',
+          id: 'exampleId-active',
+          url: 'http://example.com/exampleId-active',
+          status: 'retired',
+          ...MEASURE_BASE
+        })
         .set('content-type', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -450,8 +506,8 @@ describe('MeasureService', () => {
 
     it('returns 201 when provided correct headers and a FHIR Measure whose id is not in the database', async () => {
       await supertest(server.app)
-        .put('/4_0_1/Measure/testWithUrl2')
-        .send(MEASURE_WITH_URL_2)
+        .put('/4_0_1/Measure/newTestActiveMeasure')
+        .send(NEW_ACTIVE_MEASURE)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
@@ -482,6 +538,7 @@ describe('MeasureService', () => {
         {
           resourceType: 'Measure',
           id: 'delete-active',
+          url: 'http://example.com/delete-active',
           status: 'active',
           ...MEASURE_BASE
         },
@@ -491,6 +548,7 @@ describe('MeasureService', () => {
         {
           resourceType: 'Measure',
           id: 'delete-retired',
+          url: 'http://example.com/delete-retired',
           status: 'retired',
           ...MEASURE_BASE
         },
@@ -500,12 +558,14 @@ describe('MeasureService', () => {
         {
           resourceType: 'Measure',
           id: 'delete-draft',
+          url: 'http://example.com/delete-draft',
           status: 'draft',
           ...MEASURE_BASE
         },
         'Measure'
       );
     });
+
     it('withdraw: returns 204 status when deleting a draft artifact', async () => {
       await supertest(server.app)
         .delete('/4_0_1/Measure/delete-draft')
@@ -513,6 +573,7 @@ describe('MeasureService', () => {
         .set('content-type', 'application/json+fhir')
         .expect(204);
     });
+
     it('archive: returns 204 status when deleting a retired artifact', async () => {
       await supertest(server.app)
         .delete('/4_0_1/Measure/delete-retired')
@@ -520,6 +581,7 @@ describe('MeasureService', () => {
         .set('content-type', 'application/json+fhir')
         .expect(204);
     });
+
     it('archive: returns 400 status when deleting an active artifact', async () => {
       await supertest(server.app)
         .delete('/4_0_1/Measure/delete-active')
@@ -619,13 +681,13 @@ describe('MeasureService', () => {
   describe('$cqfm.package', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through args', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLib/$cqfm.package')
+        .get('/4_0_1/Measure/testMeasureWithRootLib/$cqfm.package')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
-            expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
+            expect.arrayContaining([{ resource: ACTIVE_LIBRARY }, { resource: MEASURE_WITH_ROOT_LIB }])
           );
         });
     });
@@ -633,29 +695,29 @@ describe('MeasureService', () => {
     it('returns a Bundle including the root lib and Measure when root lib has no dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$cqfm.package')
-        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueUrl: 'testWithRootLib' }] })
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueUrl: 'testMeasureWithRootLib' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
-            expect.arrayContaining([{ resource: LIBRARY_WITH_NO_DEPS }, { resource: MEASURE_WITH_ROOT_LIB }])
+            expect.arrayContaining([{ resource: ACTIVE_LIBRARY }, { resource: MEASURE_WITH_ROOT_LIB }])
           );
         });
     });
 
     it('returns a Bundle including the root lib, Measure and dependent libraries when root lib has dependencies and id passed through args', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLibAndDeps/$cqfm.package')
+        .get('/4_0_1/Measure/testMeasureWithRootLibAndDeps/$cqfm.package')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.entry).toHaveLength(3);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
-              { resource: LIBRARY_WITH_DEPS },
-              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: ACTIVE_LIBRARY_WITH_DEPS },
+              { resource: ACTIVE_LIBRARY },
               { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
             ])
           );
@@ -665,7 +727,7 @@ describe('MeasureService', () => {
     it('returns a Bundle including the root lib, Measure, and dependent libraries when root lib has dependencies and id passed through body', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$cqfm.package')
-        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLibAndDeps' }] })
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testMeasureWithRootLibAndDeps' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
         .then(response => {
@@ -673,8 +735,8 @@ describe('MeasureService', () => {
           expect(response.body.entry).toHaveLength(3);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
-              { resource: LIBRARY_WITH_DEPS },
-              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: ACTIVE_LIBRARY_WITH_DEPS },
+              { resource: ACTIVE_LIBRARY },
               { resource: MEASURE_WITH_ROOT_LIB_AND_DEPS }
             ])
           );
@@ -694,10 +756,7 @@ describe('MeasureService', () => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
-            expect.arrayContaining([
-              { resource: LIBRARY_WITH_NO_DEPS },
-              { resource: MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB }
-            ])
+            expect.arrayContaining([{ resource: ACTIVE_LIBRARY }, { resource: MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB }])
           );
         });
     });
@@ -716,7 +775,7 @@ describe('MeasureService', () => {
           expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
-              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: ACTIVE_LIBRARY },
               { resource: MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB }
             ])
           );
@@ -743,7 +802,7 @@ describe('MeasureService', () => {
           expect(response.body.entry).toHaveLength(2);
           expect(response.body.entry).toEqual(
             expect.arrayContaining([
-              { resource: LIBRARY_WITH_NO_DEPS },
+              { resource: ACTIVE_LIBRARY },
               { resource: MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB }
             ])
           );
@@ -786,8 +845,8 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/testWithRootLib/$cqfm.package')
-        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
+        .post('/4_0_1/Measure/testMeasureWithRootLib/$cqfm.package')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testMeasureWithRootLib' }] })
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
@@ -800,8 +859,8 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLib/$cqfm.package')
-        .query({ id: 'testWithRootLib' })
+        .get('/4_0_1/Measure/testMeasureWithRootLib/$cqfm.package')
+        .query({ id: 'testMeasureWithRootLib' })
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
@@ -852,7 +911,7 @@ describe('MeasureService', () => {
     it('returns 200 and a Library for a simple measure with dependencies and no period params', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure/$data-requirements')
-        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLibAndDeps' }] })
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testMeasureWithRootLibAndDeps' }] })
         .set('content-type', 'application/fhir+json')
         .expect(200)
         .then(response => {
@@ -870,7 +929,7 @@ describe('MeasureService', () => {
 
     it('returns 200 and a Library for a request with id in the url', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLibAndDeps/$data-requirements')
+        .get('/4_0_1/Measure/testMeasureWithRootLibAndDeps/$data-requirements')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Library');
@@ -891,7 +950,7 @@ describe('MeasureService', () => {
         .send({
           resourceType: 'Parameters',
           parameter: [
-            { name: 'id', valueString: 'testWithRootLibAndDeps' },
+            { name: 'id', valueString: 'testMeasureWithRootLibAndDeps' },
             { name: 'periodStart', valueDate: '2021-01-01' },
             { name: 'periodEnd', valueDate: '2021-12-31' }
           ]
@@ -917,7 +976,7 @@ describe('MeasureService', () => {
     it('returns 200 with query params', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/$data-requirements')
-        .query({ id: 'testWithRootLibAndDeps', periodStart: '2021-01-01', periodEnd: '2021-12-31' })
+        .query({ id: 'testMeasureWithRootLibAndDeps', periodStart: '2021-01-01', periodEnd: '2021-12-31' })
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Library');
@@ -937,8 +996,8 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when an id is included in both the path and a FHIR parameter', async () => {
       await supertest(server.app)
-        .post('/4_0_1/Measure/testWithRootLib/$data-requirements')
-        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testWithRootLib' }] })
+        .post('/4_0_1/Measure/testMeasureWithRootLib/$data-requirements')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'id', valueString: 'testMeasureWithRootLib' }] })
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
@@ -951,8 +1010,8 @@ describe('MeasureService', () => {
 
     it('throws a 400 error when an id is included in both the path and a query parameter', async () => {
       await supertest(server.app)
-        .get('/4_0_1/Measure/testWithRootLib/$data-requirements')
-        .query({ id: 'testWithRootLib' })
+        .get('/4_0_1/Measure/testMeasureWithRootLib/$data-requirements')
+        .query({ id: 'testMeasureWithRootLib' })
         .set('content-type', 'application/fhir+json')
         .expect(400)
         .then(response => {
