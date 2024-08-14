@@ -1,7 +1,8 @@
 import { loggers } from '@projecttacoma/node-fhir-server-core';
-import { Filter } from 'mongodb';
+import { Filter, MongoServerError } from 'mongodb';
 import { Connection } from './Connection';
 import { ArtifactResourceType, CRMIShareableLibrary, FhirArtifact } from '../types/service-types';
+import { BadRequestError } from '../util/errorUtils';
 
 const logger = loggers.get('default');
 
@@ -92,8 +93,20 @@ export async function findDataRequirementsWithQuery<T extends CRMIShareableLibra
 export async function createResource(data: FhirArtifact, resourceType: string) {
   const collection = Connection.db.collection<FhirArtifact>(resourceType);
   logger.info(`Inserting ${resourceType}/${data.id} into database`);
-  await collection.insertOne(data);
-  return { id: data.id as string };
+  try {
+    await collection.insertOne(data);
+    return { id: data.id as string };
+  } catch (e) {
+    if (e instanceof MongoServerError && e.code === 11000) {
+      let errorString = 'Resource with primary identifiers already in repository.';
+      if (e.keyPattern) {
+        errorString =
+          'Resource with identifiers (' + Object.keys(e.keyPattern).join(',') + ') already exists in the repository.';
+      }
+      throw new BadRequestError(errorString);
+    }
+    throw e;
+  }
 }
 
 /**
