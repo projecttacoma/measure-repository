@@ -331,9 +331,9 @@ describe('LibraryService', () => {
 
   describe('publishable repository validation', () => {
     const ORIGINAL_AUTHORING = process.env.AUTHORING;
-    beforeAll(() => {
+    beforeAll(async () => {
       process.env.AUTHORING = 'false';
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'publishable-retired',
@@ -343,7 +343,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'publishable-active',
@@ -437,13 +437,19 @@ describe('LibraryService', () => {
         .post('/4_0_1/Library')
         .send(ACTIVE_LIBRARY)
         .set('content-type', 'application/json+fhir')
-        .expect(400);
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
     });
   });
 
   describe('update', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'exampleId-active',
@@ -453,7 +459,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'exampleId',
@@ -547,8 +553,8 @@ describe('LibraryService', () => {
   });
 
   describe('delete', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'delete-active',
@@ -558,7 +564,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'delete-retired',
@@ -568,7 +574,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'delete-draft',

@@ -440,13 +440,19 @@ describe('MeasureService', () => {
         .post('/4_0_1/Measure')
         .send(ACTIVE_MEASURE)
         .set('content-type', 'application/json+fhir')
-        .expect(400);
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
     });
   });
 
   describe('update', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'exampleId-active',
@@ -456,7 +462,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'exampleId',
@@ -549,8 +555,8 @@ describe('MeasureService', () => {
   });
 
   describe('delete', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'delete-active',
@@ -560,7 +566,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'delete-retired',
@@ -570,7 +576,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'delete-draft',
