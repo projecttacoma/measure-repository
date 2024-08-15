@@ -1040,6 +1040,112 @@ describe('LibraryService', () => {
     });
   });
 
+  describe('$approve', () => {
+    beforeEach(() => {
+      createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'approve-child1',
+          url: 'http://example.com/approve-child1',
+          status: 'active',
+          relatedArtifact: [
+            {
+              type: 'composed-of',
+              resource: 'http://example.com/approve-child2|1',
+              extension: [
+                {
+                  url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+                  valueBoolean: true
+                }
+              ]
+            }
+          ],
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'approve-child2',
+          url: 'http://example.com/approve-child2',
+          status: 'active',
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+              valueBoolean: true
+            }
+          ],
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for GET /Library/$approve', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/$approve')
+        .query({ id: 'approve-child1' })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for GET /Library/[id]/$approve', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/approve-child1/$approve')
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for POST /Library/$approve', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$approve')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'approve-child1' },
+            { name: 'artifactAssessmentType', valueCode: 'documentation' },
+            { name: 'artifactAssessmentSummary', valueString: 'Hello' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].url).toEqual(
+            'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+          );
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].url).toEqual(
+            'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+          );
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for POST /Library/[id]/$approve', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/approve-child1/$approve')
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+        });
+    });
+  });
+
   afterAll(() => {
     return cleanUpTestDatabase();
   });

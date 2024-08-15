@@ -182,6 +182,16 @@
           ],
           "name": "clone",
           "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-clone"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "approve",
+          "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-approve"
         }
       ]
     },
@@ -360,6 +370,16 @@
           ],
           "name": "clone",
           "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-clone"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "approve",
+          "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-approve"
         }
       ]
     }

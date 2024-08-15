@@ -187,6 +187,16 @@ The Measure Repository Service Authoring Repository Service server supports the 
 
 Note: `url` is not currently a required parameter in the $clone OperationDefinition, but it will be in future IG versions.
 
+### Approve
+
+The Measure Repository Service Authoring Repository Service server supports the `Measure` and `Library` `$approve` operations as defined by the [Canonical Resource Management Infrastructure IG](https://hl7.org/fhir/uv/crmi/OperationDefinition-crmi-approve.html). It requires the following parameters:
+
+- id
+
+And takes the following optional parameters:
+
+- approvalDate
+
 ## License
 
 Copyright 2022-2023 The MITRE Corporation

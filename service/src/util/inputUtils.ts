@@ -20,6 +20,7 @@ export function gatherParams(query: RequestQuery, parameters?: fhir4.Parameters)
           bodyParam.valueInteger ||
           bodyParam.valueCanonical ||
           bodyParam.valueDate ||
+          bodyParam.valueCode ||
           bodyParam.valueBoolean;
       }
       return params;

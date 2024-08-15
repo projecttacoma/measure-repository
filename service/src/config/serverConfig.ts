@@ -133,6 +133,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$clone',
           method: 'POST',
           reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-clone.html'
+        },
+        {
+          name: 'approve',
+          route: '/$approve',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'approve',
+          route: '/$approve',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'approve',
+          route: '/:id/$approve',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'approve',
+          route: '/:id/$approve',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
         }
       ]
     },
@@ -235,6 +259,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$clone',
           method: 'POST',
           reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-clone.html'
+        },
+        {
+          name: 'approve',
+          route: '/$approve',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'approve',
+          route: '/$approve',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'approve',
+          route: '/:id/$approve',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'approve',
+          route: '/:id/$approve',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
         }
       ]
     }

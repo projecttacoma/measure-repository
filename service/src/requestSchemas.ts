@@ -53,6 +53,12 @@ const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'conte
 
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
+const onlyId = (args: Record<string, any>) => args.id;
+
+const typeAndSummary = (args: Record<string, any>) =>
+  (args.artifactAssessmentType && args.artifactAssessmentSummary) ||
+  (!args.artifactAssessmentType && !args.artifactAssessmentSummary);
+
 const idAndVersion = (args: Record<string, any>) => args.id && args.version;
 
 const idAndVersionAndUrl = (args: Record<string, any>) => args.id && args.url && args.version;
@@ -91,6 +97,34 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
       code: z.ZodIssueCode.custom,
       params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
       message: 'Must provide identifying information via either id, url, or identifier parameters'
+    });
+  }
+}
+
+/**
+ * Checks that if artifactAssessmentType is provided as an input parameter than so is artifactAssessmentSummary
+ * and vice versa
+ */
+export function catchMissingTypeAndSummary(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (!typeAndSummary(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
+      message:
+        'Both artifactAssessmentType and artifactAssessmentSummary must be defined if they are doing to be included.'
+    });
+  }
+}
+
+/**
+ * Checks that id is provided
+ */
+export function catchMissingId(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (!onlyId(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
+      message: 'Must provide id'
     });
   }
 }
@@ -154,6 +188,18 @@ export const CloneArgs = z
   .object({ id: z.string(), url: z.string(), version: checkVersion })
   .strict()
   .superRefine(catchInvalidParams([hasIdentifyingInfo, catchMissingIdVersionUrl]));
+
+export const ApproveArgs = z
+  .object({
+    id: z.string(),
+    approvalDate: checkDate.optional(),
+    artifactAssessmentType: z
+      .union([z.literal('documentation'), z.literal('guidance'), z.literal('review')])
+      .optional(),
+    artifactAssessmentSummary: z.string().optional()
+  })
+  .strict()
+  .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));
 
 export const IdentifyingParameters = z
   .object({
