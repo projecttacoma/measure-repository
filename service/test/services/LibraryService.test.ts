@@ -1115,7 +1115,8 @@ describe('LibraryService', () => {
           parameter: [
             { name: 'id', valueString: 'approve-child1' },
             { name: 'artifactAssessmentType', valueCode: 'documentation' },
-            { name: 'artifactAssessmentSummary', valueString: 'Hello' }
+            { name: 'artifactAssessmentSummary', valueString: 'Hello' },
+            { name: 'approvalDate', valueDate: '2024-08-14T17:29:34.344Z' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -1126,10 +1127,12 @@ describe('LibraryService', () => {
           expect(response.body.entry[0].resource.extension[0].url).toEqual(
             'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
           );
+          expect(response.body.entry[0].resource.approvalDate).toEqual('2024-08-14T17:29:34.344Z');
           expect(response.body.entry[1].resource.date).toBeDefined();
           expect(response.body.entry[1].resource.extension[1].url).toEqual(
             'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
           );
+          expect(response.body.entry[1].resource.approvalDate).toEqual('2024-08-14T17:29:34.344Z');
         });
     });
 

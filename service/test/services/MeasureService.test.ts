@@ -1147,7 +1147,8 @@ describe('MeasureService', () => {
           parameter: [
             { name: 'id', valueString: 'approve-parent' },
             { name: 'artifactAssessmentType', valueCode: 'documentation' },
-            { name: 'artifactAssessmentSummary', valueString: 'Hello' }
+            { name: 'artifactAssessmentSummary', valueString: 'Hello' },
+            { name: 'approvalDate', valueDate: '2024-08-14T17:29:34.344Z' }
           ]
         })
         .set('content-type', 'application/fhir+json')
@@ -1158,14 +1159,17 @@ describe('MeasureService', () => {
           expect(response.body.entry[0].resource.extension[0].url).toEqual(
             'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
           );
+          expect(response.body.entry[0].resource.approvalDate).toEqual('2024-08-14T17:29:34.344Z');
           expect(response.body.entry[1].resource.date).toBeDefined();
           expect(response.body.entry[1].resource.extension[1].url).toEqual(
             'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
           );
+          expect(response.body.entry[1].resource.approvalDate).toEqual('2024-08-14T17:29:34.344Z');
           expect(response.body.entry[2].resource.date).toBeDefined();
           expect(response.body.entry[2].resource.extension[1].url).toEqual(
             'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
           );
+          expect(response.body.entry[2].resource.approvalDate).toEqual('2024-08-14T17:29:34.344Z');
         });
     });
 
