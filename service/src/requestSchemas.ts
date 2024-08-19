@@ -111,7 +111,7 @@ export function catchMissingTypeAndSummary(val: Record<string, any>, ctx: z.Refi
       code: z.ZodIssueCode.custom,
       params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
       message:
-        'Both artifactAssessmentType and artifactAssessmentSummary must be defined if they are doing to be included.'
+        'Both artifactAssessmentType and artifactAssessmentSummary must be defined if they are going to be included.'
     });
   }
 }

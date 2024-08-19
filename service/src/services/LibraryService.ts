@@ -305,7 +305,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
       }
     }
     library.date = new Date().toISOString();
-    library.approvalDate = new Date().toISOString();
+    library.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
     checkIsOwned(library, 'Child artifacts cannot be directly approved.');
 
     // recursively get any child artifacts form the artifact if they exist
@@ -332,7 +332,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
         }
       }
       child.date = new Date().toISOString();
-      child.approvalDate = new Date().toISOString();
+      child.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
     });
 
     // now we want to batch update the approved parent Library and any of its children
