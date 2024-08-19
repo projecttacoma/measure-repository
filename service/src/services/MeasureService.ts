@@ -262,7 +262,8 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
    * {BASE_URL}/4_0_1/Measure/$approve or {BASE_URL}/4_0_1/Measure/[id]/$approve
    * applies an approval to an existing artifact, regardless of status, and sets the
    * date and approvalDate elements of the approved artifact as well as for all resources
-   * it is composed of
+   * it is composed of. The user can optionally provide an artifactAssessmentType and an
+   * artifactAssessmentSummary for an cqfm-artifactComment extension.
    */
   async approve(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`${req.method} ${req.path}`);
