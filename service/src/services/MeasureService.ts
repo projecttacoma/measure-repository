@@ -339,7 +339,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     });
 
     // now we want to batch update the approved parent Measure and any of its children
-    const approvedArtifacts = await batchUpdate([measure, ...(await Promise.all(children))]);
+    const approvedArtifacts = await batchUpdate([measure, ...(await Promise.all(children))], 'approve');
 
     // we want to return a Bundle containing the updated artifacts
     return createBatchResponseBundle(approvedArtifacts);

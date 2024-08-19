@@ -337,7 +337,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     });
 
     // now we want to batch update the approved parent Library and any of its children
-    const approvedArtifacts = await batchUpdate([library, ...(await Promise.all(children))]);
+    const approvedArtifacts = await batchUpdate([library, ...(await Promise.all(children))], 'approve');
 
     // we want to return a Bundle containing the updated artifacts
     return createBatchResponseBundle(approvedArtifacts);

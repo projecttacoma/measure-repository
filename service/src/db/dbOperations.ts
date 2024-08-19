@@ -157,10 +157,9 @@ export async function batchInsert(artifacts: FhirArtifact[], action: string) {
 
 /**
  * Updates a parent artifact and all of its children (if applicable) in a batch
- * to set the date and approvalDate elements of the approved artifacts as well
- * as add an 'Approve' cqfm-artifactComment extension to the artifacts
+ * transaction
  */
-export async function batchUpdate(artifacts: FhirArtifact[]) {
+export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
   let error = null;
   const results: FhirArtifact[] = [];
   const updateSession = Connection.connection?.startSession();
@@ -172,9 +171,9 @@ export async function batchUpdate(artifacts: FhirArtifact[]) {
         results.push(artifact);
       }
     });
-    console.log(`Batch approve transaction committed.`);
+    console.log(`Batch ${action} transaction committed.`);
   } catch (err) {
-    console.log('Batch approve transaction failed: ' + err);
+    console.log(`Batch ${action} transaction failed: ` + err);
     error = err;
   } finally {
     await updateSession?.endSession();
