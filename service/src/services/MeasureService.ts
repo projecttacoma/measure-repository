@@ -45,7 +45,12 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
 import { CRMIShareableMeasure, FhirLibraryWithDR } from '../types/service-types';
-import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
+import {
+  createArtifactComment,
+  getChildren,
+  modifyResourcesForClone,
+  modifyResourcesForDraft
+} from '../util/serviceUtils';
 
 const logger = loggers.get('default');
 
@@ -288,34 +293,17 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${parsedParams.id}`);
     }
     if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
-      const approveExtension: fhir4.Extension[] = [];
-      approveExtension.push(
-        { url: 'type', valueCode: parsedParams.artifactAssessmentType },
-        { url: 'text', valueMarkdown: parsedParams.artifactAssessmentSummary }
+      const comment = createArtifactComment(
+        parsedParams.artifactAssessmentType,
+        parsedParams.artifactAssessmentSummary,
+        parsedParams.artifactAssessmentTarget,
+        parsedParams.artifactAssessmentRelatedArtifact,
+        parsedParams.artifactAssessmentAuthor?.reference
       );
-
-      if (parsedParams.artifactAssessmentTarget) {
-        approveExtension.push({ url: 'target', valueUri: parsedParams.artifactAssessmentTarget });
-      }
-      if (parsedParams.artifactAssessmentRelatedArtifact) {
-        approveExtension.push({ url: 'reference', valueUri: parsedParams.artifactAssessmentRelatedArtifact });
-      }
-      if (parsedParams.artifactAssessmentAuthor) {
-        approveExtension.push({ url: 'user', valueString: parsedParams.artifactAssessmentAuthor.reference });
-      }
-
       if (measure.extension) {
-        measure.extension.push({
-          extension: approveExtension,
-          url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-        });
+        measure.extension.push(comment);
       } else {
-        measure.extension = [
-          {
-            extension: approveExtension,
-            url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-          }
-        ];
+        measure.extension = [comment];
       }
     }
     measure.date = new Date().toISOString();
@@ -326,34 +314,17 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     const children = measure.relatedArtifact ? await getChildren(measure.relatedArtifact) : [];
     children.forEach(child => {
       if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
-        const approveExtension: fhir4.Extension[] = [];
-        approveExtension.push(
-          { url: 'type', valueCode: parsedParams.artifactAssessmentType },
-          { url: 'text', valueMarkdown: parsedParams.artifactAssessmentSummary }
+        const comment = createArtifactComment(
+          parsedParams.artifactAssessmentType,
+          parsedParams.artifactAssessmentSummary,
+          parsedParams.artifactAssessmentTarget,
+          parsedParams.artifactAssessmentRelatedArtifact,
+          parsedParams.artifactAssessmentAuthor?.reference
         );
-
-        if (parsedParams.artifactAssessmentTarget) {
-          approveExtension.push({ url: 'target', valueUri: parsedParams.artifactAssessmentTarget });
-        }
-        if (parsedParams.artifactAssessmentRelatedArtifact) {
-          approveExtension.push({ url: 'reference', valueUri: parsedParams.artifactAssessmentRelatedArtifact });
-        }
-        if (parsedParams.artifactAssessmentAuthor) {
-          approveExtension.push({ url: 'user', valueString: parsedParams.artifactAssessmentAuthor.reference });
-        }
-
         if (child.extension) {
-          child.extension.push({
-            extension: approveExtension,
-            url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-          });
+          child.extension.push(comment);
         } else {
-          child.extension = [
-            {
-              extension: approveExtension,
-              url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-            }
-          ];
+          child.extension = [comment];
         }
       }
       child.date = new Date().toISOString();

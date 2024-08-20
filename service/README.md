@@ -196,8 +196,8 @@ The Measure Repository Service Authoring Repository Service server supports the 
 And takes the following optional parameters:
 
 - approvalDate
-- artifactAssessmentType (must be included with artifactAssessmentSummary if provided)
-- artifactAssessmentSummary (must be included with artifactAssessmentType if provided)
+- artifactAssessmentType (must be included with any other artifactAssessment parameters, if provided)
+- artifactAssessmentSummary (must be included with any other artifactAssessment parameters, if provided)
 - artifactAssessmentTarget
 - artifactAssessmentRelatedArtifact
 - artifactAssessmentAuthor

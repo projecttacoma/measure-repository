@@ -106,3 +106,29 @@ export async function modifyResourcesForClone(artifacts: FhirArtifact[], version
 
   return artifacts;
 }
+
+export function createArtifactComment(
+  type: string,
+  summary: string,
+  target: string | undefined,
+  relatedArtifact: string | undefined,
+  reference: string | undefined
+) {
+  const approveExtension: fhir4.Extension[] = [];
+  approveExtension.push({ url: 'type', valueCode: type }, { url: 'text', valueMarkdown: summary });
+
+  if (target) {
+    approveExtension.push({ url: 'target', valueUri: target });
+  }
+  if (relatedArtifact) {
+    approveExtension.push({ url: 'reference', valueUri: relatedArtifact });
+  }
+  if (reference) {
+    approveExtension.push({ url: 'user', valueString: reference });
+  }
+
+  return {
+    extension: approveExtension,
+    url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+  };
+}

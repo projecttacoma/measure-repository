@@ -56,9 +56,14 @@ const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url ||
 
 const onlyId = (args: Record<string, any>) => args.id;
 
-const typeAndSummary = (args: Record<string, any>) =>
-  (args.artifactAssessmentType && args.artifactAssessmentSummary) ||
-  (!args.artifactAssessmentType && !args.artifactAssessmentSummary);
+const typeAndSummary = (args: Record<string, any>) => args.artifactAssessmentType && args.artifactAssessmentSummary;
+
+const anyArtifactAssessment = (args: Record<string, any>) =>
+  args.artifactAssessmentType ||
+  args.artifactAssessmentSummary ||
+  args.artifactAssessmentTarget ||
+  args.artifactAssessmentRelatedArtifact ||
+  args.artifactAssessmentAuthor;
 
 const idAndVersion = (args: Record<string, any>) => args.id && args.version;
 
@@ -103,16 +108,15 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
 }
 
 /**
- * Checks that if artifactAssessmentType is provided as an input parameter than so is artifactAssessmentSummary
- * and vice versa
+ * Checks that if artifactAssessmentType and artifactAssessmentSummary are both provided alongside any artifactAssessment parameters
  */
 export function catchMissingTypeAndSummary(val: Record<string, any>, ctx: z.RefinementCtx) {
-  if (!typeAndSummary(val)) {
+  if (anyArtifactAssessment(val) && !typeAndSummary(val)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
       message:
-        'Both artifactAssessmentType and artifactAssessmentSummary must be defined if they are going to be included.'
+        'Both artifactAssessmentType and artifactAssessmentSummary must be defined if any artifactAssessment parameters are provided.'
     });
   }
 }
