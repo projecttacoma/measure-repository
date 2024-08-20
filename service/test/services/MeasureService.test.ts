@@ -1098,14 +1098,22 @@ describe('MeasureService', () => {
     it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for GET /Measure/$approve', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure/$approve')
-        .query({ id: 'approve-parent' })
+        .query({
+          id: 'approve-parent',
+          artifactAssessmentType: 'guidance',
+          artifactAssessmentSummary: 'Sample summary',
+          artifactAssessmentAuthor: { reference: 'Sample Author' }
+        })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.total).toEqual(3);
           expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('Sample Author');
           expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
           expect(response.body.entry[2].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
         });
     });
 

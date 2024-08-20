@@ -293,6 +293,17 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
         { url: 'type', valueCode: parsedParams.artifactAssessmentType },
         { url: 'text', valueMarkdown: parsedParams.artifactAssessmentSummary }
       );
+
+      if (parsedParams.artifactAssessmentTarget) {
+        approveExtension.push({ url: 'target', valueUri: parsedParams.artifactAssessmentTarget });
+      }
+      if (parsedParams.artifactAssessmentRelatedArtifact) {
+        approveExtension.push({ url: 'reference', valueUri: parsedParams.artifactAssessmentRelatedArtifact });
+      }
+      if (parsedParams.artifactAssessmentAuthor) {
+        approveExtension.push({ url: 'user', valueString: parsedParams.artifactAssessmentAuthor.reference });
+      }
+
       if (measure.extension) {
         measure.extension.push({
           extension: approveExtension,
@@ -320,6 +331,17 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
           { url: 'type', valueCode: parsedParams.artifactAssessmentType },
           { url: 'text', valueMarkdown: parsedParams.artifactAssessmentSummary }
         );
+
+        if (parsedParams.artifactAssessmentTarget) {
+          approveExtension.push({ url: 'target', valueUri: parsedParams.artifactAssessmentTarget });
+        }
+        if (parsedParams.artifactAssessmentRelatedArtifact) {
+          approveExtension.push({ url: 'reference', valueUri: parsedParams.artifactAssessmentRelatedArtifact });
+        }
+        if (parsedParams.artifactAssessmentAuthor) {
+          approveExtension.push({ url: 'user', valueString: parsedParams.artifactAssessmentAuthor.reference });
+        }
+
         if (child.extension) {
           child.extension.push({
             extension: approveExtension,

@@ -4,6 +4,7 @@ import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
 const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
 const VERSION_REGEX = /^\d+\.\d+\.\d+(\.\d+|)$/;
+const URI_REGEX = /\S*/; // as defined by the FHIR specification: https://hl7.org/fhir/R4/datatypes.html#uri
 
 // Operation Definition: http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html
 const UNSUPPORTED_PACKAGE_ARGS = [
@@ -178,6 +179,7 @@ const stringToBool = z
 const stringToNumber = z.coerce.number();
 const checkDate = z.string().regex(DATE_REGEX, 'Invalid FHIR date');
 const checkVersion = z.string().regex(VERSION_REGEX, 'Invalid Semantic Version');
+const checkUri = z.string().regex(URI_REGEX, 'Invalid URI');
 
 export const DraftArgs = z
   .object({ id: z.string(), version: checkVersion })
@@ -196,7 +198,10 @@ export const ApproveArgs = z
     artifactAssessmentType: z
       .union([z.literal('documentation'), z.literal('guidance'), z.literal('review')])
       .optional(),
-    artifactAssessmentSummary: z.string().optional()
+    artifactAssessmentSummary: z.string().optional(),
+    artifactAssessmentTarget: checkUri.optional(),
+    artifactAssessmentRelatedArtifact: checkUri.optional(),
+    artifactAssessmentAuthor: z.object({ reference: z.string() }).optional()
   })
   .strict()
   .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));

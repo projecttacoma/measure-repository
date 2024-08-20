@@ -1085,13 +1085,20 @@ describe('LibraryService', () => {
     it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for GET /Library/$approve', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library/$approve')
-        .query({ id: 'approve-child1' })
+        .query({
+          id: 'approve-child1',
+          artifactAssessmentType: 'guidance',
+          artifactAssessmentSummary: 'Sample summary',
+          artifactAssessmentAuthor: { reference: 'Sample Author' }
+        })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.total).toEqual(2);
           expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('Sample Author');
           expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
         });
     });
 

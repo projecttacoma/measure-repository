@@ -198,6 +198,9 @@ And takes the following optional parameters:
 - approvalDate
 - artifactAssessmentType (must be included with artifactAssessmentSummary if provided)
 - artifactAssessmentSummary (must be included with artifactAssessmentType if provided)
+- artifactAssessmentTarget
+- artifactAssessmentRelatedArtifact
+- artifactAssessmentAuthor
 
 ## License
 
