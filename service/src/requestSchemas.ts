@@ -210,6 +210,18 @@ export const ApproveArgs = z
   .strict()
   .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));
 
+export const ReviewArgs = z
+  .object({
+    id: z.string(),
+    reviewDate: checkDate.optional(),
+    artifactAssessmentType: z
+      .union([z.literal('documentation'), z.literal('guidance'), z.literal('review')])
+      .optional(),
+    artifactAssessmentSummary: z.string().optional()
+  })
+  .strict()
+  .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));
+
 export const IdentifyingParameters = z
   .object({
     id: z.string(),

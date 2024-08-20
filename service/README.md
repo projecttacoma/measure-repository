@@ -202,6 +202,21 @@ And takes the following optional parameters:
 - artifactAssessmentRelatedArtifact
 - artifactAssessmentAuthor
 
+### Review
+
+The Measure Repository Service Authoring Repository Service server supports the `Measure` and `Library` `$review` operations as defined by the [Canonical Resource Management Infrastructure IG](https://hl7.org/fhir/uv/crmi/OperationDefinition-crmi-review.html). It requires the following parameters:
+
+- id
+
+And takes the following optional parameters:
+
+- reviewDate
+- artifactAssessmentType (must be included with any other artifactAssessment parameters, if provided)
+- artifactAssessmentSummary (must be included with any other artifactAssessment parameters, if provided)
+- artifactAssessmentTarget
+- artifactAssessmentRelatedArtifact
+- artifactAssessmentAuthor
+
 ## License
 
 Copyright 2022-2023 The MITRE Corporation
