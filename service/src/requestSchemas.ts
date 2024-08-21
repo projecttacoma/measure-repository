@@ -4,6 +4,7 @@ import { BadRequestError, NotImplementedError } from './util/errorUtils';
 
 const DATE_REGEX = /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)/;
 const VERSION_REGEX = /^\d+\.\d+\.\d+(\.\d+|)$/;
+const URI_REGEX = /\S*/; // as defined by the FHIR specification: https://hl7.org/fhir/R4/datatypes.html#uri
 
 // Operation Definition: http://hl7.org/fhir/us/cqfmeasures/STU4/OperationDefinition-cqfm-package.html
 const UNSUPPORTED_PACKAGE_ARGS = [
@@ -53,6 +54,17 @@ const UNSUPPORTED_LIBRARY_SEARCH_ARGS = [...UNSUPPORTED_CORE_SEARCH_ARGS, 'conte
 
 const hasIdentifyingInfo = (args: Record<string, any>) => args.id || args.url || args.identifier;
 
+const onlyId = (args: Record<string, any>) => args.id;
+
+const typeAndSummary = (args: Record<string, any>) => args.artifactAssessmentType && args.artifactAssessmentSummary;
+
+const anyArtifactAssessment = (args: Record<string, any>) =>
+  args.artifactAssessmentType ||
+  args.artifactAssessmentSummary ||
+  args.artifactAssessmentTarget ||
+  args.artifactAssessmentRelatedArtifact ||
+  args.artifactAssessmentAuthor;
+
 const idAndVersion = (args: Record<string, any>) => args.id && args.version;
 
 const idAndVersionAndUrl = (args: Record<string, any>) => args.id && args.url && args.version;
@@ -91,6 +103,33 @@ export function catchMissingIdentifyingInfo(val: Record<string, any>, ctx: z.Ref
       code: z.ZodIssueCode.custom,
       params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
       message: 'Must provide identifying information via either id, url, or identifier parameters'
+    });
+  }
+}
+
+/**
+ * Checks that if artifactAssessmentType and artifactAssessmentSummary are both provided alongside any artifactAssessment parameters
+ */
+export function catchMissingTypeAndSummary(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (anyArtifactAssessment(val) && !typeAndSummary(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
+      message:
+        'Both artifactAssessmentType and artifactAssessmentSummary must be defined if any artifactAssessment parameters are provided.'
+    });
+  }
+}
+
+/**
+ * Checks that id is provided
+ */
+export function catchMissingId(val: Record<string, any>, ctx: z.RefinementCtx) {
+  if (!onlyId(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      params: { serverErrorCode: constants.ISSUE.CODE.REQUIRED },
+      message: 'Must provide id'
     });
   }
 }
@@ -144,6 +183,7 @@ const stringToBool = z
 const stringToNumber = z.coerce.number();
 const checkDate = z.string().regex(DATE_REGEX, 'Invalid FHIR date');
 const checkVersion = z.string().regex(VERSION_REGEX, 'Invalid Semantic Version');
+const checkUri = z.string().regex(URI_REGEX, 'Invalid URI');
 
 export const DraftArgs = z
   .object({ id: z.string(), version: checkVersion })
@@ -154,6 +194,21 @@ export const CloneArgs = z
   .object({ id: z.string(), url: z.string(), version: checkVersion })
   .strict()
   .superRefine(catchInvalidParams([hasIdentifyingInfo, catchMissingIdVersionUrl]));
+
+export const ApproveArgs = z
+  .object({
+    id: z.string(),
+    approvalDate: checkDate.optional(),
+    artifactAssessmentType: z
+      .union([z.literal('documentation'), z.literal('guidance'), z.literal('review')])
+      .optional(),
+    artifactAssessmentSummary: z.string().optional(),
+    artifactAssessmentTarget: checkUri.optional(),
+    artifactAssessmentRelatedArtifact: checkUri.optional(),
+    artifactAssessmentAuthor: z.object({ reference: z.string() }).optional()
+  })
+  .strict()
+  .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));
 
 export const IdentifyingParameters = z
   .object({

@@ -1,6 +1,7 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
   batchInsert,
+  batchUpdate,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -16,7 +17,8 @@ import {
   PackageArgs,
   parseRequestSchema,
   DraftArgs,
-  CloneArgs
+  CloneArgs,
+  ApproveArgs
 } from '../requestSchemas';
 import { Service } from '../types/service';
 import {
@@ -44,7 +46,12 @@ import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 import { Filter } from 'mongodb';
 import { CRMIShareableLibrary, FhirLibraryWithDR } from '../types/service-types';
-import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
+import {
+  createArtifactComment,
+  getChildren,
+  modifyResourcesForClone,
+  modifyResourcesForDraft
+} from '../util/serviceUtils';
 
 /*
  * Implementation of a service for the `Library` resource
@@ -231,29 +238,102 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
 
-    const activeLibrary = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
-    if (!activeLibrary) {
-      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
+    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    if (!library) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
     }
-    activeLibrary.url = parsedParams.url;
-    checkIsOwned(activeLibrary, 'Child artifacts cannot be directly cloned.');
+    library.url = parsedParams.url;
+    checkIsOwned(library, 'Child artifacts cannot be directly cloned.');
 
     // recursively get any child artifacts from the artifact if they exist
-    const children = activeLibrary.relatedArtifact ? await getChildren(activeLibrary.relatedArtifact) : [];
+    const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
     children.forEach(child => {
       child.url = child.url + '-clone';
     });
 
-    const clonedArtifacts = await modifyResourcesForClone(
-      [activeLibrary, ...(await Promise.all(children))],
-      params.version
-    );
+    const clonedArtifacts = await modifyResourcesForClone([library, ...(await Promise.all(children))], params.version);
 
     // now we want to batch insert the cloned parent Library artifact and any of its children
     const newClones = await batchInsert(clonedArtifacts, 'clone');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newClones);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$approve or {BASE_URL}/4_0_1/Library/[id]/$approve
+   * applies an approval to an existing artifact, regardless of status, and sets the
+   * date and approvalDate elements of the approved artifact as well as for all resources
+   * it is composed of. The user can optionally provide an artifactAssessmentType and an
+   * artifactAssessmentSummary for an cqfm-artifactComment extension.
+   */
+  async approve(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, ApproveArgs);
+
+    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    if (!library) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
+    }
+    if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+      const comment = createArtifactComment(
+        parsedParams.artifactAssessmentType,
+        parsedParams.artifactAssessmentSummary,
+        parsedParams.artifactAssessmentTarget,
+        parsedParams.artifactAssessmentRelatedArtifact,
+        parsedParams.artifactAssessmentAuthor?.reference
+      );
+      if (library.extension) {
+        library.extension.push(comment);
+      } else {
+        library.extension = [comment];
+      }
+    }
+    library.date = new Date().toISOString();
+    library.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
+    checkIsOwned(library, 'Child artifacts cannot be directly approved.');
+
+    // recursively get any child artifacts form the artifact if they exist
+    const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
+    children.forEach(child => {
+      if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+        const comment = createArtifactComment(
+          parsedParams.artifactAssessmentType,
+          parsedParams.artifactAssessmentSummary,
+          parsedParams.artifactAssessmentTarget,
+          parsedParams.artifactAssessmentRelatedArtifact,
+          parsedParams.artifactAssessmentAuthor?.reference
+        );
+        if (child.extension) {
+          child.extension.push(comment);
+        } else {
+          child.extension = [comment];
+        }
+      }
+      child.date = new Date().toISOString();
+      child.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
+    });
+
+    // now we want to batch update the approved parent Library and any of its children
+    const approvedArtifacts = await batchUpdate([library, ...(await Promise.all(children))], 'approve');
+
+    // we want to return a Bundle containing the updated artifacts
+    return createBatchResponseBundle(approvedArtifacts);
   }
 
   /**

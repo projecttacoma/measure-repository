@@ -106,3 +106,33 @@ export async function modifyResourcesForClone(artifacts: FhirArtifact[], version
 
   return artifacts;
 }
+
+/**
+ * Helper function that takes any artifactAssessment input parameters and adds
+ * them to a cqfm-artifactComment extension
+ */
+export function createArtifactComment(
+  type: 'guidance' | 'review' | 'documentation',
+  summary: string,
+  target: string | undefined,
+  relatedArtifact: string | undefined,
+  reference: string | undefined
+) {
+  const approveExtension: fhir4.Extension[] = [];
+  approveExtension.push({ url: 'type', valueCode: type }, { url: 'text', valueMarkdown: summary });
+
+  if (target) {
+    approveExtension.push({ url: 'target', valueUri: target });
+  }
+  if (relatedArtifact) {
+    approveExtension.push({ url: 'reference', valueUri: relatedArtifact });
+  }
+  if (reference) {
+    approveExtension.push({ url: 'user', valueString: reference });
+  }
+
+  return {
+    extension: approveExtension,
+    url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+  };
+}

@@ -1,6 +1,7 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
   batchInsert,
+  batchUpdate,
   createResource,
   deleteResource,
   findDataRequirementsWithQuery,
@@ -38,12 +39,18 @@ import {
   PackageArgs,
   parseRequestSchema,
   DraftArgs,
-  CloneArgs
+  CloneArgs,
+  ApproveArgs
 } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
 import { CRMIShareableMeasure, FhirLibraryWithDR } from '../types/service-types';
-import { getChildren, modifyResourcesForClone, modifyResourcesForDraft } from '../util/serviceUtils';
+import {
+  createArtifactComment,
+  getChildren,
+  modifyResourcesForClone,
+  modifyResourcesForDraft
+} from '../util/serviceUtils';
 
 const logger = loggers.get('default');
 
@@ -233,26 +240,102 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
 
-    const activeMeasure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
-    if (!activeMeasure) {
+    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    if (!measure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
-    activeMeasure.url = parsedParams.url;
-    checkIsOwned(activeMeasure, 'Child artifacts cannot be directly cloned.');
+    measure.url = parsedParams.url;
+    checkIsOwned(measure, 'Child artifacts cannot be directly cloned.');
 
     // recursively get any child artifacts from the artifact if they exist
-    const children = activeMeasure.relatedArtifact ? await getChildren(activeMeasure.relatedArtifact) : [];
+    const children = measure.relatedArtifact ? await getChildren(measure.relatedArtifact) : [];
     children.forEach(child => {
       child.url = child.url + '-clone';
     });
 
-    const clonedArtifacts = await modifyResourcesForClone([activeMeasure, ...children], parsedParams.version);
+    const clonedArtifacts = await modifyResourcesForClone([measure, ...children], parsedParams.version);
 
     // now we want to batch insert the cloned parent Measure artifact and any of its children
     const newClones = await batchInsert(clonedArtifacts, 'clone');
 
     // we want to return a Bundle containing the created artifacts
     return createBatchResponseBundle(newClones);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Measure/$approve or {BASE_URL}/4_0_1/Measure/[id]/$approve
+   * applies an approval to an existing artifact, regardless of status, and sets the
+   * date and approvalDate elements of the approved artifact as well as for all resources
+   * it is composed of. The user can optionally provide an artifactAssessmentType and an
+   * artifactAssessmentSummary for an cqfm-artifactComment extension.
+   */
+  async approve(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, ApproveArgs);
+
+    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    if (!measure) {
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${parsedParams.id}`);
+    }
+    if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+      const comment = createArtifactComment(
+        parsedParams.artifactAssessmentType,
+        parsedParams.artifactAssessmentSummary,
+        parsedParams.artifactAssessmentTarget,
+        parsedParams.artifactAssessmentRelatedArtifact,
+        parsedParams.artifactAssessmentAuthor?.reference
+      );
+      if (measure.extension) {
+        measure.extension.push(comment);
+      } else {
+        measure.extension = [comment];
+      }
+    }
+    measure.date = new Date().toISOString();
+    measure.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
+    checkIsOwned(measure, 'Child artifacts cannot be directly approved.');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = measure.relatedArtifact ? await getChildren(measure.relatedArtifact) : [];
+    children.forEach(child => {
+      if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+        const comment = createArtifactComment(
+          parsedParams.artifactAssessmentType,
+          parsedParams.artifactAssessmentSummary,
+          parsedParams.artifactAssessmentTarget,
+          parsedParams.artifactAssessmentRelatedArtifact,
+          parsedParams.artifactAssessmentAuthor?.reference
+        );
+        if (child.extension) {
+          child.extension.push(comment);
+        } else {
+          child.extension = [comment];
+        }
+      }
+      child.date = new Date().toISOString();
+      child.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
+    });
+
+    // now we want to batch update the approved parent Measure and any of its children
+    const approvedArtifacts = await batchUpdate([measure, ...(await Promise.all(children))], 'approve');
+
+    // we want to return a Bundle containing the updated artifacts
+    return createBatchResponseBundle(approvedArtifacts);
   }
 
   /**
