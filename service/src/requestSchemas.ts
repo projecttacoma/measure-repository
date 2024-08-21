@@ -217,7 +217,10 @@ export const ReviewArgs = z
     artifactAssessmentType: z
       .union([z.literal('documentation'), z.literal('guidance'), z.literal('review')])
       .optional(),
-    artifactAssessmentSummary: z.string().optional()
+    artifactAssessmentSummary: z.string().optional(),
+    artifactAssessmentTarget: checkUri.optional(),
+    artifactAssessmentRelatedArtifact: checkUri.optional(),
+    artifactAssessmentAuthor: z.object({ reference: z.string() }).optional()
   })
   .strict()
   .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));

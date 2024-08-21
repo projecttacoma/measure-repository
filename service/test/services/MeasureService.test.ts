@@ -1195,6 +1195,178 @@ describe('MeasureService', () => {
     });
   });
 
+  describe('$review', () => {
+    beforeEach(() => {
+      createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'review-parent',
+          url: 'http://example.com/review-parent',
+          status: 'active',
+          relatedArtifact: [
+            {
+              type: 'composed-of',
+              resource: 'http://example.com/review-child1|1',
+              extension: [
+                {
+                  url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+                  valueBoolean: true
+                }
+              ]
+            }
+          ],
+          version: '1',
+          description: 'Example description',
+          title: 'Parent Active Measure'
+        },
+        'Measure'
+      );
+      createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'review-child1',
+          url: 'http://example.com/review-child1',
+          status: 'active',
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+              valueBoolean: true
+            }
+          ],
+          relatedArtifact: [
+            {
+              type: 'composed-of',
+              resource: 'http://example.com/review-child2|1',
+              extension: [
+                {
+                  url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+                  valueBoolean: true
+                }
+              ]
+            }
+          ],
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+      return createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'review-child2',
+          url: 'http://example.com/review-child2',
+          status: 'active',
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+              valueBoolean: true
+            }
+          ],
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for GET /Measure/$review', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/$review')
+        .query({
+          id: 'review-parent',
+          artifactAssessmentType: 'guidance',
+          artifactAssessmentSummary: 'Sample summary',
+          artifactAssessmentAuthor: { reference: 'Sample Author' }
+        })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[2].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for GET /Measure/[id]/$review', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Measure/review-parent/$review')
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.date).toBeDefined();
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for POST /Measure/[id]/$review', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$review')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [{ name: 'id', valueString: 'review-parent' }]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.date).toBeDefined();
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for POST /Measure/$review with cqf-artifactComment extension', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$review')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'review-parent' },
+            { name: 'artifactAssessmentType', valueCode: 'documentation' },
+            { name: 'artifactAssessmentSummary', valueString: 'Hello' },
+            { name: 'reviewDate', valueDate: '2024-08-14T17:29:34.344Z' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].url).toEqual(
+            'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+          );
+          expect(response.body.entry[0].resource.lastReviewDate).toEqual('2024-08-14T17:29:34.344Z');
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].url).toEqual(
+            'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+          );
+          expect(response.body.entry[1].resource.lastReviewDate).toEqual('2024-08-14T17:29:34.344Z');
+          expect(response.body.entry[2].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.extension[1].url).toEqual(
+            'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
+          );
+          expect(response.body.entry[2].resource.lastReviewDate).toEqual('2024-08-14T17:29:34.344Z');
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for POST /Measure/[id]/$review', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/review-parent/$review')
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.date).toBeDefined();
+        });
+    });
+  });
+
   afterAll(() => {
     return cleanUpTestDatabase();
   });
