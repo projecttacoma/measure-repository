@@ -107,8 +107,12 @@ export async function modifyResourcesForClone(artifacts: FhirArtifact[], version
   return artifacts;
 }
 
+/**
+ * Helper function that takes any artifactAssessment input parameters and adds
+ * them to a cqfm-artifactComment extension
+ */
 export function createArtifactComment(
-  type: string,
+  type: 'guidance' | 'review' | 'documentation',
   summary: string,
   target: string | undefined,
   relatedArtifact: string | undefined,
