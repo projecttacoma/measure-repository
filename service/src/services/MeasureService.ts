@@ -40,7 +40,8 @@ import {
   parseRequestSchema,
   DraftArgs,
   CloneArgs,
-  ApproveArgs
+  ApproveArgs,
+  ReviewArgs
 } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
@@ -336,6 +337,82 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
 
     // we want to return a Bundle containing the updated artifacts
     return createBatchResponseBundle(approvedArtifacts);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Measure/$review or {BASE_URL}/4_0_1/Measure/[id]/$review
+   * applies a review to an existing artifact, regardless of status, and sets the
+   * date and lastReviewDate elements of the reviewed artifact as well as for all resources
+   * it is composed of. The user can optionally provide an artifactAssessmentType and an
+   * artifactAssessmentSummary for an cqfm-artifactComment extension.
+   */
+  async review(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, ReviewArgs);
+
+    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    if (!measure) {
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${parsedParams.id}`);
+    }
+    if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+      const comment = createArtifactComment(
+        parsedParams.artifactAssessmentType,
+        parsedParams.artifactAssessmentSummary,
+        parsedParams.artifactAssessmentTarget,
+        parsedParams.artifactAssessmentRelatedArtifact,
+        parsedParams.artifactAssessmentAuthor?.reference
+      );
+      if (measure.extension) {
+        measure.extension.push(comment);
+      } else {
+        measure.extension = [comment];
+      }
+    }
+    measure.date = new Date().toISOString();
+    measure.lastReviewDate = parsedParams.reviewDate ?? new Date().toISOString();
+    checkIsOwned(measure, 'Child artifacts cannot be directly reviewed.');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = measure.relatedArtifact ? await getChildren(measure.relatedArtifact) : [];
+    children.forEach(child => {
+      if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+        const comment = createArtifactComment(
+          parsedParams.artifactAssessmentType,
+          parsedParams.artifactAssessmentSummary,
+          parsedParams.artifactAssessmentTarget,
+          parsedParams.artifactAssessmentRelatedArtifact,
+          parsedParams.artifactAssessmentAuthor?.reference
+        );
+        if (child.extension) {
+          child.extension.push(comment);
+        } else {
+          child.extension = [comment];
+        }
+      }
+      child.date = new Date().toISOString();
+      child.lastReviewDate = parsedParams.reviewDate ?? new Date().toISOString();
+    });
+
+    // now we want to batch update the reviewed parent Measure and any of its children
+    const reviewedArtifacts = await batchUpdate([measure, ...(await Promise.all(children))], 'review');
+
+    // we want to return a Bundle containing the updated artifacts
+    return createBatchResponseBundle(reviewedArtifacts);
   }
 
   /**

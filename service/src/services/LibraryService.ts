@@ -18,7 +18,8 @@ import {
   parseRequestSchema,
   DraftArgs,
   CloneArgs,
-  ApproveArgs
+  ApproveArgs,
+  ReviewArgs
 } from '../requestSchemas';
 import { Service } from '../types/service';
 import {
@@ -308,7 +309,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     library.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
     checkIsOwned(library, 'Child artifacts cannot be directly approved.');
 
-    // recursively get any child artifacts form the artifact if they exist
+    // recursively get any child artifacts from the artifact if they exist
     const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
     children.forEach(child => {
       if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
@@ -334,6 +335,82 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     // we want to return a Bundle containing the updated artifacts
     return createBatchResponseBundle(approvedArtifacts);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$review or {BASE_URL}/4_0_1/Library/[id]/$review
+   * applies a review to an existing artifact, regardless of status, and sets the
+   * date and lastReviewDate elements of the reviewed artifact as well as for all resources
+   * it is composed of. The user can optionally provide an artifactAssessmentType and an
+   * artifactAssessmentSummary for an cqfm-artifactComment extension.
+   */
+  async review(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+
+    const query = extractIdentificationForQuery(args, params);
+
+    const parsedParams = parseRequestSchema({ ...params, ...query }, ReviewArgs);
+
+    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    if (!library) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
+    }
+    if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+      const comment = createArtifactComment(
+        parsedParams.artifactAssessmentType,
+        parsedParams.artifactAssessmentSummary,
+        parsedParams.artifactAssessmentTarget,
+        parsedParams.artifactAssessmentRelatedArtifact,
+        parsedParams.artifactAssessmentAuthor?.reference
+      );
+      if (library.extension) {
+        library.extension.push(comment);
+      } else {
+        library.extension = [comment];
+      }
+    }
+    library.date = new Date().toISOString();
+    library.lastReviewDate = parsedParams.reviewDate ?? new Date().toISOString();
+    checkIsOwned(library, 'Child artifacts cannot be directly reviewed.');
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
+    children.forEach(child => {
+      if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
+        const comment = createArtifactComment(
+          parsedParams.artifactAssessmentType,
+          parsedParams.artifactAssessmentSummary,
+          parsedParams.artifactAssessmentTarget,
+          parsedParams.artifactAssessmentRelatedArtifact,
+          parsedParams.artifactAssessmentAuthor?.reference
+        );
+        if (child.extension) {
+          child.extension.push(comment);
+        } else {
+          child.extension = [comment];
+        }
+      }
+      child.date = new Date().toISOString();
+      child.lastReviewDate = parsedParams.reviewDate ?? new Date().toISOString();
+    });
+
+    // now we want to batch update the reviewed parent Library and any of its children
+    const reviewedArtifacts = await batchUpdate([library, ...(await Promise.all(children))], 'review');
+
+    // we want to return a Bundle containing the updated artifacts
+    return createBatchResponseBundle(reviewedArtifacts);
   }
 
   /**

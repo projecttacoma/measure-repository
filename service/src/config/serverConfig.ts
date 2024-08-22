@@ -157,6 +157,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$approve',
           method: 'POST',
           reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'review',
+          route: '/$review',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'review',
+          route: '/$review',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'review',
+          route: '/:id/$review',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'review',
+          route: '/:id/$review',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
         }
       ]
     },
@@ -283,6 +307,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$approve',
           method: 'POST',
           reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-approve.html'
+        },
+        {
+          name: 'review',
+          route: '/$review',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'review',
+          route: '/$review',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'review',
+          route: '/:id/$review',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'review',
+          route: '/:id/$review',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
         }
       ]
     }
