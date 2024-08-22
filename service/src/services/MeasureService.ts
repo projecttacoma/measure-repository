@@ -343,7 +343,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
    * result of sending a POST or GET request to:
    * {BASE_URL}/4_0_1/Measure/$review or {BASE_URL}/4_0_1/Measure/[id]/$review
    * applies a review to an existing artifact, regardless of status, and sets the
-   * date and lastReviewedDate elements of the reviewed artifact as well as for all resources
+   * date and lastReviewDate elements of the reviewed artifact as well as for all resources
    * it is composed of. The user can optionally provide an artifactAssessmentType and an
    * artifactAssessmentSummary for an cqfm-artifactComment extension.
    */

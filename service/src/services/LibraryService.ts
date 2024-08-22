@@ -309,7 +309,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     library.approvalDate = parsedParams.approvalDate ?? new Date().toISOString();
     checkIsOwned(library, 'Child artifacts cannot be directly approved.');
 
-    // recursively get any child artifacts form the artifact if they exist
+    // recursively get any child artifacts from the artifact if they exist
     const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
     children.forEach(child => {
       if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
@@ -341,7 +341,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
    * result of sending a POST or GET request to:
    * {BASE_URL}/4_0_1/Library/$review or {BASE_URL}/4_0_1/Library/[id]/$review
    * applies a review to an existing artifact, regardless of status, and sets the
-   * date and lastReviewedDate elements of the reviewed artifact as well as for all resources
+   * date and lastReviewDate elements of the reviewed artifact as well as for all resources
    * it is composed of. The user can optionally provide an artifactAssessmentType and an
    * artifactAssessmentSummary for an cqfm-artifactComment extension.
    */
@@ -385,7 +385,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     library.lastReviewDate = parsedParams.reviewDate ?? new Date().toISOString();
     checkIsOwned(library, 'Child artifacts cannot be directly reviewed.');
 
-    // recursively get any child artifacts form the artifact if they exist
+    // recursively get any child artifacts from the artifact if they exist
     const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
     children.forEach(child => {
       if (parsedParams.artifactAssessmentType && parsedParams.artifactAssessmentSummary) {
