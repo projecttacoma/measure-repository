@@ -677,6 +677,20 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(200);
     });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Library/:id/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/parentLibrary/$draft')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'version', valueString: '1.0.0.4' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('$clone', () => {
@@ -723,6 +737,26 @@ describe('LibraryService', () => {
         })
         .set('content-type', 'application/fhir+json')
         .expect(200);
+    });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Library/:id/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/parentLibrary/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'version', valueString: '1.0.0.8' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
     });
   });
 

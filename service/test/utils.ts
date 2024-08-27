@@ -15,7 +15,6 @@ export async function setupTestDatabase(testFixtureList: FhirArtifact[]) {
   await Connection.connect((global as any).__MONGO_URI__);
 
   for (const cn of ['Library', 'Measure']) {
-    console.log(`Creating collection ${cn}`);
     const collection = await Connection.db.createCollection(cn);
     await collection.createIndex({ id: 1 }, { unique: true });
     await collection.createIndex({ url: 1, version: 1 }, { unique: true });

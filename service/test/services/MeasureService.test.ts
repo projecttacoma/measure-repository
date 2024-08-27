@@ -682,6 +682,20 @@ describe('MeasureService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(200);
     });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Measure/:id/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/parentMeasure/$draft')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'version', valueString: '1.0.0.4' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('$clone', () => {
@@ -728,6 +742,26 @@ describe('MeasureService', () => {
         })
         .set('content-type', 'application/fhir+json')
         .expect(200);
+    });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Measure/:id/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/parentMeasure/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'version', valueString: '1.0.0.8' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
     });
   });
 
