@@ -182,7 +182,7 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
     console.log(`Batch ${action} transaction committed.`);
   } catch (err) {
     console.log(`Batch ${action} transaction failed: ` + err);
-    error = err;
+    error = handlePossibleDuplicateKeyError(err);
   } finally {
     await updateSession?.endSession();
   }
