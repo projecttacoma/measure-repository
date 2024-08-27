@@ -552,6 +552,37 @@ describe('MeasureService', () => {
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
     });
+
+    it('returns 400 when the url and version pair already exists in the database', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'changeTest',
+          url: 'http://example.com/changeTest',
+          status: 'draft',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+
+      await supertest(server.app)
+        .put('/4_0_1/Measure/changeTest')
+        .send({
+          resourceType: 'Measure',
+          id: 'changeTest',
+          url: 'http://example.com/testActiveMeasure',
+          status: 'draft',
+          ...MEASURE_BASE
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('delete', () => {

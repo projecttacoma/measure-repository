@@ -97,15 +97,7 @@ export async function createResource(data: FhirArtifact, resourceType: string) {
     await collection.insertOne(data);
     return { id: data.id as string };
   } catch (e) {
-    if (e instanceof MongoServerError && e.code === 11000) {
-      let errorString = 'Resource with primary identifiers already in repository.';
-      if (e.keyPattern) {
-        errorString =
-          'Resource with identifiers (' + Object.keys(e.keyPattern).join(',') + ') already exists in the repository.';
-      }
-      throw new BadRequestError(errorString);
-    }
-    throw e;
+    throw handlePossibleDuplicateKeyError(e);
   }
 }
 
@@ -116,16 +108,19 @@ export async function updateResource(id: string, data: FhirArtifact, resourceTyp
   const collection = Connection.db.collection(resourceType);
   logger.debug(`Finding and updating ${resourceType}/${data.id} in database`);
 
-  const results = await collection.replaceOne({ id }, data, { upsert: true });
+  try {
+    const results = await collection.replaceOne({ id }, data, { upsert: true });
+    // If the document cannot be created with the passed id, Mongo will throw an error
+    // before here, so should be ok to just return the passed id
+    // upsertedCount indicates that we have created a brand new document
+    if (results?.upsertedCount === 1) {
+      return { id, created: true };
+    }
 
-  // If the document cannot be created with the passed id, Mongo will throw an error
-  // before here, so should be ok to just return the passed id
-  // upsertedCount indicates that we have created a brand new document
-  if (results.upsertedCount === 1) {
-    return { id, created: true };
+    return { id, created: false };
+  } catch (e) {
+    throw handlePossibleDuplicateKeyError(e);
   }
-
-  return { id, created: false };
 }
 
 /**
@@ -193,4 +188,16 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
   }
   if (error) throw error;
   return results;
+}
+
+function handlePossibleDuplicateKeyError(e: any) {
+  if (e instanceof MongoServerError && e.code === 11000) {
+    let errorString = 'Resource with primary identifiers already in repository.';
+    if (e.keyPattern) {
+      errorString =
+        'Resource with identifiers (' + Object.keys(e.keyPattern).join(',') + ') already exists in the repository.';
+    }
+    return new BadRequestError(errorString);
+  }
+  return e;
 }

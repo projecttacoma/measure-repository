@@ -550,6 +550,37 @@ describe('LibraryService', () => {
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
     });
+
+    it('returns 400 when the url and version pair already exists in the database', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'changeTest',
+          url: 'http://example.com/changeTest',
+          status: 'draft',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+
+      await supertest(server.app)
+        .put('/4_0_1/Library/changeTest')
+        .send({
+          resourceType: 'Library',
+          id: 'changeTest',
+          url: 'http://example.com/testActiveLibrary',
+          status: 'draft',
+          ...LIBRARY_BASE
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Resource with identifiers (url,version) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('delete', () => {
