@@ -6,6 +6,11 @@ export async function createTestResource(data: FhirArtifact, resourceType: Artif
   await collection.insertOne({ ...data });
 }
 
+export async function removeTestResource(id: string, resourceType: ArtifactResourceType) {
+  const collection = Connection.db.collection(resourceType);
+  await collection.deleteOne({ id });
+}
+
 export async function cleanUpTestDatabase() {
   await Connection.db.dropDatabase();
   await Connection.connection?.close();

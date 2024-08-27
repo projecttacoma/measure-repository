@@ -202,6 +202,16 @@
           ],
           "name": "review",
           "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-review"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "release",
+          "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-release"
         }
       ]
     },
@@ -400,6 +410,16 @@
           ],
           "name": "review",
           "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-review"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "release",
+          "definition": "http://hl7.org/fhir/uv/crmi/OperationDefinition/crmi-release"
         }
       ]
     }

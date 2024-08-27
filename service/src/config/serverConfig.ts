@@ -181,6 +181,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$review',
           method: 'POST',
           reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'release',
+          route: '/$release',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
+        },
+        {
+          name: 'release',
+          route: '/$release',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
+        },
+        {
+          name: 'release',
+          route: '/:id/$release',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
+        },
+        {
+          name: 'release',
+          route: '/:id/$release',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
         }
       ]
     },
@@ -331,6 +355,30 @@ export const serverConfig: ServerConfig = {
           route: '/:id/$review',
           method: 'POST',
           reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-review.html'
+        },
+        {
+          name: 'release',
+          route: '/$release',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
+        },
+        {
+          name: 'release',
+          route: '/$release',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
+        },
+        {
+          name: 'release',
+          route: '/:id/$release',
+          method: 'GET',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
+        },
+        {
+          name: 'release',
+          route: '/:id/$release',
+          method: 'POST',
+          reference: 'https://hl7.org/fhir/uv/crmi/STU1/OperationDefinition-crmi-release.html'
         }
       ]
     }

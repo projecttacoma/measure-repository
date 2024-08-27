@@ -1,6 +1,6 @@
 import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import { serverConfig } from '../../src/config/serverConfig';
-import { cleanUpTestDatabase, setupTestDatabase, createTestResource } from '../utils';
+import { cleanUpTestDatabase, setupTestDatabase, createTestResource, removeTestResource } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
 import { CRMIShareableLibrary } from '../../src/types/service-types';
@@ -1348,6 +1348,184 @@ describe('LibraryService', () => {
           expect(response.body.entry[0].resource.date).toBeDefined();
           expect(response.body.entry[1].resource.date).toBeDefined();
         });
+    });
+  });
+
+  describe('$release', () => {
+    beforeEach(async () => {
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'release-child1',
+          url: 'http://example.com/release-child1',
+          status: 'draft',
+          relatedArtifact: [
+            {
+              type: 'composed-of',
+              resource: 'http://example.com/release-child2|1',
+              extension: [
+                {
+                  url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+                  valueBoolean: true
+                }
+              ]
+            }
+          ],
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'release-child2',
+          url: 'http://example.com/release-child2',
+          status: 'draft',
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
+              valueBoolean: true
+            }
+          ],
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+    });
+
+    afterEach(async () => {
+      await removeTestResource('release-child1', 'Library');
+      await removeTestResource('release-child2', 'Library');
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for GET /Library/$release', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/$release')
+        .query({
+          id: 'release-child1',
+          releaseVersion: '2',
+          versionBehavior: 'force'
+        })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.status).toEqual('active');
+          expect(response.body.entry[0].resource.version).toEqual('2');
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.status).toEqual('active');
+          expect(response.body.entry[1].resource.version).toEqual('2');
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for GET /Library/[id]/$release', async () => {
+      await supertest(server.app)
+        .get('/4_0_1/Library/release-child1/$release')
+        .query({
+          releaseVersion: '2',
+          versionBehavior: 'force'
+        })
+        .set('Accept', 'application/json+fhir')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for POST /Library/$release', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'release-child1' },
+            { name: 'releaseVersion', valueCode: '2' },
+            { name: 'versionBehavior', valueString: 'force' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.status).toEqual('active');
+          expect(response.body.entry[0].resource.version).toEqual('2');
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.status).toEqual('active');
+          expect(response.body.entry[1].resource.version).toEqual('2');
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Library artifact and any children it has for POST /Library/[id]/$release', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/release-child1/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'releaseVersion', valueCode: '2' },
+            { name: 'versionBehavior', valueString: 'force' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.date).toBeDefined();
+        });
+    });
+
+    it('returns 200 status and does not update the version with default release version behavior', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/release-child1/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'releaseVersion', valueCode: '2' },
+            { name: 'versionBehavior', valueString: 'default' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+          expect(response.body.entry[0].resource.version).toEqual('1');
+          expect(response.body.entry[0].resource.status).toEqual('active');
+          expect(response.body.entry[1].resource.version).toEqual('1');
+          expect(response.body.entry[1].resource.status).toEqual('active');
+        });
+    });
+
+    it('returns 200 status with check release version behavior with matching versions', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/release-child1/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'releaseVersion', valueCode: '1' },
+            { name: 'versionBehavior', valueString: 'check' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(2);
+        });
+    });
+
+    it('returns 400 status with check release version behavior with mismatched versions', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/release-child1/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'releaseVersion', valueCode: '2' },
+            { name: 'versionBehavior', valueString: 'check' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
     });
   });
 
