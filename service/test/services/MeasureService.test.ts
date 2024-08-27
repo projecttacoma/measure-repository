@@ -1111,8 +1111,8 @@ describe('MeasureService', () => {
   });
 
   describe('$approve', () => {
-    beforeEach(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'approve-parent',
@@ -1136,7 +1136,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'approve-child1',
@@ -1164,7 +1164,7 @@ describe('MeasureService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'approve-child2',
@@ -1283,8 +1283,8 @@ describe('MeasureService', () => {
   });
 
   describe('$review', () => {
-    beforeEach(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'review-parent',
@@ -1308,7 +1308,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'review-child1',
@@ -1336,7 +1336,7 @@ describe('MeasureService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'review-child2',
@@ -1454,7 +1454,5 @@ describe('MeasureService', () => {
     });
   });
 
-  afterAll(() => {
-    return cleanUpTestDatabase();
-  });
+  afterAll(cleanUpTestDatabase);
 });
