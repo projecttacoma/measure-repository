@@ -1527,6 +1527,34 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(400)
     });
+
+    it('returns 400 status with force release version behavior with force into a url/version collision', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'collision-test',
+          url: 'http://example.com/release-child1', //same as existing
+          status: 'draft',
+          type: { coding: [{ code: 'logic-library' }] },
+          version: 'collision', //collision version
+          title: 'Sample title',
+          description: 'Sample description'
+        },
+        'Library'
+      );
+
+      await supertest(server.app)
+        .post('/4_0_1/Library/release-child1/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'releaseVersion', valueCode: 'collision' },
+            { name: 'versionBehavior', valueString: 'force' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400);
+    });
   });
 
   afterAll(cleanUpTestDatabase);

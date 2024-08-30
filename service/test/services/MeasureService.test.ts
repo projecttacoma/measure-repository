@@ -1630,6 +1630,33 @@ describe('MeasureService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(400)
     });
+    
+    it('returns 400 status with force release version behavior with force into a url/version collision', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'collision-test',
+          url: 'http://example.com/release-measure', //same as existing
+          status: 'draft',
+          version: 'collision', //collision version
+          title: 'Sample title',
+          description: 'Sample description'
+        },
+        'Measure'
+      );
+
+      await supertest(server.app)
+        .post('/4_0_1/Measure/release-measure/$release')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'releaseVersion', valueCode: 'collision' },
+            { name: 'versionBehavior', valueString: 'force' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400);
+    });
   });
 
   afterAll(cleanUpTestDatabase);
