@@ -27,24 +27,40 @@ export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
 }
 
 /**
- * searches the database and returns an array of all resources of the given type that match the given query
+ * searches the database and returns an array whose object contains metadata and data: an array of resources of the given type that match the given query
  */
-export async function findResourcesWithQuery<T extends FhirArtifact>(
+export async function findResourcesWithQuery<T extends FhirArtifact[]>(
   query: Filter<any>,
   resourceType: ArtifactResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
+  const projection = { _id: 0, _dataRequirements: 0 };
+  const pagination: any = 'skip' in query ? [{ $skip: query.skip }, { $limit: query.limit }] : [];
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  return collection.find<T>(query, { projection: { _id: 0, _dataRequirements: 0 } }).toArray();
+  query._count = { $exists: false };
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
+  return collection
+    .aggregate<{ metadata: { total: number }[]; data: T }>([
+      { $match: query },
+      { $project: projection },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: pagination
+        }
+      }
+    ])
+    .toArray();
 }
 
 /**
- * searches the database and returns an array of all resources of the given type that match the given query
+ * searches the database and returns an array whose object contains metadata and data: an array of resources of the given type that match the given query
  * but the resources only include the elements specified by the _elements parameter
  */
-export async function findResourceElementsWithQuery<T extends FhirArtifact>(
+export async function findResourceElementsWithQuery<T extends FhirArtifact[]>(
   query: Filter<any>,
   resourceType: ArtifactResourceType
 ) {
@@ -60,10 +76,27 @@ export async function findResourceElementsWithQuery<T extends FhirArtifact>(
     projection[elem] = 1;
   });
   projection['_id'] = 0;
+
+  // create pagination
+  const pagination: any = 'skip' in query ? [{ $skip: query.skip }, { $limit: query.limit }] : [];
+
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  return collection.find<T>(query, { projection: projection }).toArray();
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
+  return collection
+    .aggregate<{ metadata: { total: number }[]; data: T }>([
+      { $match: query },
+      { $project: projection },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: pagination
+        }
+      }
+    ])
+    .toArray();
 }
 
 /**
@@ -76,6 +109,8 @@ export async function findResourceCountWithQuery(query: Filter<any>, resourceTyp
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
   return collection.countDocuments(query);
 }
 
