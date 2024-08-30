@@ -337,7 +337,7 @@ describe('MeasureService', () => {
     it('returns 200 and correctly limited searchset bundle when the _count parameter is provided', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ _count: '4' }) // would otherwise be 7
+        .query({ _count: '4' }) // would otherwise be 8
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -350,12 +350,12 @@ describe('MeasureService', () => {
     it('returns 200 and correctly limited searchset bundle when the page parameter is provided', async () => {
       await supertest(server.app)
         .get('/4_0_1/Measure')
-        .query({ _count: '4', page: '2' }) // would otherwise be 7
+        .query({ _count: '3', page: '3' }) // would otherwise be 8
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(3);
+          expect(response.body.total).toEqual(2);
           expect(response.body.entry).toBeUndefined;
         });
     });

@@ -331,7 +331,7 @@ describe('LibraryService', () => {
     it('returns 200 and correctly limited searchset bundle when the _count parameter is provided', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ _count: '3' }) // would otherwise be 9
+        .query({ _count: '3' }) // would otherwise be 11
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
@@ -344,12 +344,12 @@ describe('LibraryService', () => {
     it('returns 200 and correctly limited searchset bundle when the page parameter is provided', async () => {
       await supertest(server.app)
         .get('/4_0_1/Library')
-        .query({ _count: '4',  page: '3'}) // would otherwise be 9
+        .query({ _count: '4',  page: '3'}) // would otherwise be 11
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
-          expect(response.body.total).toEqual(1);
+          expect(response.body.total).toEqual(3);
           expect(response.body.entry).toBeUndefined;
         });
     });
