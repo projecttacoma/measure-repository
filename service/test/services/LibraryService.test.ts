@@ -185,10 +185,10 @@ const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
 };
 
 describe('LibraryService', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     server = initialize(serverConfig);
     process.env.AUTHORING = 'true';
-    return setupTestDatabase([
+    await setupTestDatabase([
       ACTIVE_LIBRARY,
       ACTIVE_LIBRARY_2,
       LIBRARY_WITH_NESTED_DEPS,
@@ -331,9 +331,9 @@ describe('LibraryService', () => {
 
   describe('publishable repository validation', () => {
     const ORIGINAL_AUTHORING = process.env.AUTHORING;
-    beforeAll(() => {
+    beforeAll(async () => {
       process.env.AUTHORING = 'false';
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'publishable-retired',
@@ -343,7 +343,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'publishable-active',
@@ -431,11 +431,25 @@ describe('LibraryService', () => {
           expect(response.headers.location).toBeDefined();
         });
     });
+
+    it('publish: returns 400 status when Library with same url and version pair already exists', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library')
+        .send(ACTIVE_LIBRARY)
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary, version: 1) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('update', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'exampleId-active',
@@ -445,7 +459,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'exampleId',
@@ -536,11 +550,42 @@ describe('LibraryService', () => {
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
     });
+
+    it('returns 400 when the url and version pair already exists in the database', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'changeTest',
+          url: 'http://example.com/changeTest',
+          status: 'draft',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+
+      await supertest(server.app)
+        .put('/4_0_1/Library/changeTest')
+        .send({
+          resourceType: 'Library',
+          id: 'changeTest',
+          url: 'http://example.com/testActiveLibrary',
+          status: 'draft',
+          ...LIBRARY_BASE
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary, version: 1) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('delete', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'delete-active',
@@ -550,7 +595,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'delete-retired',
@@ -560,7 +605,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'delete-draft',
@@ -632,6 +677,20 @@ describe('LibraryService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(200);
     });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Library/:id/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/parentLibrary/$draft')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'version', valueString: '1.0.0.4' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Library Resource with identifiers (url: http://parent-library.com, version: 1.0.0.4) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('$clone', () => {
@@ -678,6 +737,26 @@ describe('LibraryService', () => {
         })
         .set('content-type', 'application/fhir+json')
         .expect(200);
+    });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Library/:id/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Library/parentLibrary/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'version', valueString: '1.0.0.8' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Library Resource with identifiers (url: http://clone-example.com, version: 1.0.0.8) already exists in the repository.'
+          );
+        });
     });
   });
 
@@ -1041,8 +1120,8 @@ describe('LibraryService', () => {
   });
 
   describe('$approve', () => {
-    beforeEach(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'approve-child1',
@@ -1064,7 +1143,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'approve-child2',
@@ -1157,8 +1236,8 @@ describe('LibraryService', () => {
   });
 
   describe('$review', () => {
-    beforeEach(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'review-child1',
@@ -1180,7 +1259,7 @@ describe('LibraryService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'review-child2',
@@ -1272,7 +1351,5 @@ describe('LibraryService', () => {
     });
   });
 
-  afterAll(() => {
-    return cleanUpTestDatabase();
-  });
+  afterAll(cleanUpTestDatabase);
 });

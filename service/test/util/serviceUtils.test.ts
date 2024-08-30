@@ -62,8 +62,8 @@ const CHILD_LIBRARY_2: CRMIShareableLibrary = {
 };
 
 describe('serviceUtils', () => {
-  beforeAll(() => {
-    return setupTestDatabase([CHILD_LIBRARY_1, CHILD_LIBRARY_2]);
+  beforeAll(async () => {
+    await setupTestDatabase([CHILD_LIBRARY_1, CHILD_LIBRARY_2]);
   });
 
   describe('getChildren', () => {

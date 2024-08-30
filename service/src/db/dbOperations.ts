@@ -1,7 +1,8 @@
 import { loggers } from '@projecttacoma/node-fhir-server-core';
-import { Filter } from 'mongodb';
+import { Filter, MongoServerError } from 'mongodb';
 import { Connection } from './Connection';
 import { ArtifactResourceType, CRMIShareableLibrary, FhirArtifact } from '../types/service-types';
+import { BadRequestError } from '../util/errorUtils';
 
 const logger = loggers.get('default');
 
@@ -92,8 +93,12 @@ export async function findDataRequirementsWithQuery<T extends CRMIShareableLibra
 export async function createResource(data: FhirArtifact, resourceType: string) {
   const collection = Connection.db.collection<FhirArtifact>(resourceType);
   logger.info(`Inserting ${resourceType}/${data.id} into database`);
-  await collection.insertOne(data);
-  return { id: data.id as string };
+  try {
+    await collection.insertOne(data);
+    return { id: data.id as string };
+  } catch (e) {
+    throw handlePossibleDuplicateKeyError(e, resourceType);
+  }
 }
 
 /**
@@ -103,16 +108,19 @@ export async function updateResource(id: string, data: FhirArtifact, resourceTyp
   const collection = Connection.db.collection(resourceType);
   logger.debug(`Finding and updating ${resourceType}/${data.id} in database`);
 
-  const results = await collection.replaceOne({ id }, data, { upsert: true });
+  try {
+    const results = await collection.replaceOne({ id }, data, { upsert: true });
+    // If the document cannot be created with the passed id, Mongo will throw an error
+    // before here, so should be ok to just return the passed id
+    // upsertedCount indicates that we have created a brand new document
+    if (results?.upsertedCount === 1) {
+      return { id, created: true };
+    }
 
-  // If the document cannot be created with the passed id, Mongo will throw an error
-  // before here, so should be ok to just return the passed id
-  // upsertedCount indicates that we have created a brand new document
-  if (results.upsertedCount === 1) {
-    return { id, created: true };
+    return { id, created: false };
+  } catch (e) {
+    throw handlePossibleDuplicateKeyError(e, resourceType);
   }
-
-  return { id, created: false };
 }
 
 /**
@@ -140,8 +148,13 @@ export async function batchInsert(artifacts: FhirArtifact[], action: string) {
     await insertSession?.withTransaction(async () => {
       for (const artifact of artifacts) {
         const collection = await Connection.db.collection(artifact.resourceType);
-        await collection.insertOne(artifact as any, { session: insertSession });
-        results.push(artifact);
+        try {
+          await collection.insertOne(artifact as any, { session: insertSession });
+          results.push(artifact);
+        } catch (e) {
+          // this needs to be handled here to have access to the resource type
+          throw handlePossibleDuplicateKeyError(e, artifact.resourceType);
+        }
       }
     });
     console.log(`Batch ${action} transaction committed.`);
@@ -167,8 +180,13 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
     await updateSession?.withTransaction(async () => {
       for (const artifact of artifacts) {
         const collection = await Connection.db.collection(artifact.resourceType);
-        await collection.replaceOne({ id: artifact.id }, artifact);
-        results.push(artifact);
+        try {
+          await collection.replaceOne({ id: artifact.id }, artifact);
+          results.push(artifact);
+        } catch (e) {
+          // this needs to be handled here to have access to the resource type
+          throw handlePossibleDuplicateKeyError(e, artifact.resourceType);
+        }
       }
     });
     console.log(`Batch ${action} transaction committed.`);
@@ -180,4 +198,18 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
   }
   if (error) throw error;
   return results;
+}
+
+function handlePossibleDuplicateKeyError(e: any, resourceType?: string) {
+  if (e instanceof MongoServerError && e.code === 11000) {
+    let errorString = 'Resource with primary identifiers already in repository.';
+    if (e.keyValue) {
+      const identifiers = Object.entries(e.keyValue).map(pair => `${pair[0]}: ${pair[1]}`);
+      errorString = `${resourceType ? resourceType + ' ' : ''}Resource with identifiers (${identifiers.join(
+        ', '
+      )}) already exists in the repository.`;
+    }
+    return new BadRequestError(errorString);
+  }
+  return e;
 }

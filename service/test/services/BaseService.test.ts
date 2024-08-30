@@ -2,7 +2,7 @@ import { initialize, Server } from '@projecttacoma/node-fhir-server-core';
 import supertest from 'supertest';
 import { app } from '../../src/app';
 import { serverConfig } from '../../src/config/serverConfig';
-import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
+import { cleanUpTestDatabase, createTestResource, setupTestDatabase } from '../utils';
 
 let server: Server;
 
@@ -133,11 +133,18 @@ const VALID_POST_REQ = {
   ]
 };
 
+const LIBRARY_BASE = {
+  type: { coding: [{ code: 'logic-library' }] },
+  version: '1',
+  title: 'Sample title',
+  description: 'Sample description'
+};
+
 describe('BaseService', () => {
   beforeAll(async () => {
     server = initialize(serverConfig, app);
     process.env.AUTHORING = 'true';
-    return setupTestDatabase([]);
+    await setupTestDatabase([]);
   });
 
   describe('uploadTransactionBundle', () => {
@@ -259,8 +266,103 @@ describe('BaseService', () => {
           );
         });
     });
+
+    it('returns 400 when transaction bundle has a PUT request that conflicts with an existing url,version pair.', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'testActiveLibrary',
+          url: 'http://example.com/testActiveLibrary',
+          status: 'active',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'changeTest',
+          url: 'http://example.com/changeTest',
+          status: 'draft',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+
+      await supertest(server.app)
+        .post('/4_0_1/')
+        .send({
+          resourceType: 'Bundle',
+          type: 'transaction',
+          entry: [
+            {
+              resource: {
+                resourceType: 'Library',
+                id: 'changeTest',
+                url: 'http://example.com/testActiveLibrary',
+                status: 'draft',
+                ...LIBRARY_BASE
+              },
+              request: {
+                method: 'PUT',
+                url: 'Library/changeTest'
+              }
+            }
+          ]
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary, version: 1) already exists in the repository.'
+          );
+        });
+    });
+
+    it('returns 400 when transaction bundle has a POST request that conflicts with an existing url,version pair.', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Library',
+          id: 'testActiveLibrary2',
+          url: 'http://example.com/testActiveLibrary2',
+          status: 'active',
+          ...LIBRARY_BASE
+        },
+        'Library'
+      );
+
+      await supertest(server.app)
+        .post('/4_0_1/')
+        .send({
+          resourceType: 'Bundle',
+          type: 'transaction',
+          entry: [
+            {
+              resource: {
+                resourceType: 'Library',
+                id: 'changeTest',
+                url: 'http://example.com/testActiveLibrary2',
+                status: 'draft',
+                ...LIBRARY_BASE
+              },
+              request: {
+                method: 'POST',
+                url: 'Library/changeTest'
+              }
+            }
+          ]
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary2, version: 1) already exists in the repository.'
+          );
+        });
+    });
   });
-  afterAll(() => {
-    return cleanUpTestDatabase();
-  });
+  afterAll(cleanUpTestDatabase);
 });

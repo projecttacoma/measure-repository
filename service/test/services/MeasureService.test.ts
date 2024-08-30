@@ -28,6 +28,14 @@ const ACTIVE_MEASURE: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
+const EXTRA_ACTIVE_MEASURE: CRMIShareableMeasure = {
+  resourceType: 'Measure',
+  id: 'testExtraActiveMeasure',
+  url: 'http://example.com/testExtraActiveMeasure',
+  status: 'active',
+  ...MEASURE_BASE
+};
+
 const ACTIVE_MEASURE_2: CRMIShareableMeasure = {
   resourceType: 'Measure',
   id: 'testActiveMeasure2',
@@ -183,10 +191,10 @@ const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
 };
 
 describe('MeasureService', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     server = initialize(serverConfig);
     process.env.AUTHORING = 'true';
-    return setupTestDatabase([
+    await setupTestDatabase([
       ACTIVE_MEASURE,
       ACTIVE_MEASURE_2,
       MEASURE_WITH_ROOT_LIB,
@@ -419,18 +427,32 @@ describe('MeasureService', () => {
     it('publish: returns 201 status with populated location when provided correct headers and a FHIR Measure', async () => {
       await supertest(server.app)
         .post('/4_0_1/Measure')
-        .send(ACTIVE_MEASURE)
+        .send(EXTRA_ACTIVE_MEASURE)
         .set('content-type', 'application/json+fhir')
         .expect(201)
         .then(response => {
           expect(response.headers.location).toBeDefined();
         });
     });
+
+    it('publish: returns 400 status for Measure with same url and version pair already in repository', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure')
+        .send(ACTIVE_MEASURE)
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Measure Resource with identifiers (url: http://example.com/testActiveMeasure, version: 1) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('update', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'exampleId-active',
@@ -440,7 +462,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'exampleId',
@@ -530,11 +552,42 @@ describe('MeasureService', () => {
           expect(response.body.issue[0].details.text).toEqual('Argument id must match request body id for PUT request');
         });
     });
+
+    it('returns 400 when the url and version pair already exists in the database', async () => {
+      await createTestResource(
+        {
+          resourceType: 'Measure',
+          id: 'changeTest',
+          url: 'http://example.com/changeTest',
+          status: 'draft',
+          ...MEASURE_BASE
+        },
+        'Measure'
+      );
+
+      await supertest(server.app)
+        .put('/4_0_1/Measure/changeTest')
+        .send({
+          resourceType: 'Measure',
+          id: 'changeTest',
+          url: 'http://example.com/testActiveMeasure',
+          status: 'draft',
+          ...MEASURE_BASE
+        })
+        .set('content-type', 'application/json+fhir')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Measure Resource with identifiers (url: http://example.com/testActiveMeasure, version: 1) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('delete', () => {
-    beforeAll(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'delete-active',
@@ -544,7 +597,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'delete-retired',
@@ -554,7 +607,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'delete-draft',
@@ -629,6 +682,20 @@ describe('MeasureService', () => {
         .set('content-type', 'application/fhir+json')
         .expect(200);
     });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Measure/:id/$draft', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/parentMeasure/$draft')
+        .send({ resourceType: 'Parameters', parameter: [{ name: 'version', valueString: '1.0.0.4' }] })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Measure Resource with identifiers (url: http://parent-measure.com, version: 1.0.0.4) already exists in the repository.'
+          );
+        });
+    });
   });
 
   describe('$clone', () => {
@@ -675,6 +742,26 @@ describe('MeasureService', () => {
         })
         .set('content-type', 'application/fhir+json')
         .expect(200);
+    });
+
+    it('returns 400 status for a url and version pairing that already exists for POST /Measure/:id/$clone', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/parentMeasure/$clone')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'version', valueString: '1.0.0.8' },
+            { name: 'url', valueString: 'http://clone-example.com' }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(400)
+        .then(response => {
+          expect(response.body.issue[0].code).toEqual('invalid');
+          expect(response.body.issue[0].details.text).toEqual(
+            'Measure Resource with identifiers (url: http://clone-example.com, version: 1.0.0.8) already exists in the repository.'
+          );
+        });
     });
   });
 
@@ -1024,8 +1111,8 @@ describe('MeasureService', () => {
   });
 
   describe('$approve', () => {
-    beforeEach(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'approve-parent',
@@ -1049,7 +1136,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'approve-child1',
@@ -1077,7 +1164,7 @@ describe('MeasureService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'approve-child2',
@@ -1196,8 +1283,8 @@ describe('MeasureService', () => {
   });
 
   describe('$review', () => {
-    beforeEach(() => {
-      createTestResource(
+    beforeAll(async () => {
+      await createTestResource(
         {
           resourceType: 'Measure',
           id: 'review-parent',
@@ -1221,7 +1308,7 @@ describe('MeasureService', () => {
         },
         'Measure'
       );
-      createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'review-child1',
@@ -1249,7 +1336,7 @@ describe('MeasureService', () => {
         },
         'Library'
       );
-      return createTestResource(
+      await createTestResource(
         {
           resourceType: 'Library',
           id: 'review-child2',
@@ -1367,7 +1454,5 @@ describe('MeasureService', () => {
     });
   });
 
-  afterAll(() => {
-    return cleanUpTestDatabase();
-  });
+  afterAll(cleanUpTestDatabase);
 });
