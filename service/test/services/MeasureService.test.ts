@@ -444,7 +444,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Measure Resource with identifiers (url: http://example.com/testActiveMeasure, version: 1) already exists in the repository.'
           );
         });
     });
@@ -579,7 +579,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Measure Resource with identifiers (url: http://example.com/testActiveMeasure, version: 1) already exists in the repository.'
           );
         });
     });
@@ -692,7 +692,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Measure Resource with identifiers (url: http://parent-measure.com, version: 1.0.0.4) already exists in the repository.'
           );
         });
     });
@@ -759,7 +759,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Measure Resource with identifiers (url: http://clone-example.com, version: 1.0.0.8) already exists in the repository.'
           );
         });
     });

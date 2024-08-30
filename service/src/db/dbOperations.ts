@@ -97,7 +97,7 @@ export async function createResource(data: FhirArtifact, resourceType: string) {
     await collection.insertOne(data);
     return { id: data.id as string };
   } catch (e) {
-    throw handlePossibleDuplicateKeyError(e);
+    throw handlePossibleDuplicateKeyError(e, resourceType);
   }
 }
 
@@ -119,7 +119,7 @@ export async function updateResource(id: string, data: FhirArtifact, resourceTyp
 
     return { id, created: false };
   } catch (e) {
-    throw handlePossibleDuplicateKeyError(e);
+    throw handlePossibleDuplicateKeyError(e, resourceType);
   }
 }
 
@@ -148,14 +148,19 @@ export async function batchInsert(artifacts: FhirArtifact[], action: string) {
     await insertSession?.withTransaction(async () => {
       for (const artifact of artifacts) {
         const collection = await Connection.db.collection(artifact.resourceType);
-        await collection.insertOne(artifact as any, { session: insertSession });
-        results.push(artifact);
+        try {
+          await collection.insertOne(artifact as any, { session: insertSession });
+          results.push(artifact);
+        } catch (e) {
+          // this needs to be handled here to have access to the resource type
+          throw handlePossibleDuplicateKeyError(e, artifact.resourceType);
+        }
       }
     });
     console.log(`Batch ${action} transaction committed.`);
   } catch (err) {
     console.log(`Batch ${action} transaction failed: ` + err);
-    error = handlePossibleDuplicateKeyError(err);
+    error = err;
   } finally {
     await insertSession?.endSession();
   }
@@ -175,14 +180,19 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
     await updateSession?.withTransaction(async () => {
       for (const artifact of artifacts) {
         const collection = await Connection.db.collection(artifact.resourceType);
-        await collection.replaceOne({ id: artifact.id }, artifact);
-        results.push(artifact);
+        try {
+          await collection.replaceOne({ id: artifact.id }, artifact);
+          results.push(artifact);
+        } catch (e) {
+          // this needs to be handled here to have access to the resource type
+          throw handlePossibleDuplicateKeyError(e, artifact.resourceType);
+        }
       }
     });
     console.log(`Batch ${action} transaction committed.`);
   } catch (err) {
     console.log(`Batch ${action} transaction failed: ` + err);
-    error = handlePossibleDuplicateKeyError(err);
+    error = err;
   } finally {
     await updateSession?.endSession();
   }
@@ -190,12 +200,14 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
   return results;
 }
 
-function handlePossibleDuplicateKeyError(e: any) {
+function handlePossibleDuplicateKeyError(e: any, resourceType?: string) {
   if (e instanceof MongoServerError && e.code === 11000) {
     let errorString = 'Resource with primary identifiers already in repository.';
-    if (e.keyPattern) {
-      errorString =
-        'Resource with identifiers (' + Object.keys(e.keyPattern).join(',') + ') already exists in the repository.';
+    if (e.keyValue) {
+      const identifiers = Object.entries(e.keyValue).map(pair => `${pair[0]}: ${pair[1]}`);
+      errorString = `${resourceType ? resourceType + ' ' : ''}Resource with identifiers (${identifiers.join(
+        ', '
+      )}) already exists in the repository.`;
     }
     return new BadRequestError(errorString);
   }

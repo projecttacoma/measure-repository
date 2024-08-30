@@ -316,7 +316,7 @@ describe('BaseService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary, version: 1) already exists in the repository.'
           );
         });
     });
@@ -359,7 +359,7 @@ describe('BaseService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary2, version: 1) already exists in the repository.'
           );
         });
     });

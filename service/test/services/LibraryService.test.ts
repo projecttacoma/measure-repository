@@ -441,7 +441,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary, version: 1) already exists in the repository.'
           );
         });
     });
@@ -577,7 +577,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Library Resource with identifiers (url: http://example.com/testActiveLibrary, version: 1) already exists in the repository.'
           );
         });
     });
@@ -687,7 +687,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Library Resource with identifiers (url: http://parent-library.com, version: 1.0.0.4) already exists in the repository.'
           );
         });
     });
@@ -754,7 +754,7 @@ describe('LibraryService', () => {
         .then(response => {
           expect(response.body.issue[0].code).toEqual('invalid');
           expect(response.body.issue[0].details.text).toEqual(
-            'Resource with identifiers (url,version) already exists in the repository.'
+            'Library Resource with identifiers (url: http://clone-example.com, version: 1.0.0.8) already exists in the repository.'
           );
         });
     });
