@@ -27,7 +27,8 @@ export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
 }
 
 /**
- * searches the database and returns an array whose object contains metadata and data: an array of resources of the given type that match the given query
+ * Searches the database and returns an array with an object containing metadata and data.
+ * The data contains an array of resources of the given type that match the given query.
  */
 export async function findResourcesWithQuery<T extends FhirArtifact[]>(
   query: Filter<any>,
@@ -57,7 +58,8 @@ export async function findResourcesWithQuery<T extends FhirArtifact[]>(
 }
 
 /**
- * searches the database and returns an array whose object contains metadata and data: an array of resources of the given type that match the given query
+ * Searches the database and returns an array with an object containing metadata and data.
+ * The data contains an array of resources of the given type that match the given query.
  * but the resources only include the elements specified by the _elements parameter
  */
 export async function findResourceElementsWithQuery<T extends FhirArtifact[]>(
