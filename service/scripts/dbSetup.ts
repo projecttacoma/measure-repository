@@ -217,10 +217,10 @@ function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]
       if (!updatedEntry.resource.id) {
         updatedEntry.resource.id = uuidv4();
       }
-      if (updatedEntry.resource.status != 'active') {
+      if (updatedEntry.resource.status != 'active' && process.env.AUTHORING === 'false') {
         updatedEntry.resource.status = 'active';
         console.warn(
-          `Resource ${updatedEntry.resource.resourceType}/${updatedEntry.resource.id} status has been coerced to 'active'.`
+          `Resource ${updatedEntry.resource.resourceType}/${updatedEntry.resource.id} status has been coerced to 'active' for Publishable environment.`
         );
       }
     }

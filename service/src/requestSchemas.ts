@@ -225,6 +225,14 @@ export const ReviewArgs = z
   .strict()
   .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));
 
+export const ReleaseArgs = z
+  .object({
+    id: z.string(),
+    releaseVersion: z.string(),
+    versionBehavior: z.union([z.literal('default'), z.literal('check'), z.literal('force')])
+  })
+  .strict();
+
 export const IdentifyingParameters = z
   .object({
     id: z.string(),

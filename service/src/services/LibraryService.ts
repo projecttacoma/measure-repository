@@ -19,7 +19,8 @@ import {
   DraftArgs,
   CloneArgs,
   ApproveArgs,
-  ReviewArgs
+  ReviewArgs,
+  ReleaseArgs
 } from '../requestSchemas';
 import { Service } from '../types/service';
 import {
@@ -411,6 +412,86 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     // we want to return a Bundle containing the updated artifacts
     return createBatchResponseBundle(reviewedArtifacts);
+  }
+
+  /**
+   * result of sending a POST or GET request to:
+   * {BASE_URL}/4_0_1/Library/$release or {BASE_URL}/4_0_1/Library/[id]/$release
+   * releases an artifact, updating the status of an existing draft artifact to active and
+   * setting the date element of the resource. Also sets the version and recursively releases
+   * child artifacts according to the versionBehavior parameter.
+   */
+  async release(args: RequestArgs, { req }: RequestCtx) {
+    logger.info(`${req.method} ${req.path}`);
+
+    // checks that the authoring environment variable is true
+    checkAuthoring();
+
+    if (req.method === 'POST') {
+      const contentType: string | undefined = req.headers['content-type'];
+      checkContentTypeHeader(contentType);
+    }
+
+    const params = gatherParams(req.query, args.resource);
+    validateParamIdSource(req.params.id, params.id);
+    const query = extractIdentificationForQuery(args, params);
+    const parsedParams = parseRequestSchema({ ...params, ...query }, ReleaseArgs);
+
+    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    if (!library) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
+    }
+    if (library.status !== 'draft') {
+      throw new BadRequestError(
+        `Library with id: ${library.id} has status ${library.status}. $release may only be used on draft artifacts.`
+      );
+    }
+    checkIsOwned(library, 'Child artifacts cannot be directly released.');
+
+    library.status = 'active';
+    library.date = new Date().toISOString();
+
+    // Version behavior source: https://hl7.org/fhir/uv/crmi/1.0.0-snapshot/CodeSystem-crmi-release-version-behavior-codes.html
+    if (parsedParams.versionBehavior === 'check') {
+      logger.info('Applying check version behavior');
+      // check: if the root artifact has a specified version different from the version passed in, an error will be returned
+      // Developer note: this is assumed to be the behavior for child artifacts as well
+      if (parsedParams.releaseVersion !== library.version) {
+        throw new BadRequestError(
+          `Library with id: ${library.id} has version ${library.version}, which does not match the passed release version ${parsedParams.releaseVersion}`
+        );
+      }
+    } else if (parsedParams.versionBehavior === 'force') {
+      logger.info('Applying force version behavior');
+      // force: version provided will be applied to the root and all children, regardless of whether a version was already specified
+      library.version = parsedParams.releaseVersion;
+    } else {
+      logger.info('Applying default version behavior');
+      // default: version provided will be applied to the root artifact and all children if a version is not specified.
+      // Developer note: this is currently a null operation because version is a required field
+    }
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
+    children.forEach(child => {
+      child.status = 'active';
+      child.date = new Date().toISOString();
+      if (parsedParams.versionBehavior === 'check') {
+        if (parsedParams.releaseVersion !== child.version) {
+          throw new BadRequestError(
+            `Child artifact with id: ${child.id} has version ${child.version}, which does not match the passed release version ${parsedParams.releaseVersion}`
+          );
+        }
+      } else if (parsedParams.versionBehavior === 'force') {
+        child.version = parsedParams.releaseVersion;
+      }
+    });
+
+    // batch update the released parent Library and any of its children
+    const releasedArtifacts = await batchUpdate([library, ...(await Promise.all(children))], 'release');
+
+    // return a Bundle containing the updated artifacts
+    return createBatchResponseBundle(releasedArtifacts);
   }
 
   /**
