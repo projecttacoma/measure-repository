@@ -27,10 +27,11 @@ export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
 }
 
 /**
- * Searches the database and returns an array with an object containing metadata and data.
- * The data contains an array of resources of the given type that match the given query.
+ * Searches the database and returns an object with
+ * total: the total number of resources matching this query
+ * data: an array of resources matching this query (using pagination)
  */
-export async function findResourcesWithQuery<T extends FhirArtifact[]>(
+export async function findResourcesWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
   resourceType: ArtifactResourceType
 ) {
@@ -40,13 +41,12 @@ export async function findResourcesWithQuery<T extends FhirArtifact[]>(
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  query._count = { $exists: false };
   query.limit = { $exists: false };
   query.skip = { $exists: false };
-  return collection
-    .aggregate<{ metadata: { total: number }[]; data: T }>([
+  const idResults = await collection
+    .aggregate<{ metadata: { total: number }[]; data: T[] }>([
       { $match: query },
-      { $project: projection },
+      { $project: { _id: 1 } },
       {
         $facet: {
           metadata: [{ $count: 'total' }],
@@ -55,14 +55,21 @@ export async function findResourcesWithQuery<T extends FhirArtifact[]>(
       }
     ])
     .toArray();
+  return {
+    total: idResults[0].metadata.length > 0 ? idResults[0].metadata[0].total : 0,
+    data: await collection
+      .find<T>({ _id: { $in: idResults[0].data.map(e => e._id) } }, { projection: projection })
+      .toArray()
+  };
 }
 
 /**
- * Searches the database and returns an array with an object containing metadata and data.
- * The data contains an array of resources of the given type that match the given query.
+ * Searches the database and returns an object with
+ * total: the total number of resources matching this query
+ * data: an array of resources matching this query (using pagination)
  * but the resources only include the elements specified by the _elements parameter
  */
-export async function findResourceElementsWithQuery<T extends FhirArtifact[]>(
+export async function findResourceElementsWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
   resourceType: ArtifactResourceType
 ) {
@@ -87,10 +94,10 @@ export async function findResourceElementsWithQuery<T extends FhirArtifact[]>(
   query._elements = { $exists: false };
   query.limit = { $exists: false };
   query.skip = { $exists: false };
-  return collection
-    .aggregate<{ metadata: { total: number }[]; data: T }>([
+  const idResults = await collection
+    .aggregate<{ metadata: { total: number }[]; data: T[] }>([
       { $match: query },
-      { $project: projection },
+      { $project: { _id: 1 } },
       {
         $facet: {
           metadata: [{ $count: 'total' }],
@@ -99,6 +106,12 @@ export async function findResourceElementsWithQuery<T extends FhirArtifact[]>(
       }
     ])
     .toArray();
+  return {
+    total: idResults[0].metadata.length > 0 ? idResults[0].metadata[0].total : 0,
+    data: await collection
+      .find<T>({ _id: { $in: idResults[0].data.map(e => e._id) } }, { projection: projection })
+      .toArray()
+  };
 }
 
 /**

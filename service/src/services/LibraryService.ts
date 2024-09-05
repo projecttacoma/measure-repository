@@ -86,10 +86,9 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const result = await findResourceElementsWithQuery<CRMIShareableLibrary[]>(mongoQuery, 'Library');
-      const entries = result[0].data;
+      const result = await findResourceElementsWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
-      entries.map(e => {
+      result.data.map(e => {
         if (e.meta) {
           if (e.meta.tag) {
             e.meta.tag.push({ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' });
@@ -102,30 +101,29 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
           };
         }
       });
-      const bundle = createSearchsetBundle(entries);
+      const bundle = createSearchsetBundle(result.data);
       if (parsedQuery._count) {
         bundle.link = createPaginationLinks(
           `http://${req.headers.host}/${req.params.base_version}/`,
           'Library',
           new URLSearchParams(req.query),
           {
-            numberOfPages: Math.ceil(result[0].metadata[0].total / parseInt(parsedQuery._count)),
+            numberOfPages: Math.ceil(result.total / parseInt(parsedQuery._count)),
             page: parseInt(parsedQuery.page || '1')
           }
         );
       }
       return bundle;
     } else {
-      const result = await findResourcesWithQuery<CRMIShareableLibrary[]>(mongoQuery, 'Library');
-      const entries = result[0].data;
-      const bundle = createSearchsetBundle(entries);
+      const result = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
+      const bundle = createSearchsetBundle(result.data);
       if (parsedQuery._count) {
         bundle.link = createPaginationLinks(
           `http://${req.headers.host}/${req.params.base_version}/`,
           'Library',
           new URLSearchParams(req.query),
           {
-            numberOfPages: Math.ceil(result[0].metadata[0].total / parseInt(parsedQuery._count)),
+            numberOfPages: Math.ceil(result.total / parseInt(parsedQuery._count)),
             page: parseInt(parsedQuery.page || '1')
           }
         );

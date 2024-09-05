@@ -87,10 +87,9 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const result = await findResourceElementsWithQuery<CRMIShareableMeasure[]>(mongoQuery, 'Measure');
-      const entries = result[0].data;
+      const result = await findResourceElementsWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
-      entries.map(e => {
+      result.data.map(e => {
         if (e.meta) {
           if (e.meta.tag) {
             e.meta.tag.push({ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' });
@@ -103,7 +102,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
           };
         }
       });
-      const bundle = createSearchsetBundle(entries);
+      const bundle = createSearchsetBundle(result.data);
       if (parsedQuery._count) {
         if (parsedQuery._count) {
           bundle.link = createPaginationLinks(
@@ -111,7 +110,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
             'Measure',
             new URLSearchParams(req.query),
             {
-              numberOfPages: Math.ceil(result[0].metadata[0].total / parseInt(parsedQuery._count)),
+              numberOfPages: Math.ceil(result.total / parseInt(parsedQuery._count)),
               page: parseInt(parsedQuery.page || '1')
             }
           );
@@ -119,9 +118,8 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
       }
       return bundle;
     } else {
-      const result = await findResourcesWithQuery<CRMIShareableMeasure[]>(mongoQuery, 'Measure');
-      const entries = result[0].data;
-      const bundle = createSearchsetBundle(entries);
+      const result = await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
+      const bundle = createSearchsetBundle(result.data);
       if (parsedQuery._count) {
         if (parsedQuery._count) {
           bundle.link = createPaginationLinks(
@@ -129,7 +127,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
             'Measure',
             new URLSearchParams(req.query),
             {
-              numberOfPages: Math.ceil(result[0].metadata[0].total / parseInt(parsedQuery._count)),
+              numberOfPages: Math.ceil(result.total / parseInt(parsedQuery._count)),
               page: parseInt(parsedQuery.page || '1')
             }
           );
