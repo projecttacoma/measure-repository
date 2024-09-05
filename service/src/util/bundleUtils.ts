@@ -60,6 +60,72 @@ export function createSummarySearchsetBundle<T extends FhirArtifact>(count: numb
 }
 
 /**
+ * Creates pagination links for the search results bundle.
+ * Logic pulled from implementation in deqm-test-server
+ * https://github.com/projecttacoma/deqm-test-server/blob/dc89180bf4b355e97db38cfa84471dd16db82e93/src/util/baseUtils.js#L61
+ *
+ * @param {string} baseUrl Base URL of the server and FHIR base path. Should be pulled from request.
+ * @param {string} resourceType The resource type these results are for.
+ * @param {url.URLSearchParams} searchParams The search parameter object used for the initial query pulled from the request.
+ * @param {{numberOfPages: number, page: number}} resultsMetadata The results metadata object from the mongo results.
+ * @returns {fhir4.BundleLink[]} The links that should be added to the search set results bundle.
+ */
+export function createPaginationLinks(
+  baseUrl: string,
+  resourceType: string,
+  searchParams: URLSearchParams,
+  resultsMetadata: { numberOfPages: number; page: number }
+): fhir4.BundleLink[] {
+  const { numberOfPages, page } = resultsMetadata;
+  const links = [];
+
+  // create self link, including query params only if there were any
+  if (searchParams.toString() !== '') {
+    links.push({
+      relation: 'self',
+      url: new URL(`${resourceType}?${searchParams}`, baseUrl).toString()
+    });
+  } else {
+    links.push({
+      relation: 'self',
+      url: new URL(`${resourceType}`, baseUrl).toString()
+    });
+  }
+
+  // first page
+  searchParams.set('page', '1');
+  links.push({
+    relation: 'first',
+    url: new URL(`${resourceType}?${searchParams}`, baseUrl).toString()
+  });
+
+  // only add previous and next if appropriate
+  if (page > 1) {
+    searchParams.set('page', `${page - 1}`);
+    links.push({
+      relation: 'previous',
+      url: new URL(`${resourceType}?${searchParams}`, baseUrl).toString()
+    });
+  }
+  if (page < numberOfPages) {
+    searchParams.set('page', `${page + 1}`);
+    links.push({
+      relation: 'next',
+      url: new URL(`${resourceType}?${searchParams}`, baseUrl).toString()
+    });
+  }
+
+  // last page
+  searchParams.set('page', `${numberOfPages}`);
+  links.push({
+    relation: 'last',
+    url: new URL(`${resourceType}?${searchParams}`, baseUrl).toString()
+  });
+
+  return links;
+}
+
+/**
  * Takes in a mongo query, finds a Measure based on the query and all dependent
  * Library resources and bundles them together with the Measure in a collection bundle
  */
@@ -68,7 +134,7 @@ export async function createMeasurePackageBundle(
   params: z.infer<typeof PackageArgs>
 ): Promise<fhir4.Bundle<FhirArtifact>> {
   const mongoQuery = getMongoQueryFromRequest(query);
-  const measure = await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
+  const measure = (await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure')).data;
   if (!measure || !(measure.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Measure, with ${Object.keys(query)
@@ -90,7 +156,7 @@ export async function createMeasurePackageBundle(
   if (measureForPackaging.library && measureForPackaging.library.length > 0) {
     const [mainLibraryRef] = measureForPackaging.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
-    const libs = await findResourcesWithQuery<CRMIShareableLibrary>(mainLibQuery, 'Library');
+    const libs = (await findResourcesWithQuery<CRMIShareableLibrary>(mainLibQuery, 'Library')).data;
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(
         `Could not find Library ${mainLibraryRef} referenced by Measure ${measureForPackaging.id}`
@@ -116,7 +182,7 @@ export async function createLibraryPackageBundle(
   params: z.infer<typeof PackageArgs>
 ): Promise<{ libraryBundle: fhir4.Bundle<FhirArtifact>; rootLibRef?: string }> {
   const mongoQuery = getMongoQueryFromRequest(query);
-  const library = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
+  const library = (await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library')).data;
   if (!library || !(library.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Library, with ${Object.keys(query)
@@ -300,7 +366,7 @@ export async function getAllDependentLibraries(lib: CRMIShareableLibrary): Promi
   // Obtain all libraries referenced in the related artifact, and recurse on their dependencies
   const libraryGets = depLibUrls.map(async url => {
     const libQuery = getQueryFromReference(url);
-    const libs = await findResourcesWithQuery(libQuery, 'Library');
+    const libs = (await findResourcesWithQuery<CRMIShareableLibrary>(libQuery, 'Library')).data;
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(
         `Failed to find dependent library with ${

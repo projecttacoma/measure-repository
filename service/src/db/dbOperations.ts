@@ -27,21 +27,46 @@ export async function findArtifactByUrlAndVersion<T extends FhirArtifact>(
 }
 
 /**
- * searches the database and returns an array of all resources of the given type that match the given query
+ * Searches the database and returns an object with
+ * total: the total number of resources matching this query
+ * data: an array of resources matching this query (using pagination)
  */
 export async function findResourcesWithQuery<T extends FhirArtifact>(
   query: Filter<any>,
   resourceType: ArtifactResourceType
 ) {
   const collection = Connection.db.collection(resourceType);
+  const projection = { _id: 0, _dataRequirements: 0 };
+  const pagination: any = 'skip' in query ? [{ $skip: query.skip }, { $limit: query.limit }] : [];
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  return collection.find<T>(query, { projection: { _id: 0, _dataRequirements: 0 } }).toArray();
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
+  const idResults = await collection
+    .aggregate<{ metadata: { total: number }[]; data: T[] }>([
+      { $match: query },
+      { $project: { _id: 1 } },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: pagination
+        }
+      }
+    ])
+    .toArray();
+  return {
+    total: idResults[0].metadata.length > 0 ? idResults[0].metadata[0].total : 0,
+    data: await collection
+      .find<T>({ _id: { $in: idResults[0].data.map(e => e._id) } }, { projection: projection })
+      .toArray()
+  };
 }
 
 /**
- * searches the database and returns an array of all resources of the given type that match the given query
+ * Searches the database and returns an object with
+ * total: the total number of resources matching this query
+ * data: an array of resources matching this query (using pagination)
  * but the resources only include the elements specified by the _elements parameter
  */
 export async function findResourceElementsWithQuery<T extends FhirArtifact>(
@@ -60,10 +85,33 @@ export async function findResourceElementsWithQuery<T extends FhirArtifact>(
     projection[elem] = 1;
   });
   projection['_id'] = 0;
+
+  // create pagination
+  const pagination: any = 'skip' in query ? [{ $skip: query.skip }, { $limit: query.limit }] : [];
+
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
-  return collection.find<T>(query, { projection: projection }).toArray();
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
+  const idResults = await collection
+    .aggregate<{ metadata: { total: number }[]; data: T[] }>([
+      { $match: query },
+      { $project: { _id: 1 } },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: pagination
+        }
+      }
+    ])
+    .toArray();
+  return {
+    total: idResults[0].metadata.length > 0 ? idResults[0].metadata[0].total : 0,
+    data: await collection
+      .find<T>({ _id: { $in: idResults[0].data.map(e => e._id) } }, { projection: projection })
+      .toArray()
+  };
 }
 
 /**
@@ -76,6 +124,8 @@ export async function findResourceCountWithQuery(query: Filter<any>, resourceTyp
   query._dataRequirements = { $exists: false };
   query._summary = { $exists: false };
   query._elements = { $exists: false };
+  query.limit = { $exists: false };
+  query.skip = { $exists: false };
   return collection.countDocuments(query);
 }
 

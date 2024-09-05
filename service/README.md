@@ -145,6 +145,8 @@ The `_summary` parameter is specified in the [HL7 FHIR Search Docs](https://www.
 
 The `_elements` parameter is specified in the [HL7 FHIR Search Docs](https://www.hl7.org/fhir/search.html#_elements) and supports a comma-separated list of base element names.
 
+The `_count` parameter is specified in the [HL7 FHIR Search Docs](https://www.hl7.org/fhir/search.html#_count) and supports a whole number indicating the number of results per page.
+
 ### Package
 
 The Measure Repository Service server supports the `Library` and `Measure` `$cqfm-package` operation with the `id` and `identifier` parameters and SHALL parameters specified in the shareable measure repository section of the [HL7 Measure Repository Docs](http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html#publishable-measure-repository). Accepted parameters are:

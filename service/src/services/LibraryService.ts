@@ -26,6 +26,7 @@ import { Service } from '../types/service';
 import {
   createBatchResponseBundle,
   createLibraryPackageBundle,
+  createPaginationLinks,
   createSearchsetBundle,
   createSummarySearchsetBundle
 } from '../util/bundleUtils';
@@ -73,7 +74,11 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     // if the _summary parameter with a value of count is included, then
     // return a searchset bundle that excludes the entries
-    if (parsedQuery._summary && parsedQuery._summary === 'count') {
+    // if _count has the value 0, this shall be treated the same as _summary=count
+    if (
+      (parsedQuery._summary && parsedQuery._summary === 'count') ||
+      (parsedQuery._count && parsedQuery._count === '0')
+    ) {
       const count = await findResourceCountWithQuery(mongoQuery, 'Library');
       return createSummarySearchsetBundle<CRMIShareableLibrary>(count);
     }
@@ -81,9 +86,9 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const entries = await findResourceElementsWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
+      const result = await findResourceElementsWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
-      entries.map(e => {
+      result.data.map(e => {
         if (e.meta) {
           if (e.meta.tag) {
             e.meta.tag.push({ code: 'SUBSETTED', system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' });
@@ -96,10 +101,34 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
           };
         }
       });
-      return createSearchsetBundle(entries);
+      const bundle = createSearchsetBundle(result.data);
+      if (parsedQuery._count) {
+        bundle.link = createPaginationLinks(
+          `http://${req.headers.host}/${req.params.base_version}/`,
+          'Library',
+          new URLSearchParams(req.query),
+          {
+            numberOfPages: Math.ceil(result.total / parseInt(parsedQuery._count)),
+            page: parseInt(parsedQuery.page || '1')
+          }
+        );
+      }
+      return bundle;
     } else {
-      const entries = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
-      return createSearchsetBundle(entries);
+      const result = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
+      const bundle = createSearchsetBundle(result.data);
+      if (parsedQuery._count) {
+        bundle.link = createPaginationLinks(
+          `http://${req.headers.host}/${req.params.base_version}/`,
+          'Library',
+          new URLSearchParams(req.query),
+          {
+            numberOfPages: Math.ceil(result.total / parseInt(parsedQuery._count)),
+            page: parseInt(parsedQuery.page || '1')
+          }
+        );
+      }
+      return bundle;
     }
   }
 

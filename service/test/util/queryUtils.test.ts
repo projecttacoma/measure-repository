@@ -8,18 +8,21 @@ const QUERY_WITH_SYSTEM_AND_CODE_IDEN = { url: 'http://example.com', identifier:
 const QUERY_WITH_STRING_PARAM = { url: 'http://example.com', version: 'test' };
 const QUERY_WITH_MULTIPLE_STRING_PARAM = { url: 'http://example.com', version: ['test', '...anotherTest?'] };
 
-const EXPECTED_QUERY_WITH_CODE_IDEN = { url: 'http://example.com', 'identifier.value': 'testCode' };
-const EXPECTED_QUERY_WITH_SYSTEM_IDEN = { url: 'http://example.com', 'identifier.system': 'testSystem' };
+const EXPECTED_QUERY_WITH_NO_IDEN = { limit: 50, skip: 0, url: 'http://example.com' };
+const EXPECTED_QUERY_WITH_CODE_IDEN = { limit: 50, skip: 0,  url: 'http://example.com', 'identifier.value': 'testCode' };
+const EXPECTED_QUERY_WITH_SYSTEM_IDEN = { limit: 50, skip: 0, url: 'http://example.com', 'identifier.system': 'testSystem' };
 const EXPECTED_QUERY_WITH_SYSTEM_AND_CODE_IDEN = {
+  limit: 50, 
+  skip: 0, 
   url: 'http://example.com',
   'identifier.system': 'testSystem',
   'identifier.value': 'testCode'
 };
-const EXPECTED_QUERY_WITH_STRING_PARAM = { url: 'http://example.com', version: { $regex: '^test', $options: 'i' } };
+const EXPECTED_QUERY_WITH_STRING_PARAM = { limit: 50, skip: 0, url: 'http://example.com', version: { $regex: '^test', $options: 'i' } };
 
 describe('getMongoQueryFromRequest', () => {
   it('correctly parses a query with no identifier field', () => {
-    expect(getMongoQueryFromRequest(QUERY_WITH_NO_IDEN)).toEqual(QUERY_WITH_NO_IDEN);
+    expect(getMongoQueryFromRequest(QUERY_WITH_NO_IDEN)).toEqual(EXPECTED_QUERY_WITH_NO_IDEN);
   });
   it('correctly parses a query with a simple code identifier field', () => {
     expect(getMongoQueryFromRequest(QUERY_WITH_SIMPLE_CODE_IDEN)).toEqual(EXPECTED_QUERY_WITH_CODE_IDEN);
