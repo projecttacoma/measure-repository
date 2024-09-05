@@ -68,7 +68,7 @@ export function createSummarySearchsetBundle<T extends FhirArtifact>(count: numb
  * @param {string} resourceType The resource type these results are for.
  * @param {url.URLSearchParams} searchParams The search parameter object used for the initial query pulled from the request.
  * @param {{numberOfPages: number, page: number}} resultsMetadata The results metadata object from the mongo results.
- * @returns {fhir4.BundleLink[]} The links that should be added to the search st results bundle.
+ * @returns {fhir4.BundleLink[]} The links that should be added to the search set results bundle.
  */
 export function createPaginationLinks(
   baseUrl: string,
