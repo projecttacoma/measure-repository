@@ -93,7 +93,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
     }
   });
 
-  const deleteMutation = trpc.draft.deleteParent.useMutation({
+  const deleteMutation = trpc.draft.deleteDraft.useMutation({
     onSuccess: (data, variables) => {
       successNotification(variables.resourceType, false, 'delete', variables.id);
       data.children.forEach(c => {

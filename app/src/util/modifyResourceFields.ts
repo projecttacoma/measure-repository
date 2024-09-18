@@ -1,75 +1,74 @@
 import { coerce, inc } from 'semver';
 import { FhirArtifact } from './types/fhir';
 import { v4 as uuidv4 } from 'uuid';
-import { getDraftByUrl } from '@/server/db/dbOperations';
 
 /**
  * Helper function that takes an artifact and returns it with a new id,
  * draft status, and increments the version if it has one or sets it to
  * 0.0.1 if it does not
  */
-export async function modifyResource(artifact: FhirArtifact, action: string) {
-  artifact.id = uuidv4();
-  if (action === 'draft') {
-    artifact.status = 'draft';
-  }
+// export async function modifyResource(artifact: FhirArtifact, action: string) {
+//   artifact.id = uuidv4();
+//   if (action === 'draft') {
+//     artifact.status = 'draft';
+//   }
 
-  let count = 0;
+//   let count = 0;
 
-  // initial version coercion and increment
-  // we can only increment artifacts whose versions are either semantic, can be coerced
-  // to semantic, or are in x.x.xxx/x.xx.xxx format. Every other kind of version will become 0.0.1
-  if (artifact.version) {
-    const coerced = coerce(artifact.version);
-    const incVersion = coerced !== null ? inc(coerced, 'patch') : null;
-    if (checkVersionFormat(artifact.version)) {
-      // check that it is x.x.xxx/x.xx.xxx, format and increment manually
-      artifact.version = incrementArtifactVersion(artifact.version);
-    } else if (incVersion !== null) {
-      // if possible, coerce the version to semver, and increment
-      artifact.version = incVersion;
-    } else {
-      // if it cannot be coerced and is not x.x.xxx/x.xx.xxx format, then set to 0.0.1
-      artifact.version = '0.0.1';
-    }
-  }
+//   // initial version coercion and increment
+//   // we can only increment artifacts whose versions are either semantic, can be coerced
+//   // to semantic, or are in x.x.xxx/x.xx.xxx format. Every other kind of version will become 0.0.1
+//   if (artifact.version) {
+//     const coerced = coerce(artifact.version);
+//     const incVersion = coerced !== null ? inc(coerced, 'patch') : null;
+//     if (checkVersionFormat(artifact.version)) {
+//       // check that it is x.x.xxx/x.xx.xxx, format and increment manually
+//       artifact.version = incrementArtifactVersion(artifact.version);
+//     } else if (incVersion !== null) {
+//       // if possible, coerce the version to semver, and increment
+//       artifact.version = incVersion;
+//     } else {
+//       // if it cannot be coerced and is not x.x.xxx/x.xx.xxx format, then set to 0.0.1
+//       artifact.version = '0.0.1';
+//     }
+//   }
 
-  // subsequent version increments
-  if (artifact.url) {
-    // check for existing draft with proposed version
-    let existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
-    // only increment a limited number of times
-    while (existingDraft && count < 10) {
-      // increment artifact version
-      const incVersion = inc(artifact.version, 'patch');
-      artifact.version = incVersion ?? incrementArtifactVersion(artifact.version);
+//   // subsequent version increments
+//   if (artifact.url) {
+//     // check for existing draft with proposed version
+//     let existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
+//     // only increment a limited number of times
+//     while (existingDraft && count < 10) {
+//       // increment artifact version
+//       const incVersion = inc(artifact.version, 'patch');
+//       artifact.version = incVersion ?? incrementArtifactVersion(artifact.version);
 
-      existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
-      count++;
-    }
-  }
+//       existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
+//       count++;
+//     }
+//   }
 
-  if (artifact.relatedArtifact) {
-    artifact.relatedArtifact.forEach(ra => {
-      if (
-        ra.type === 'composed-of' &&
-        ra.resource &&
-        ra.extension?.some(
-          e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
-        )
-      ) {
-        const url = ra.resource.split('|')[0];
-        let version = ra.resource.split('|')[1];
-        while (count !== 0) {
-          version = incrementArtifactVersion(version);
-          count--;
-        }
-        ra.resource = url + '|' + incrementArtifactVersion(version);
-      }
-    });
-  }
-  return artifact;
-}
+//   if (artifact.relatedArtifact) {
+//     artifact.relatedArtifact.forEach(ra => {
+//       if (
+//         ra.type === 'composed-of' &&
+//         ra.resource &&
+//         ra.extension?.some(
+//           e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
+//         )
+//       ) {
+//         const url = ra.resource.split('|')[0];
+//         let version = ra.resource.split('|')[1];
+//         while (count !== 0) {
+//           version = incrementArtifactVersion(version);
+//           count--;
+//         }
+//         ra.resource = url + '|' + incrementArtifactVersion(version);
+//       }
+//     });
+//   }
+//   return artifact;
+// }
 
 /**
  * Increments an artifact version that is in x.x.xxx/x.xx.xxx format

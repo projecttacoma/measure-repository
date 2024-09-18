@@ -9,15 +9,6 @@ import { ArtifactResourceType } from '@/util/types/fhir';
 import ArtifactFieldInput from '@/components/ArtifactFieldInput';
 import ReleaseModal from '@/components/ReleaseModal';
 
-interface DraftArtifactUpdates {
-  url?: string;
-  identifier?: fhir4.Identifier[];
-  name?: string;
-  title?: string;
-  description?: string;
-  library?: string[] | null;
-}
-
 export default function ResourceAuthoringPage() {
   const router = useRouter();
   const { resourceType, id } = router.query;
@@ -129,49 +120,19 @@ export default function ResourceAuthoringPage() {
     }
   });
 
-  function parseUpdate(
-    url: string,
-    identifierValue: string,
-    identifierSystem: string,
-    name: string,
-    title: string,
-    description: string,
-    library: string | null
-  ) {
-    const additions: DraftArtifactUpdates = {};
-    const deletions: DraftArtifactUpdates = {};
-
-    url.trim() !== '' ? (additions['url'] = url) : (deletions['url'] = '');
-    if (identifierValue.trim() !== '') {
-      if (identifierSystem.trim() !== '') {
-        additions['identifier'] = [{ system: identifierSystem, value: identifierValue }];
-      } else {
-        additions['identifier'] = [{ value: identifierValue }];
-      }
-    } else {
-      deletions['identifier'] = [{ system: '', value: '' }];
-    }
-    name.trim() !== '' ? (additions['name'] = name) : (deletions['name'] = '');
-    title.trim() !== '' ? (additions['title'] = title) : (deletions['title'] = '');
-    description.trim() !== '' ? (additions['description'] = description) : (deletions['description'] = '');
-    library ? (additions['library'] = [library]) : (deletions['library'] = null);
-
-    return [additions, deletions];
-  }
-
   // set up main library options
   let libOptions: { value: string; label: string; disabled: boolean }[] = []; // default to empty
   if (resourceType === 'Measure') {
     const { data: libraries } = trpc.draft.getDrafts.useQuery('Library' as ArtifactResourceType);
     if (libraries) {
       libOptions = libraries.map(l => {
-        if (l.url) {
+        if (l?.url) {
           // prioritizes use of url/version
           const val = `${l.url}${l.version ? `|${l.version}` : ''}`;
           return { value: val, label: val, disabled: false };
         } else {
           // uses id (assumed to exist in this context), but option disabled if no url exists (required for canonical reference)
-          const val = l.id ?? '';
+          const val = l?.id ?? '';
           return { value: val, label: val, disabled: true };
         }
       });
@@ -233,20 +194,18 @@ export default function ResourceAuthoringPage() {
               <Button
                 w={120}
                 onClick={() => {
-                  const [additions, deletions] = parseUpdate(
-                    url,
-                    identifierValue,
-                    identifierSystem,
-                    name,
-                    title,
-                    description,
-                    library
-                  );
                   resourceUpdate.mutate({
                     resourceType: resourceType as ArtifactResourceType,
                     id: id as string,
-                    additions: additions,
-                    deletions: deletions
+                    values: {
+                      url: url,
+                      identifierValue: identifierValue,
+                      identifierSystem: identifierSystem,
+                      name: name,
+                      title: title,
+                      description: description,
+                      library: library
+                    }
                   });
                 }}
                 disabled={!isChanged()} // only enable the submit button when a field has changed
