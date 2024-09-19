@@ -166,32 +166,6 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
   }
 
   /**
-   * result of sending a PUT request to {BASE_URL}/4_0_1/Measure/{id}
-   * updates the measure with the passed in id using the passed in data
-   * or creates a measure with passed in id if it does not exist in the database
-   */
-  // async update(args: RequestArgs, { req }: RequestCtx) {
-  //   logger.info(`PUT /Measure/${args.id}`);
-  //   const contentType: string | undefined = req.headers['content-type'];
-  //   checkContentTypeHeader(contentType);
-  //   const resource = req.body;
-  //   checkExpectedResourceType(resource.resourceType, 'Measure');
-  //   // Throw error if the id arg in the url does not match the id in the request body
-  //   if (resource.id !== args.id) {
-  //     throw new BadRequestError('Argument id must match request body id for PUT request');
-  //   }
-  //   const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableMeasure | null;
-  //   // note: the distance between this database call and the update resource call, could cause a race condition
-  //   if (oldResource) {
-  //     checkFieldsForUpdate(resource, oldResource);
-  //   } else {
-  //     checkFieldsForCreate(resource);
-  //   }
-
-  //   return updateResource(args.id, resource, 'Measure');
-  // }
-
-  /**
    * retire: only updates a measure with status 'active' to have status 'retired'
    * and any resource it is composed of
    *
@@ -223,7 +197,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
         });
 
         // now we want to batch update the retired parent Measure and any of its children
-        await batchUpdate([resource, ...(await Promise.all(children))], 'review');
+        await batchUpdate([resource, ...(await Promise.all(children))], 'retire');
 
         return { id: args.id, created: false };
       }

@@ -161,6 +161,9 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
   }
 
   /**
+   * retire: only updates a library with status 'active' to have status 'retired'
+   * and any resources it is composed of
+   *
    * result of sending a PUT request to {BASE_URL}/4_0_1/Library/{id}
    * updates the library with the passed in id using the passed in data
    * or creates a library with passed in id if it does not exist in the database
@@ -175,13 +178,29 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    // note: the distance between this database call and the update resource call, could cause a race condition
     const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableLibrary | null;
+    // note: the distance between this database call and the update resource call, could cause a race condition
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
+
+      if (resource.status === 'retired') {
+        // because we are changing the status/date of artifact, we want to also do so for
+        // any resources it is composed of
+        const children = oldResource.relatedArtifact ? await getChildren(oldResource.relatedArtifact) : [];
+        children.forEach(child => {
+          child.status = resource.status;
+          child.date = resource.date;
+        });
+
+        // now we want to batch update the retired parent Library and any of its children
+        await batchUpdate([resource, ...(await Promise.all(children))], 'retire');
+
+        return { id: args.id, created: false };
+      }
     } else {
       checkFieldsForCreate(resource);
     }
+
     return updateResource(args.id, resource, 'Library');
   }
 
