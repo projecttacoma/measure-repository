@@ -174,19 +174,6 @@ export async function updateResource(id: string, data: FhirArtifact, resourceTyp
 }
 
 /**
- * Searches for a document for a resource and deletes it if found
- */
-export async function deleteResource(id: string, resourceType: string) {
-  const collection = Connection.db.collection(resourceType);
-  logger.debug(`Finding and deleting ${resourceType}/${id} from database`);
-  const results = await collection.deleteOne({ id });
-  if (results.deletedCount === 1) {
-    return { id, deleted: true };
-  }
-  return { id, deleted: false };
-}
-
-/**
  * Inserts a parent artifact and all of its children (if applicable) in a batch
  * Error message depends on whether draft or cloned artifacts are being inserted
  */
@@ -245,6 +232,33 @@ export async function batchUpdate(artifacts: FhirArtifact[], action: string) {
     error = err;
   } finally {
     await updateSession?.endSession();
+  }
+  if (error) throw error;
+  return results;
+}
+
+/**
+ * Deletes a parent artifact and all of its children (if applicable) in a batch
+ * Error message depends on whether the resource is being archived or withdrawn
+ */
+export async function batchDelete(artifacts: FhirArtifact[], action: string) {
+  let error = null;
+  const results: FhirArtifact[] = [];
+  const deleteSession = Connection.connection?.startSession();
+  try {
+    await deleteSession?.withTransaction(async () => {
+      for (const artifact of artifacts) {
+        const collection = await Connection.db.collection(artifact.resourceType);
+        await collection.deleteOne({ id: artifact.id }, { session: deleteSession });
+        results.push(artifact);
+      }
+    });
+    console.log(`Batch ${action} transaction committed.`);
+  } catch (err) {
+    console.log(`Batch ${action} transaction failed: ` + err);
+    error = err;
+  } finally {
+    await deleteSession?.endSession();
   }
   if (error) throw error;
   return results;

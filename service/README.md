@@ -113,6 +113,7 @@ This server currently supports the following CRUD operations:
   - Publishable:
     - Supports the _Publishable_ minimum write capability _retire_
     - Artifact must be in active status and may only change the status to retired and update the date (and other metadata appropriate to indicate retired status)
+    - Note: While it is not yet mentioned in the specification, _retire_ supports the update of an artifact as well as any resources it is composed of, recursively
   - Authoring:
     - Supports the additional _Authoring_ capability _revise_
     - Artifact must be in (and remain in) draft status
@@ -121,9 +122,11 @@ This server currently supports the following CRUD operations:
   - Publishable:
     - Supports the _Publishable_ minimum write capability _archive_
     - Artifact must be in retired status
+    - Note: While it is not yet mentioned in the specification, _archive_ supports the deletion of an artifact in retired status as well as any resources it is composed of, recursively
   - Authoring:
     - Supports the additional _Authoring_ capability _withdraw_
     - Artifact must be in draft status
+    - Note: While it is not yet mentioned in the specification, _withdraw_ supports the deletion of an artifact in draft status as well as any resources it is composed of, recursively
 
 ### Search
 

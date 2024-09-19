@@ -1,9 +1,9 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  batchDelete,
   batchInsert,
   batchUpdate,
   createResource,
-  deleteResource,
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
@@ -186,16 +186,33 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
   }
 
   /**
+   * archive: deletes a library and any resources it is composed of with 'retried' status
+   * withdraw: deletes a library and any resources it is composed of with 'draft' status
    * result of sending a DELETE request to {BASE_URL}/4_0_1/Library/{id}
    * deletes the library with the passed in id if it exists in the database
+   * as well as all resources it is composed of
+   * requires id parameter
    */
   async remove(args: RequestArgs) {
-    const resource = (await findResourceById(args.id, 'Library')) as CRMIShareableLibrary | null;
-    if (!resource) {
-      throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
+    const library = await findResourceById<CRMIShareableLibrary>(args.id, 'Library');
+    if (!library) {
+      throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
-    checkFieldsForDelete(resource);
-    return deleteResource(args.id, 'Library');
+    checkFieldsForDelete(library);
+    const archiveOrWithdraw = library.status === 'retired' ? 'archive' : 'withdraw';
+    checkIsOwned(
+      library,
+      `Child artifacts cannot be directly ${archiveOrWithdraw === 'archive' ? 'archived' : 'withdrawn'}`
+    );
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = library.relatedArtifact ? await getChildren(library.relatedArtifact) : [];
+
+    // now we want to batch delete (archive/withdraw) the Library artifact and any of its children
+    const newDeletes = await batchDelete([library, ...children], archiveOrWithdraw);
+
+    // we want to return a Bundle containing the deleted artifacts
+    return createBatchResponseBundle(newDeletes);
   }
 
   /**

@@ -1,9 +1,9 @@
 import { loggers, RequestArgs, RequestCtx } from '@projecttacoma/node-fhir-server-core';
 import {
+  batchDelete,
   batchInsert,
   batchUpdate,
   createResource,
-  deleteResource,
   findDataRequirementsWithQuery,
   findResourceById,
   findResourceCountWithQuery,
@@ -170,6 +170,34 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
    * updates the measure with the passed in id using the passed in data
    * or creates a measure with passed in id if it does not exist in the database
    */
+  // async update(args: RequestArgs, { req }: RequestCtx) {
+  //   logger.info(`PUT /Measure/${args.id}`);
+  //   const contentType: string | undefined = req.headers['content-type'];
+  //   checkContentTypeHeader(contentType);
+  //   const resource = req.body;
+  //   checkExpectedResourceType(resource.resourceType, 'Measure');
+  //   // Throw error if the id arg in the url does not match the id in the request body
+  //   if (resource.id !== args.id) {
+  //     throw new BadRequestError('Argument id must match request body id for PUT request');
+  //   }
+  //   const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableMeasure | null;
+  //   // note: the distance between this database call and the update resource call, could cause a race condition
+  //   if (oldResource) {
+  //     checkFieldsForUpdate(resource, oldResource);
+  //   } else {
+  //     checkFieldsForCreate(resource);
+  //   }
+
+  //   return updateResource(args.id, resource, 'Measure');
+  // }
+
+  /**
+   * retire: only updates a measure with status 'active' to have status 'retired'
+   * and any resource it is composed of
+   *
+   * Otherwise, updates the measure with the passed in id using the passed in data
+   * or creates a measure with passed in id if it does not exist in the database
+   */
   async update(args: RequestArgs, { req }: RequestCtx) {
     logger.info(`PUT /Measure/${args.id}`);
     const contentType: string | undefined = req.headers['content-type'];
@@ -184,6 +212,21 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     // note: the distance between this database call and the update resource call, could cause a race condition
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
+
+      if (resource.status === 'retired') {
+        // because we are changing the status/date of artifact, we want to also do so for
+        // any resources it is composed of
+        const children = oldResource.relatedArtifact ? await getChildren(oldResource.relatedArtifact) : [];
+        children.forEach(child => {
+          child.status = resource.status;
+          child.date = resource.date;
+        });
+
+        // now we want to batch update the retired parent Measure and any of its children
+        await batchUpdate([resource, ...(await Promise.all(children))], 'review');
+
+        return { id: args.id, created: false };
+      }
     } else {
       checkFieldsForCreate(resource);
     }
@@ -192,16 +235,33 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
   }
 
   /**
+   * archive: deletes a measure and any resources it is composed of with 'retired' status
+   * withdraw: deletes a measure and any resources it is composed of with 'draft' status
    * result of sending a DELETE request to {BASE_URL}/4_0_1/measure/{id}
    * deletes the measure with the passed in id if it exists in the database
+   * as well as all resources it is composed of
+   * requires id parameter
    */
   async remove(args: RequestArgs) {
-    const resource = (await findResourceById(args.id, 'Measure')) as CRMIShareableMeasure | null;
-    if (!resource) {
-      throw new ResourceNotFoundError(`Existing resource not found with id ${args.id}`);
+    const measure = await findResourceById<CRMIShareableMeasure>(args.id, 'Measure');
+    if (!measure) {
+      throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
-    checkFieldsForDelete(resource);
-    return deleteResource(args.id, 'Measure');
+    checkFieldsForDelete(measure);
+    const archiveOrWithdraw = measure.status === 'retired' ? 'archive' : 'withdraw';
+    checkIsOwned(
+      measure,
+      `Child artifacts cannot be directly ${archiveOrWithdraw === 'archive' ? 'archived' : 'withdrawn'}`
+    );
+
+    // recursively get any child artifacts from the artifact if they exist
+    const children = measure.relatedArtifact ? await getChildren(measure.relatedArtifact) : [];
+
+    // now we want to batch delete (archive/withdraw) the Measure artifact and any of its children
+    const newDeletes = await batchDelete([measure, ...children], archiveOrWithdraw);
+
+    // we want to return a Bundle containing the deleted artifacts
+    return createBatchResponseBundle(newDeletes);
   }
 
   /**
