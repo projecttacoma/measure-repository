@@ -2,6 +2,7 @@ import { CRMIShareableMeasure, FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { publicProcedure, router } from '../trpc';
 import { Bundle, OperationOutcome } from 'fhir/r4';
+import { calculateVersion } from '@/util/versionUtils';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service to handle draft measures
@@ -50,34 +51,6 @@ export const draftRouter = router({
       const resource = await res.json();
       return resource as FhirArtifact;
     }),
-
-  // getDraftByUrl: publicProcedure
-  //   .input(
-  //     z.object({
-  //       url: z.string().optional(),
-  //       version: z.string().optional(),
-  //       resourceType: z.enum(['Measure', 'Library']).optional()
-  //     })
-  //   )
-  //   .query(async ({ input }) => {
-  //     input.url && input.resourceType && input.version
-  //       ? getDraftByUrl<FhirArtifact>(input.url, input.version, input.resourceType)
-  //       : null;
-  //   }),
-  // TODO: double check this isn't needed
-  // getDraftByUrl: publicProcedure
-  //   .input(z.object({ resourceType: z.enum(['Measure', 'Library']), url: z.string(), version: z.string() }))
-  //   .query(async ({ input }) => {
-  //     const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}?url=${input.url}&version=${input.version}`);
-  //     const bundle:Bundle<FhirArtifact> = await res.json();
-  //     // return first entry found in bundle
-  //     return bundle.entry && bundle.entry.length > 0 ? bundle.entry[0].resource : null;
-  //   }),
-
-
-
-
-    // TODO: fix below CRUD
 
   createDraft: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), draft: z.any() }))
@@ -163,9 +136,9 @@ export const draftRouter = router({
   cloneParent: publicProcedure
     .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
     .mutation(async ({ input }) => {
-
-      // TODO: use modifyResource logic to determine a reasonable version
-      const version = 'placeholder';
+      const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const resource = (await raw.json()) as FhirArtifact;
+      const version = calculateVersion(resource);
       // $clone with calculated version
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$clone?version=${version}`);
 

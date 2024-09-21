@@ -4,6 +4,7 @@ import { ArtifactResourceType, ResourceInfo, FhirArtifact } from '@/util/types/f
 import ResourceCards from '@/components/ResourceCards';
 import Link from 'next/link';
 import { extractResourceInfo } from '@/util/resourceCardUtils';
+import { trpc } from '@/util/trpc';
 
 /**
  * Component which displays list of all resources of some type as passed in by (serverside) props
@@ -53,7 +54,8 @@ export const getServerSideProps: GetServerSideProps<{
   const checkedResourceType = resourceType as ArtifactResourceType;
 
   // Fetch resource data with the _elements parameter so we only get the elements that we need
-  const res = await fetch(`${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,identifier,name,url,version`);
+  // TODO: send this through a procedure instead?
+  const res = await fetch(`${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,identifier,name,url,version&status=active`);
   const bundle = (await res.json()) as fhir4.Bundle<FhirArtifact>;
   if (!bundle.entry) {
     // Measure Repository should not provide a bundle without an entry

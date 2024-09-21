@@ -3,6 +3,7 @@ import { CRMIShareableLibrary, FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Bundle, OperationOutcome } from 'fhir/r4';
+import { calculateVersion } from '@/util/versionUtils';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service to handle active measures
@@ -71,9 +72,9 @@ export const serviceRouter = router({
   draftParent: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string() }))
     .mutation(async ({ input }) => {
-
-      // TODO: use modifyResource logic to determine a reasonable version
-      const version = 'placeholder';
+      const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const resource = (await raw.json()) as FhirArtifact;
+      const version = calculateVersion(resource);
       // $draft with calculated version
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$draft?version=${version}`);
 
@@ -108,7 +109,6 @@ export const serviceRouter = router({
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
         return { location: null, deletable: null, status: res.status, error: outcome.issue[0].details?.text };
-        // throw new Error(`Received ${res.status} error on $release:  ${outcome.issue[0].details?.text}`);
       }
 
       const resBundle: Bundle<FhirArtifact> = await res.json();
@@ -117,17 +117,17 @@ export const serviceRouter = router({
         throw new Error(`No released artifacts found from releasing ${input.resourceType}, id ${input.id}`);
       }
 
-      const toDelete: {
+      const released: {
         resourceType: 'Measure' | 'Library';
         id: string;
-      }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children to be deleted upon success
+      }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children
       resBundle.entry.forEach(e => {
         if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
-          toDelete.push({resourceType: e.resource.resourceType, id: e.resource.id});
+          released.push({resourceType: e.resource.resourceType, id: e.resource.id});
         }
       });
 
-      // TODO: construct location for router.push from input.id (parent id)
-      return { location: 'placeholder', deletable: toDelete, status: res.status, error: null };
+      // TODO: construct location for router.push from input.id (parent id) -> does a new location even makes sense??
+      return { location: `/${input.resourceType}/${input.id}`, released: released, status: res.status, error: null };
     })
 });
