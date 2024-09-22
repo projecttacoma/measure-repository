@@ -183,7 +183,7 @@ async function uploadBundleResources(filePath: string) {
  * Convenience modification of an array of entries to create isOwned relationships and coerce to status active.
  * This lets us massage existing data that may not have the appropriate properties needed for a Publishable Measure Repository
  */
-function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]) {
+export function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]) {
   // pre-process to find owned relationships
   const ownedUrls: string[] = [];
   const modifiedEntries = entries.map(ent => {
@@ -236,9 +236,14 @@ async function insertFHIRModelInfoLibrary() {
   const fhirModelInfo = fs.readFileSync('scripts/fixtures/Library-FHIR-ModelInfo.json', 'utf8');
   const fhirModelInfoLibrary: CRMIShareableLibrary = JSON.parse(fhirModelInfo);
 
+  const qicoreModelInfo = fs.readFileSync('scripts/fixtures/Library-QICore-ModelInfo.json', 'utf8');
+  const qicoreModelInfoLibrary: CRMIShareableLibrary = JSON.parse(qicoreModelInfo);
+
   const collection = Connection.db.collection<FhirArtifact>('Library');
   console.log(`Inserting Library/${fhirModelInfoLibrary.id} into database`);
   await collection.insertOne(fhirModelInfoLibrary);
+  console.log(`Inserting Library/${qicoreModelInfoLibrary.id} into database`);
+  await collection.insertOne(qicoreModelInfoLibrary);
 }
 
 if (process.argv[2] === 'delete') {
