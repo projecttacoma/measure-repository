@@ -4,7 +4,7 @@ import { modifyEntriesForUpload } from './dbSetup';
 
 //const SERVER_URL = 'https://abacus-demo.c3ib.org/mrs/4_0_1';
 const SERVER_URL = 'http://localhost:3000/4_0_1';
-//const ECQM_CONTENT_PATH = '/Users/hossenlopp/Downloads/May 2024 Connectathon';
+
 const ECQM_CONTENT_PATH = '../../ecqm-content-qicore-2024/bundles/measure';
 const MEASURES_PATH = path.join(ECQM_CONTENT_PATH);
 
@@ -29,7 +29,7 @@ function getBundlePaths(): string[] {
       });
     }
   });
-  console.log(filePaths);
+  //console.log(filePaths);
   return filePaths;
 }
 
@@ -43,7 +43,7 @@ function loadBundle(path: string): fhir4.Bundle | null {
   }
 }
 
-async function putLibraries(bundle: fhir4.Bundle) {
+async function fixAndPutLibraries(bundle: fhir4.Bundle) {
   const libraries: fhir4.Library[] = bundle.entry
     ?.filter(entry => entry.resource?.resourceType === 'Library')
     .map(entry => entry.resource as fhir4.Library) as fhir4.Library[];
@@ -53,6 +53,8 @@ async function putLibraries(bundle: fhir4.Bundle) {
     if (library.relatedArtifact) {
       for (let index = 0; index < library.relatedArtifact.length; index++) {
         const ra = library.relatedArtifact[index];
+        // if an related artifact is using a ecqi.healthit.gov reference it needs to be changed to a madie.cms.gov
+        // reference to match the urls the resources use.
         if (
           (ra.type === 'depends-on' || ra.type === 'composed-of') &&
           ra.resource?.startsWith('http://ecqi.healthit.gov/ecqms/Library/')
@@ -84,7 +86,7 @@ async function putLibraries(bundle: fhir4.Bundle) {
   }
 }
 
-async function fixAndPUTMeasure(bundle: fhir4.Bundle) {
+async function putMeasure(bundle: fhir4.Bundle) {
   const measure: fhir4.Measure = bundle.entry?.find(entry => entry.resource?.resourceType === 'Measure')
     ?.resource as fhir4.Measure;
 
@@ -143,8 +145,8 @@ async function loadBundles(bundlePaths: string[]) {
       console.log('FILE ' + path);
       bundle.entry = modifyEntriesForUpload(bundle.entry);
       //await transactBundle(bundle);
-      await putLibraries(bundle);
-      await fixAndPUTMeasure(bundle);
+      await fixAndPutLibraries(bundle);
+      await putMeasure(bundle);
     }
   }
 }
