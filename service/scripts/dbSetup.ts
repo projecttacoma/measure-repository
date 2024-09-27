@@ -10,6 +10,123 @@ dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
 const COLLECTION_NAMES = ['Measure', 'Library'];
+const ECQM_CONTENT_PATH = 'ecqm-content-qicore-2024/bundles/measure';
+const MEASURES_PATH = path.join(ECQM_CONTENT_PATH);
+
+/**
+ * Gets the paths for the bundles in ecqm-content-qicore-2024
+ */
+function getBundlePaths(): string[] {
+  const filePaths: string[] = [];
+
+  fs.readdirSync(MEASURES_PATH, { withFileTypes: true }).forEach(ent => {
+    // if this item is a directory, look for .json files under it
+    if (ent.isDirectory()) {
+      fs.readdirSync(path.join(MEASURES_PATH, ent.name), { withFileTypes: true }).forEach(subEnt => {
+        if (!subEnt.isDirectory() && subEnt.name.endsWith('.json')) {
+          filePaths.push(path.join(MEASURES_PATH, ent.name, subEnt.name));
+        }
+      });
+    }
+  });
+  return filePaths;
+}
+
+/**
+ * Changes the incorrect ecqi.healthit.gov references on the Libraries in
+ * ecqm-content-qicore-2024 to the correct madie.cms.gov references
+ */
+async function fixAndPutLibraries(bundle: fhir4.Bundle, url: string) {
+  const libraries: fhir4.Library[] = bundle.entry
+    ?.filter(entry => entry.resource?.resourceType === 'Library')
+    .map(entry => entry.resource as fhir4.Library) as fhir4.Library[];
+
+  for (const library of libraries) {
+    console.log(`  Library ${library.id}`);
+    if (library.relatedArtifact) {
+      for (let index = 0; index < library.relatedArtifact.length; index++) {
+        const ra = library.relatedArtifact[index];
+        // if a related artifact is using a ecqi.healthit.gov reference it needs to be
+        // changed to a madie.cms.gov reference to match the urls the resources use
+        if (
+          (ra.type === 'depends-on' || ra.type === 'composed-of') &&
+          ra.resource?.startsWith('http://ecqi.healthit.gov/ecqms/Library')
+        ) {
+          const newRef = ra.resource.replace(
+            'http://ecqi.healthit.gov/ecqms/Library',
+            'https://madie.cms.gov/Library/'
+          );
+          console.log(`    replacing ra ${ra.resource} with ${newRef}`);
+          ra.resource = newRef;
+        }
+      }
+    }
+    try {
+      console.log(`    PUT ${url}/Library/${library.id}`);
+
+      const resp = await fetch(`${url}/Library/${library.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(library),
+        headers: {
+          'Content-Type': 'application/json+fhir'
+        }
+      });
+      console.log(`      ${resp.status}`);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
+/**
+ * Changes the Measures in ecqm-content-qicore-2024 to have status 'active'
+ * before being added to the database with a PUT
+ */
+async function putMeasure(bundle: fhir4.Bundle, url: string) {
+  const measure: fhir4.Measure = bundle.entry?.find(entry => entry.resource?.resourceType === 'Measure')
+    ?.resource as fhir4.Measure;
+
+  console.log(`  Measure ${measure.id}`);
+  try {
+    console.log(`    PUT ${url}/Measure/${measure.id}`);
+    measure.status = 'active';
+    const resp = await fetch(`${url}/Measure/${measure.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(measure),
+      headers: {
+        'Content-Type': 'application/json+fhir'
+      }
+    });
+    console.log(`      ${resp.status}`);
+    if (resp.status >= 400) {
+      const responseBody = await resp.json();
+      if (responseBody.resourceType === 'OperationOutcome') {
+        console.log(JSON.stringify(responseBody, null, 2));
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+/**
+ * Loads ecqm-content-qicore-2024 into the database
+ */
+async function loadEcqmContent(bundlePaths: string[], url: string) {
+  for (const path of bundlePaths) {
+    const bundle = JSON.parse(fs.readFileSync(path, 'utf8')) as fhir4.Bundle;
+    if (bundle.resourceType === 'Bundle') {
+      if (bundle?.entry) {
+        console.log('FILE' + path);
+        bundle.entry = modifyEntriesForUpload(bundle.entry);
+        await fixAndPutLibraries(bundle, url);
+        await putMeasure(bundle, url);
+      }
+    } else {
+      console.warn(`${path} is not a Bundle`);
+    }
+  }
+}
 
 async function createCollections() {
   await Connection.connect(DB_URL);
@@ -310,6 +427,16 @@ if (process.argv[2] === 'delete') {
       console.log('Done');
     })
     .catch(console.error);
+} else if (process.argv[2] === 'loadEcqmContent') {
+  let url = 'http://localhost:3000/4_0_1';
+  if (process.argv.length < 4) {
+    console.log('Defaulting service url to http://localhost:3000/4_0_1');
+  } else {
+    url = process.argv[3];
+  }
+
+  const bundlePaths = getBundlePaths();
+  loadEcqmContent(bundlePaths, url);
 } else {
   console.log('Usage: ts-node src/scripts/dbSetup.ts <create|delete|reset>');
 }

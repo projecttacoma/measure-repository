@@ -58,6 +58,12 @@ To load multiple bundles from a directory, run the same script with the desired 
 npm run db:loadBundle <path to directory>
 ```
 
+To load [ecqm-content-qicore-2024](https://github.com/cqframework/ecqm-content-qicore-2024) into your database, clone the repository in the service directory of this repository. Then you can run the following script:
+
+```
+npm run db:loadEcqmContent <optional service url, default: http://localhost:3000/4_0_1>
+```
+
 ### Bundle Upload Details
 
 Upon uploading a Measure resource, the Measure's main library is added to the `relatedArtifact` array with an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html).
