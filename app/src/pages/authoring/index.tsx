@@ -109,8 +109,8 @@ export default function AuthoringPage() {
   });
 
   const createResource = () => {
+    // TODO: randomize skeleton url or increment draft version so a user can make a number of skeleton drafts without having a url/version conflict
     const newResource = resourceType === 'Measure' ? { ...MeasureSkeleton } : { ...LibrarySkeleton };
-    newResource.id = uuidv4();
     draftMutation.mutate({ resourceType, draft: newResource });
   };
 

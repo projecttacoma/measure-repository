@@ -22,11 +22,6 @@ export const draftRouter = router({
     } as const;
   }),
 
-  // getDrafts: publicProcedure
-  //   .input(z.enum(['Measure', 'Library']).optional())
-  //   .query(async opts => (opts.input ? getAllDraftsByType<FhirArtifact>(opts.input) : null)),
-
-  // TODO: double check this lines up with above
   getDrafts: publicProcedure
     .input(z.enum(['Measure', 'Library']).optional())
     .query(async ({ input }) => {
@@ -38,12 +33,6 @@ export const draftRouter = router({
       return artifactList;
     }),
 
-  // getDraftById: publicProcedure
-  //   .input(z.object({ id: z.string().optional(), resourceType: z.enum(['Measure', 'Library']).optional() }))
-  //   .query(async ({ input }) =>
-  //     input.id && input.resourceType ? getDraftById<FhirArtifact>(input.id, input.resourceType) : null
-  //   ),
-  // TODO: double check this lines up with above
   getDraftById: publicProcedure
     .input(z.object({ id: z.string().optional(), resourceType: z.enum(['Measure', 'Library']).optional() }))
     .query(async ({ input }) => {
@@ -64,8 +53,8 @@ export const draftRouter = router({
         body: JSON.stringify(input.draft)
       });
       if(res.status === 201){
-        // TODO: check behavior if server creates own id?
-        return { draftId: input.draft.id as string };
+        // get resultant id from location header
+        return { draftId: res.headers.get('Location')?.split('/')[2] as string };
       }
       const outcome: OperationOutcome = await res.json();
       throw new Error(`Received ${res.status} error on create:  ${outcome.issue[0].details?.text}`);
@@ -125,7 +114,7 @@ export const draftRouter = router({
             resData.children.push(e.resource);
           }
         });
-        // TODO: check functionality on return children list for notification from updated server's "remove" children implementation
+        // TODO: update to use new server-side batch delete here: https://github.com/projecttacoma/measure-repository/pull/111
         return resData;
       }
       const outcome: OperationOutcome = await res.json();
@@ -138,9 +127,9 @@ export const draftRouter = router({
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = (await raw.json()) as FhirArtifact;
-      const version = calculateVersion(resource);
+      const version = await calculateVersion(resource);
       // $clone with calculated version
-      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$clone?version=${version}`);
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$clone?version=${version}&url=${resource.url}`);
 
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();

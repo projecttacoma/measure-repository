@@ -74,7 +74,7 @@ export const serviceRouter = router({
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = (await raw.json()) as FhirArtifact;
-      const version = calculateVersion(resource);
+      const version = await calculateVersion(resource);
       // $draft with calculated version
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$draft?version=${version}`);
 
