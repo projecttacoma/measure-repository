@@ -53,7 +53,7 @@ async function fixAndPutLibraries(bundle: fhir4.Bundle, url: string) {
           ra.resource?.startsWith('http://ecqi.healthit.gov/ecqms/Library')
         ) {
           const newRef = ra.resource.replace(
-            'http://ecqi.healthit.gov/ecqms/Library',
+            'http://ecqi.healthit.gov/ecqms/Library/',
             'https://madie.cms.gov/Library/'
           );
           console.log(`    replacing ra ${ra.resource} with ${newRef}`);
