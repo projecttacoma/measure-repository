@@ -7,19 +7,19 @@ import { Bundle } from 'fhir/r4';
  * It increments the version if the artifact has one or sets it to
  * 0.0.1 if it does not
  */
-export async function calculateVersion(artifact: FhirArtifact) {
+export async function calculateVersion(resourceType: 'Library'|'Measure', url: string, version: string) {
   
   let newVersion = '0.0.1';
 
   // initial version coercion and increment
   // we can only increment artifacts whose versions are either semantic, can be coerced
   // to semantic, or are in x.x.xxx/x.xx.xxx format. Every other kind of version will become 0.0.1
-  if (artifact.version) {
-    const coerced = coerce(artifact.version);
+  if (version) {
+    const coerced = coerce(version);
     const incVersion = coerced !== null ? inc(coerced, 'patch') : null;
-    if (checkVersionFormat(artifact.version)) {
+    if (checkVersionFormat(version)) {
       // check that it is x.x.xxx/x.xx.xxx, format and increment manually
-      newVersion = incrementArtifactVersion(artifact.version);
+      newVersion = incrementArtifactVersion(version);
     } else if (incVersion !== null) {
       // if possible, coerce the version to semver, and increment
       newVersion = incVersion;
@@ -27,17 +27,17 @@ export async function calculateVersion(artifact: FhirArtifact) {
   }
 
   // subsequent version increments
-  if (artifact.url) {
+  if (url) {
     let count = 0;
     // check for existing draft with proposed version
-    let existingDraft = await getResourceByUrl(artifact.url, newVersion, artifact.resourceType);
+    let existingDraft = await getResourceByUrl(url, newVersion, resourceType);
     // only increment a limited number of times
     while (existingDraft && count < 10) {
       // increment artifact version
-      const incVersion = inc(artifact.version, 'patch');
+      const incVersion = inc(version, 'patch');
       newVersion = incVersion ?? incrementArtifactVersion(newVersion);
 
-      existingDraft = await getResourceByUrl(artifact.url, newVersion, artifact.resourceType);
+      existingDraft = await getResourceByUrl(url, newVersion, resourceType);
       count++;
     }
   }

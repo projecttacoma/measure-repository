@@ -21,15 +21,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
   });
   const ctx = trpc.useContext();
 
-  const deleteMutation = trpc.draft.deleteDraft.useMutation({
-    onSuccess: data => {
-      console.log(`Successfully delete ${data.resourceType}/${data.draftId} from the database.`);
-    },
-    onError: e => {
-      console.error(e);
-    }
-  });
-
   const releaseMutation = trpc.service.releaseParent.useMutation({
     onSuccess: data => {
       if (data.status !== 200) {

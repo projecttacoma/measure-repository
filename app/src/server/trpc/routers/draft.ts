@@ -101,20 +101,19 @@ export const draftRouter = router({
         }
       });
 
-      if(res.status === 200){
-        const resBundle: Bundle<FhirArtifact> = await res.json();
-
-        if (!resBundle.entry || resBundle.entry.length === 0) {
-          throw new Error(`No deletions found from deleting ${input.resourceType}, id ${input.id}`);
-        }
-
+      if(res.status === 204){
         const resData = { draftId: input.id, resourceType: input.resourceType, children: [] as FhirArtifact[] };
-        resBundle.entry.forEach(e => {
-          if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
-            resData.children.push(e.resource);
-          }
-        });
-        // TODO: update to use new server-side batch delete here: https://github.com/projecttacoma/measure-repository/pull/111
+
+        // TODO: update to use server-side batch delete to find child information once it returns a 200/bundle
+      //   const resBundle: Bundle<FhirArtifact> = await res.json();
+      //   if (!resBundle.entry || resBundle.entry.length === 0) {
+      //     throw new Error(`No deletions found from deleting ${input.resourceType}, id ${input.id}`);
+      //   }
+      //   resBundle.entry.forEach(e => {
+      //     if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
+      //       resData.children.push(e.resource);
+      //     }
+      //   });
         return resData;
       }
       const outcome: OperationOutcome = await res.json();
@@ -127,7 +126,7 @@ export const draftRouter = router({
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = (await raw.json()) as FhirArtifact;
-      const version = await calculateVersion(resource);
+      const version = await calculateVersion(input.resourceType, resource.url, resource.version);
       // $clone with calculated version
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$clone?version=${version}&url=${resource.url}`);
 
@@ -148,6 +147,40 @@ export const draftRouter = router({
           resData.children.push(e.resource);
         }else{
           resData.cloneId = e.resource?.id;
+        }
+      });
+      return resData;
+    }),
+
+  // passes in type, summary, and author from user (set date and target automatically)
+  reviewDraft: publicProcedure
+    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']), type: z.enum(['documentation', 'guidance', 'review']), summary: z.string(), author: z.string() }))
+    .mutation(async ({ input }) => {
+      const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const resource = (await raw.json()) as FhirArtifact;
+      const date = new Date().toISOString();
+      const canonical = `${resource.url}|${resource.version}`;
+      
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$review?reviewDate=${date}&artifactAssessmentType=${input.type}&artifactAssessmentSummary=${input.summary}&artifactAssessmentTarget=${canonical}&artifactAssessmentAuthor=${input.author}`);
+
+
+      if (res.status !== 200) {
+        const outcome: OperationOutcome = await res.json();
+        throw new Error(`Received ${res.status} error on $review:  ${outcome.issue[0].details?.text}`);
+      }
+
+      const resBundle: Bundle<FhirArtifact> = await res.json();
+
+      if (!resBundle.entry || resBundle.entry.length === 0) {
+        throw new Error(`No updated resources found from reviewing ${input.resourceType}, id ${input.id}`);
+      }
+
+      const resData = { reviewId: undefined as string|undefined, children: [] as FhirArtifact[] };
+      resBundle.entry.forEach(e => {
+        if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
+          resData.children.push(e.resource);
+        }else{
+          resData.reviewId = e.resource?.id;
         }
       });
       return resData;

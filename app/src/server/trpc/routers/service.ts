@@ -74,7 +74,7 @@ export const serviceRouter = router({
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = (await raw.json()) as FhirArtifact;
-      const version = await calculateVersion(resource);
+      const version = await calculateVersion(resource.resourceType, resource.url, resource.version);
       // $draft with calculated version
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$draft?version=${version}`);
 
@@ -126,8 +126,7 @@ export const serviceRouter = router({
           released.push({resourceType: e.resource.resourceType, id: e.resource.id});
         }
       });
-
-      // TODO: construct location for router.push from input.id (parent id) -> does a new location even makes sense??
+      
       return { location: `/${input.resourceType}/${input.id}`, released: released, status: res.status, error: null };
     })
 });
