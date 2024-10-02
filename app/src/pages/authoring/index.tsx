@@ -10,7 +10,6 @@ import {
   createStyles,
   Loader
 } from '@mantine/core';
-import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
 import { MeasureSkeleton, LibrarySkeleton } from '@/util/authoringFixtures';

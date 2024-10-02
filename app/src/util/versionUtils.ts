@@ -7,8 +7,7 @@ import { Bundle } from 'fhir/r4';
  * It increments the version if the artifact has one or sets it to
  * 0.0.1 if it does not
  */
-export async function calculateVersion(resourceType: 'Library'|'Measure', url: string, version: string) {
-  
+export async function calculateVersion(resourceType: 'Library' | 'Measure', url: string, version: string) {
   let newVersion = '0.0.1';
 
   // initial version coercion and increment
@@ -94,8 +93,7 @@ function checkVersionFormat(version: string): boolean {
 // in order to decide whether to increment the version further
 async function getResourceByUrl(url: string, version: string, resourceType: string) {
   const res = await fetch(`${process.env.MRS_SERVER}/${resourceType}?url=${url}&version=${version}`);
-  const bundle:Bundle<FhirArtifact> = await res.json();
+  const bundle: Bundle<FhirArtifact> = await res.json();
   // return first entry found in bundle
   return bundle.entry && bundle.entry.length > 0 ? bundle.entry[0].resource : null;
 }
-

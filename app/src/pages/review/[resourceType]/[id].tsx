@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Center,
-  Checkbox,
   Divider,
   Grid,
   Group,
@@ -56,11 +55,9 @@ export default function CommentPage() {
     }
   });
 
-
-  const utils = trpc.useUtils();
   // Currently we can only update draft artifact resources. TODO: should we enable active resource review?
   const resourceReview = trpc.draft.reviewDraft.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       notifications.show({
         title: 'Review successfully added!',
         message: `Review successfully added to ${resourceType}/${resourceID}`,
@@ -75,8 +72,11 @@ export default function CommentPage() {
           color: 'green'
         });
       });
-      utils.draft.getDrafts.invalidate();
-      ctx.draft.getDraftById.invalidate();
+      if (authoring) {
+        ctx.draft.getDraftById.invalidate();
+      } else {
+        ctx.service.getArtifactById.invalidate();
+      }
     },
     onError: e => {
       notifications.show({
@@ -229,15 +229,13 @@ export default function CommentPage() {
                           }
                           setIsLoading(false);
                         }, 1000);
-                        if (authoring === 'true') {
-                          resourceReview.mutate({
-                            resourceType: resourceType as ArtifactResourceType,
-                            id: resourceID as string,
-                            type: form.values.type,
-                            summary: form.values.comment,
-                            author: form.values.name
-                          });
-                        }
+                        resourceReview.mutate({
+                          resourceType: resourceType as ArtifactResourceType,
+                          id: resourceID as string,
+                          type: form.values.type,
+                          summary: form.values.comment,
+                          author: form.values.name
+                        });
                       }
                     }}
                   >

@@ -89,11 +89,15 @@ export const serviceRouter = router({
         throw new Error(`No drafts found from drafting ${input.resourceType}, id ${input.id}`);
       }
 
-      const resData = { draftId: undefined as string|undefined, children: [] as FhirArtifact[] };
+      const resData = { draftId: undefined as string | undefined, children: [] as FhirArtifact[] };
       resBundle.entry.forEach(e => {
-        if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
+        if (
+          e.resource?.extension?.find(
+            ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean
+          )
+        ) {
           resData.children.push(e.resource);
-        }else{
+        } else {
           resData.draftId = e.resource?.id;
         }
       });
@@ -103,8 +107,9 @@ export const serviceRouter = router({
   releaseParent: publicProcedure
     .input(z.object({ resourceType: z.enum(['Measure', 'Library']), id: z.string(), version: z.string() }))
     .mutation(async ({ input }) => {
-
-      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$release?releaseVersion=${input.version}&versionBehavior=force`);
+      const res = await fetch(
+        `${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$release?releaseVersion=${input.version}&versionBehavior=force`
+      );
 
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
@@ -122,11 +127,15 @@ export const serviceRouter = router({
         id: string;
       }[] = [{ resourceType: input.resourceType, id: input.id }]; //start with parent and add children
       resBundle.entry.forEach(e => {
-        if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
-          released.push({resourceType: e.resource.resourceType, id: e.resource.id});
+        if (
+          e.resource?.extension?.find(
+            ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean
+          )
+        ) {
+          released.push({ resourceType: e.resource.resourceType, id: e.resource.id });
         }
       });
-      
+
       return { location: `/${input.resourceType}/${input.id}`, released: released, status: res.status, error: null };
     })
 });

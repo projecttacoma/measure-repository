@@ -22,16 +22,16 @@ export const draftRouter = router({
     } as const;
   }),
 
-  getDrafts: publicProcedure
-    .input(z.enum(['Measure', 'Library']).optional())
-    .query(async ({ input }) => {
-      if (!input) return null;
-      const artifactBundle = await fetch(
-        `${process.env.MRS_SERVER}/${input}?status=draft`
-      ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
-      const artifactList = artifactBundle.entry?.filter(entry => entry.resource).map(entry => entry.resource as FhirArtifact);
-      return artifactList;
-    }),
+  getDrafts: publicProcedure.input(z.enum(['Measure', 'Library']).optional()).query(async ({ input }) => {
+    if (!input) return null;
+    const artifactBundle = await fetch(`${process.env.MRS_SERVER}/${input}?status=draft`).then(
+      resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
+    );
+    const artifactList = artifactBundle.entry
+      ?.filter(entry => entry.resource)
+      .map(entry => entry.resource as FhirArtifact);
+    return artifactList;
+  }),
 
   getDraftById: publicProcedure
     .input(z.object({ id: z.string().optional(), resourceType: z.enum(['Measure', 'Library']).optional() }))
@@ -47,12 +47,12 @@ export const draftRouter = router({
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json+fhir',
+          Accept: 'application/json+fhir',
           'Content-Type': 'application/json+fhir'
         },
         body: JSON.stringify(input.draft)
       });
-      if(res.status === 201){
+      if (res.status === 201) {
         // get resultant id from location header
         return { draftId: res.headers.get('Location')?.split('/')[2] as string };
       }
@@ -61,29 +61,27 @@ export const draftRouter = router({
     }),
 
   updateDraft: publicProcedure
-    .input(
-      z.object({ resourceType: z.enum(['Measure', 'Library']), values: z.any(), id: z.string() })
-    )
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), values: z.any(), id: z.string() }))
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource: FhirArtifact = await raw.json();
       resource.url = input.values.url;
-      resource.identifier = [{system: input.values.identifierSystem, value:input.values.identifierValue}];
+      resource.identifier = [{ system: input.values.identifierSystem, value: input.values.identifierValue }];
       resource.name = input.values.name;
       resource.title = input.values.title;
       resource.description = input.values.description;
-      if(input.resourceType === 'Measure'){
+      if (input.resourceType === 'Measure') {
         (resource as CRMIShareableMeasure).library = input.values.library;
       }
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`, {
         method: 'PUT',
         headers: {
-          'Accept': 'application/json+fhir',
+          Accept: 'application/json+fhir',
           'Content-Type': 'application/json+fhir'
         },
         body: JSON.stringify(resource)
       });
-      if(res.status === 200){
+      if (res.status === 200) {
         return {};
       }
       const outcome: OperationOutcome = await res.json();
@@ -96,30 +94,29 @@ export const draftRouter = router({
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`, {
         method: 'DELETE',
         headers: {
-          'Accept': 'application/json+fhir',
+          Accept: 'application/json+fhir',
           'Content-Type': 'application/json+fhir'
         }
       });
 
-      if(res.status === 204){
+      if (res.status === 204) {
         const resData = { draftId: input.id, resourceType: input.resourceType, children: [] as FhirArtifact[] };
 
         // TODO: update to use server-side batch delete to find child information once it returns a 200/bundle
-      //   const resBundle: Bundle<FhirArtifact> = await res.json();
-      //   if (!resBundle.entry || resBundle.entry.length === 0) {
-      //     throw new Error(`No deletions found from deleting ${input.resourceType}, id ${input.id}`);
-      //   }
-      //   resBundle.entry.forEach(e => {
-      //     if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
-      //       resData.children.push(e.resource);
-      //     }
-      //   });
+        //   const resBundle: Bundle<FhirArtifact> = await res.json();
+        //   if (!resBundle.entry || resBundle.entry.length === 0) {
+        //     throw new Error(`No deletions found from deleting ${input.resourceType}, id ${input.id}`);
+        //   }
+        //   resBundle.entry.forEach(e => {
+        //     if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
+        //       resData.children.push(e.resource);
+        //     }
+        //   });
         return resData;
       }
       const outcome: OperationOutcome = await res.json();
       throw new Error(`Received ${res.status} error on delete:  ${outcome.issue[0].details?.text}`);
     }),
-
 
   cloneParent: publicProcedure
     .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']) }))
@@ -128,7 +125,9 @@ export const draftRouter = router({
       const resource = (await raw.json()) as FhirArtifact;
       const version = await calculateVersion(input.resourceType, resource.url, resource.version);
       // $clone with calculated version
-      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$clone?version=${version}&url=${resource.url}`);
+      const res = await fetch(
+        `${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$clone?version=${version}&url=${resource.url}`
+      );
 
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
@@ -141,11 +140,15 @@ export const draftRouter = router({
         throw new Error(`No clones found from cloning ${input.resourceType}, id ${input.id}`);
       }
 
-      const resData = { cloneId: undefined as string|undefined, children: [] as FhirArtifact[] };
+      const resData = { cloneId: undefined as string | undefined, children: [] as FhirArtifact[] };
       resBundle.entry.forEach(e => {
-        if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
+        if (
+          e.resource?.extension?.find(
+            ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean
+          )
+        ) {
           resData.children.push(e.resource);
-        }else{
+        } else {
           resData.cloneId = e.resource?.id;
         }
       });
@@ -154,22 +157,30 @@ export const draftRouter = router({
 
   // passes in type, summary, and author from user (set date and target automatically)
   reviewDraft: publicProcedure
-    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']), type: z.string(), summary: z.string(), author: z.string() }))
+    .input(
+      z.object({
+        id: z.string(),
+        resourceType: z.enum(['Measure', 'Library']),
+        type: z.string(),
+        summary: z.string(),
+        author: z.string()
+      })
+    )
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = (await raw.json()) as FhirArtifact;
       const date = new Date().toISOString();
       const canonical = `${resource.url}|${resource.version}`;
-      
+
       const params = new URLSearchParams({
-        'reviewDate': date,
-        'artifactAssessmentType': input.type,
-        'artifactAssessmentSummary': input.summary,
-        'artifactAssessmentTarget': canonical,
-        'artifactAssessmentAuthor': input.author
+        reviewDate: date,
+        artifactAssessmentType: input.type,
+        artifactAssessmentSummary: input.summary,
+        artifactAssessmentTarget: canonical,
+        artifactAssessmentAuthor: input.author
       });
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$review?${params}`);
-    
+
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
         throw new Error(`Received ${res.status} error on $review:  ${outcome.issue[0].details?.text}`);
@@ -181,11 +192,15 @@ export const draftRouter = router({
         throw new Error(`No updated resources found from reviewing ${input.resourceType}, id ${input.id}`);
       }
 
-      const resData = { reviewId: undefined as string|undefined, children: [] as FhirArtifact[] };
+      const resData = { reviewId: undefined as string | undefined, children: [] as FhirArtifact[] };
       resBundle.entry.forEach(e => {
-        if(e.resource?.extension?.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean)){
+        if (
+          e.resource?.extension?.find(
+            ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean
+          )
+        ) {
           resData.children.push(e.resource);
-        }else{
+        } else {
           resData.reviewId = e.resource?.id;
         }
       });
