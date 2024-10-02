@@ -55,7 +55,6 @@ export default function CommentPage() {
     }
   });
 
-  // Currently we can only update draft artifact resources. TODO: should we enable active resource review?
   const resourceReview = trpc.draft.reviewDraft.useMutation({
     onSuccess: data => {
       notifications.show({
