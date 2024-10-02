@@ -363,7 +363,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
         parsedParams.artifactAssessmentSummary,
         parsedParams.artifactAssessmentTarget,
         parsedParams.artifactAssessmentRelatedArtifact,
-        parsedParams.artifactAssessmentAuthor?.reference
+        parsedParams.artifactAssessmentAuthor
       );
       if (library.extension) {
         library.extension.push(comment);
@@ -384,7 +384,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
           parsedParams.artifactAssessmentSummary,
           parsedParams.artifactAssessmentTarget,
           parsedParams.artifactAssessmentRelatedArtifact,
-          parsedParams.artifactAssessmentAuthor?.reference
+          parsedParams.artifactAssessmentAuthor
         );
         if (child.extension) {
           child.extension.push(comment);
@@ -439,7 +439,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
         parsedParams.artifactAssessmentSummary,
         parsedParams.artifactAssessmentTarget,
         parsedParams.artifactAssessmentRelatedArtifact,
-        parsedParams.artifactAssessmentAuthor?.reference
+        parsedParams.artifactAssessmentAuthor
       );
       if (library.extension) {
         library.extension.push(comment);
@@ -460,7 +460,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
           parsedParams.artifactAssessmentSummary,
           parsedParams.artifactAssessmentTarget,
           parsedParams.artifactAssessmentRelatedArtifact,
-          parsedParams.artifactAssessmentAuthor?.reference
+          parsedParams.artifactAssessmentAuthor
         );
         if (child.extension) {
           child.extension.push(comment);

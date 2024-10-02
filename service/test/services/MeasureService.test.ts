@@ -1215,18 +1215,43 @@ describe('MeasureService', () => {
           id: 'approve-parent',
           artifactAssessmentType: 'guidance',
           artifactAssessmentSummary: 'Sample summary',
-          artifactAssessmentAuthor: { reference: 'Sample Author' }
+          artifactAssessmentAuthor: 'http://example.org/fhir/Organization/123'
         })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.total).toEqual(3);
           expect(response.body.entry[0].resource.date).toBeDefined();
-          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
           expect(response.body.entry[1].resource.date).toBeDefined();
-          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
           expect(response.body.entry[2].resource.date).toBeDefined();
-          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for POST /Measure/$approve', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$approve')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'approve-parent' },
+            { name: 'artifactAssessmentType', valueCode: 'guidance' },
+            { name: 'artifactAssessmentSummary', valueString: 'Sample summary' },
+            { name: 'artifactAssessmentAuthor', valueReference: { reference: 'http://example.org/fhir/Organization/123' } }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
+          expect(response.body.entry[2].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
         });
     });
 
@@ -1387,18 +1412,43 @@ describe('MeasureService', () => {
           id: 'review-parent',
           artifactAssessmentType: 'guidance',
           artifactAssessmentSummary: 'Sample summary',
-          artifactAssessmentAuthor: { reference: 'Sample Author' }
+          artifactAssessmentAuthor: 'http://example.org/fhir/Organization/123'
         })
         .set('Accept', 'application/json+fhir')
         .expect(200)
         .then(response => {
           expect(response.body.total).toEqual(3);
           expect(response.body.entry[0].resource.date).toBeDefined();
-          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
           expect(response.body.entry[1].resource.date).toBeDefined();
-          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
           expect(response.body.entry[2].resource.date).toBeDefined();
-          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('Sample Author');
+          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
+        });
+    });
+
+    it('returns 200 status with a Bundle result containing the updated parent Measure artifact and any children it has for POST /Measure/$review', async () => {
+      await supertest(server.app)
+        .post('/4_0_1/Measure/$review')
+        .send({
+          resourceType: 'Parameters',
+          parameter: [
+            { name: 'id', valueString: 'review-parent' },
+            { name: 'artifactAssessmentType', valueCode: 'guidance' },
+            { name: 'artifactAssessmentSummary', valueString: 'Sample summary' },
+            { name: 'artifactAssessmentAuthor', valueReference: { reference: 'http://example.org/fhir/Organization/123' } }
+          ]
+        })
+        .set('content-type', 'application/fhir+json')
+        .expect(200)
+        .then(response => {
+          expect(response.body.total).toEqual(3);
+          expect(response.body.entry[0].resource.date).toBeDefined();
+          expect(response.body.entry[0].resource.extension[0].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
+          expect(response.body.entry[1].resource.date).toBeDefined();
+          expect(response.body.entry[1].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
+          expect(response.body.entry[2].resource.date).toBeDefined();
+          expect(response.body.entry[2].resource.extension[1].extension[2].valueString).toEqual('http://example.org/fhir/Organization/123');
         });
     });
 

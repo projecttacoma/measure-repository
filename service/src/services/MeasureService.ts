@@ -367,7 +367,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
         parsedParams.artifactAssessmentSummary,
         parsedParams.artifactAssessmentTarget,
         parsedParams.artifactAssessmentRelatedArtifact,
-        parsedParams.artifactAssessmentAuthor?.reference
+        parsedParams.artifactAssessmentAuthor
       );
       if (measure.extension) {
         measure.extension.push(comment);
@@ -388,7 +388,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
           parsedParams.artifactAssessmentSummary,
           parsedParams.artifactAssessmentTarget,
           parsedParams.artifactAssessmentRelatedArtifact,
-          parsedParams.artifactAssessmentAuthor?.reference
+          parsedParams.artifactAssessmentAuthor
         );
         if (child.extension) {
           child.extension.push(comment);
@@ -443,7 +443,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
         parsedParams.artifactAssessmentSummary,
         parsedParams.artifactAssessmentTarget,
         parsedParams.artifactAssessmentRelatedArtifact,
-        parsedParams.artifactAssessmentAuthor?.reference
+        parsedParams.artifactAssessmentAuthor
       );
       if (measure.extension) {
         measure.extension.push(comment);
@@ -464,7 +464,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
           parsedParams.artifactAssessmentSummary,
           parsedParams.artifactAssessmentTarget,
           parsedParams.artifactAssessmentRelatedArtifact,
-          parsedParams.artifactAssessmentAuthor?.reference
+          parsedParams.artifactAssessmentAuthor
         );
         if (child.extension) {
           child.extension.push(comment);

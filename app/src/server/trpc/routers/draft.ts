@@ -154,16 +154,22 @@ export const draftRouter = router({
 
   // passes in type, summary, and author from user (set date and target automatically)
   reviewDraft: publicProcedure
-    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']), type: z.enum(['documentation', 'guidance', 'review']), summary: z.string(), author: z.string() }))
+    .input(z.object({ id: z.string(), resourceType: z.enum(['Measure', 'Library']), type: z.string(), summary: z.string(), author: z.string() }))
     .mutation(async ({ input }) => {
       const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
       const resource = (await raw.json()) as FhirArtifact;
       const date = new Date().toISOString();
       const canonical = `${resource.url}|${resource.version}`;
       
-      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$review?reviewDate=${date}&artifactAssessmentType=${input.type}&artifactAssessmentSummary=${input.summary}&artifactAssessmentTarget=${canonical}&artifactAssessmentAuthor=${input.author}`);
-
-
+      const params = new URLSearchParams({
+        'reviewDate': date,
+        'artifactAssessmentType': input.type,
+        'artifactAssessmentSummary': input.summary,
+        'artifactAssessmentTarget': canonical,
+        'artifactAssessmentAuthor': input.author
+      });
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$review?${params}`);
+    
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
         throw new Error(`Received ${res.status} error on $review:  ${outcome.issue[0].details?.text}`);
