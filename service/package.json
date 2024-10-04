@@ -14,6 +14,7 @@
     "db:setup": "ts-node ./scripts/dbSetup.ts create",
     "db:loadBundle": "ts-node ./scripts/dbSetup.ts loadBundle",
     "db:postBundle": "ts-node ./scripts/dbSetup.ts postBundle",
+    "db:loadEcqmContent": "ts-node ./scripts/dbSetup.ts loadEcqmContent",
     "lint": "eslint \"./src/**/*.{js,ts}\"",
     "lint:fix": "eslint \"./src/**/*.{js,ts}\" --fix",
     "prettier": "prettier --check \"./src/**/*.{js,ts}\"",
