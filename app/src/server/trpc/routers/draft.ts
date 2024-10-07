@@ -5,7 +5,7 @@ import { Bundle, OperationOutcome } from 'fhir/r4';
 import { calculateVersion } from '@/util/versionUtils';
 
 /**
- * Endpoints dealing with outgoing calls to the central measure repository service to handle draft measures
+ * Endpoints dealing with outgoing calls to the central measure repository service to handle draft artifacts
  */
 export const draftRouter = router({
   getDraftCounts: publicProcedure.query(async () => {
@@ -13,7 +13,7 @@ export const draftRouter = router({
       fetch(`${process.env.MRS_SERVER}/Measure?_summary=count&status=draft`),
       fetch(`${process.env.MRS_SERVER}/Library?_summary=count&status=draft`)
     ]).then(([resMeasure, resLibrary]) =>
-      Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
+      Promise.all([resMeasure.json() as Promise<Bundle>, resLibrary.json() as Promise<Bundle>])
     );
 
     return {
@@ -25,7 +25,7 @@ export const draftRouter = router({
   getDrafts: publicProcedure.input(z.enum(['Measure', 'Library']).optional()).query(async ({ input }) => {
     if (!input) return null;
     const artifactBundle = await fetch(`${process.env.MRS_SERVER}/${input}?status=draft`).then(
-      resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>
+      resArtifacts => resArtifacts.json() as Promise<Bundle<FhirArtifact>>
     );
     const artifactList = artifactBundle.entry
       ?.filter(entry => entry.resource)
@@ -57,7 +57,7 @@ export const draftRouter = router({
         return { draftId: res.headers.get('Location')?.split('/')[2] as string };
       }
       const outcome: OperationOutcome = await res.json();
-      throw new Error(`Received ${res.status} error on create:  ${outcome.issue[0].details?.text}`);
+      throw new Error(`Received ${res.status} error on create: ${outcome.issue[0].details?.text}`);
     }),
 
   updateDraft: publicProcedure
@@ -85,7 +85,7 @@ export const draftRouter = router({
         return {};
       }
       const outcome: OperationOutcome = await res.json();
-      throw new Error(`Received ${res.status} error on update:  ${outcome.issue[0].details?.text}`);
+      throw new Error(`Received ${res.status} error on update: ${outcome.issue[0].details?.text}`);
     }),
 
   deleteDraft: publicProcedure
@@ -115,7 +115,7 @@ export const draftRouter = router({
         return resData;
       }
       const outcome: OperationOutcome = await res.json();
-      throw new Error(`Received ${res.status} error on delete:  ${outcome.issue[0].details?.text}`);
+      throw new Error(`Received ${res.status} error on delete: ${outcome.issue[0].details?.text}`);
     }),
 
   cloneParent: publicProcedure
@@ -131,7 +131,7 @@ export const draftRouter = router({
 
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
-        throw new Error(`Received ${res.status} error on $clone:  ${outcome.issue[0].details?.text}`);
+        throw new Error(`Received ${res.status} error on $clone: ${outcome.issue[0].details?.text}`);
       }
 
       const resBundle: Bundle<FhirArtifact> = await res.json();

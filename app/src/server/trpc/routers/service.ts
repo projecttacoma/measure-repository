@@ -6,7 +6,7 @@ import { Bundle, OperationOutcome } from 'fhir/r4';
 import { calculateVersion } from '@/util/versionUtils';
 
 /**
- * Endpoints dealing with outgoing calls to the central measure repository service to handle active measures
+ * Endpoints dealing with outgoing calls to the central measure repository service to handle active artifacts
  */
 export const serviceRouter = router({
   getPublicUrl: publicProcedure.query(async () => {
@@ -18,7 +18,7 @@ export const serviceRouter = router({
       fetch(`${process.env.MRS_SERVER}/Measure?_summary=count&status=active`),
       fetch(`${process.env.MRS_SERVER}/Library?_summary=count&status=active`)
     ]).then(([resMeasure, resLibrary]) =>
-      Promise.all([resMeasure.json() as Promise<fhir4.Bundle>, resLibrary.json() as Promise<fhir4.Bundle>])
+      Promise.all([resMeasure.json() as Promise<Bundle>, resLibrary.json() as Promise<Bundle>])
     );
 
     return {
@@ -32,7 +32,7 @@ export const serviceRouter = router({
     .query(async ({ input }) => {
       const artifactBundle = await fetch(
         `${process.env.MRS_SERVER}/${input.resourceType}?_elements=id,name,extension,version&status=active`
-      ).then(resArtifacts => resArtifacts.json() as Promise<fhir4.Bundle<FhirArtifact>>);
+      ).then(resArtifacts => resArtifacts.json() as Promise<Bundle<FhirArtifact>>);
       const artifactList = artifactBundle.entry?.map(entry => ({
         label:
           entry.resource?.name?.concat(`|${entry.resource.version}`) ||
@@ -80,7 +80,7 @@ export const serviceRouter = router({
 
       if (res.status !== 200) {
         const outcome: OperationOutcome = await res.json();
-        throw new Error(`Received ${res.status} error on $draft:  ${outcome.issue[0].details?.text}`);
+        throw new Error(`Received ${res.status} error on $draft: ${outcome.issue[0].details?.text}`);
       }
 
       const resBundle: Bundle<FhirArtifact> = await res.json();

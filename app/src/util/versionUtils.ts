@@ -89,8 +89,10 @@ function checkVersionFormat(version: string): boolean {
   return format.test(version);
 }
 
-// a function to check if the given url/version/resourceType exists on the server
-// in order to decide whether to increment the version further
+/**
+ * A function to check if the given url/version/resourceType exists on the server
+ * in order to decide whether to increment the version further
+ */
 async function getResourceByUrl(url: string, version: string, resourceType: string) {
   const res = await fetch(`${process.env.MRS_SERVER}/${resourceType}?url=${url}&version=${version}`);
   const bundle: Bundle<FhirArtifact> = await res.json();
