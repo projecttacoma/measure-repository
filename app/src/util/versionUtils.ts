@@ -1,74 +1,46 @@
 import { coerce, inc } from 'semver';
 import { FhirArtifact } from './types/fhir';
-import { v4 as uuidv4 } from 'uuid';
-import { getDraftByUrl } from '@/server/db/dbOperations';
+import { Bundle } from 'fhir/r4';
 
 /**
- * Helper function that takes an artifact and returns it with a new id,
- * draft status, and increments the version if it has one or sets it to
+ * Helper function that returns the new version for an artifact.
+ * It increments the version if the artifact has one or sets it to
  * 0.0.1 if it does not
  */
-export async function modifyResource(artifact: FhirArtifact, action: string) {
-  artifact.id = uuidv4();
-  if (action === 'draft') {
-    artifact.status = 'draft';
-  }
-
-  let count = 0;
+export async function calculateVersion(resourceType: 'Library' | 'Measure', url: string, version: string) {
+  let newVersion = '0.0.1';
 
   // initial version coercion and increment
   // we can only increment artifacts whose versions are either semantic, can be coerced
   // to semantic, or are in x.x.xxx/x.xx.xxx format. Every other kind of version will become 0.0.1
-  if (artifact.version) {
-    const coerced = coerce(artifact.version);
+  if (version) {
+    const coerced = coerce(version);
     const incVersion = coerced !== null ? inc(coerced, 'patch') : null;
-    if (checkVersionFormat(artifact.version)) {
+    if (checkVersionFormat(version)) {
       // check that it is x.x.xxx/x.xx.xxx, format and increment manually
-      artifact.version = incrementArtifactVersion(artifact.version);
+      newVersion = incrementArtifactVersion(version);
     } else if (incVersion !== null) {
       // if possible, coerce the version to semver, and increment
-      artifact.version = incVersion;
-    } else {
-      // if it cannot be coerced and is not x.x.xxx/x.xx.xxx format, then set to 0.0.1
-      artifact.version = '0.0.1';
+      newVersion = incVersion;
     }
   }
 
   // subsequent version increments
-  if (artifact.url) {
+  if (url) {
+    let count = 0;
     // check for existing draft with proposed version
-    let existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
+    let existingDraft = await getResourceByUrl(url, newVersion, resourceType);
     // only increment a limited number of times
     while (existingDraft && count < 10) {
       // increment artifact version
-      const incVersion = inc(artifact.version, 'patch');
-      artifact.version = incVersion ?? incrementArtifactVersion(artifact.version);
+      const incVersion = inc(version, 'patch');
+      newVersion = incVersion ?? incrementArtifactVersion(newVersion);
 
-      existingDraft = await getDraftByUrl(artifact.url, artifact.version, artifact.resourceType);
+      existingDraft = await getResourceByUrl(url, newVersion, resourceType);
       count++;
     }
   }
-
-  if (artifact.relatedArtifact) {
-    artifact.relatedArtifact.forEach(ra => {
-      if (
-        ra.type === 'composed-of' &&
-        ra.resource &&
-        ra.extension?.some(
-          e => e.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && e.valueBoolean === true
-        )
-      ) {
-        const url = ra.resource.split('|')[0];
-        let version = ra.resource.split('|')[1];
-        while (count !== 0) {
-          version = incrementArtifactVersion(version);
-          count--;
-        }
-        ra.resource = url + '|' + incrementArtifactVersion(version);
-      }
-    });
-  }
-  return artifact;
+  return newVersion;
 }
 
 /**
@@ -115,4 +87,15 @@ function checkVersionFormat(version: string): boolean {
   const format = /^\d\.\d{1,2}\.\d{3}$/;
 
   return format.test(version);
+}
+
+/**
+ * A function to check if the given url/version/resourceType exists on the server
+ * in order to decide whether to increment the version further
+ */
+async function getResourceByUrl(url: string, version: string, resourceType: string) {
+  const res = await fetch(`${process.env.MRS_SERVER}/${resourceType}?url=${url}&version=${version}`);
+  const bundle: Bundle<FhirArtifact> = await res.json();
+  // return first entry found in bundle
+  return bundle.entry && bundle.entry.length > 0 ? bundle.entry[0].resource : null;
 }

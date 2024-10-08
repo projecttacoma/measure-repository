@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Center,
-  Checkbox,
   Divider,
   Grid,
   Group,
@@ -29,19 +28,12 @@ import { isNotEmpty, useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import ArtifactTimeline from '@/components/ArtifactTimeline';
 
-interface DraftArtifactUpdates {
-  extension?: fhir4.Extension[];
-  date?: string;
-  lastReviewDate?: string;
-}
-
 /**
  * Component which renders a page that displays the JSON data of a resource. Also will eventually
  *  provide the user with the ability to make review comments and visualize previous review comments.
  */
 export default function CommentPage() {
   const ctx = trpc.useContext();
-  const [dateSelected, setDateSelected] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,8 +46,7 @@ export default function CommentPage() {
     initialValues: {
       type: '',
       comment: '',
-      name: '',
-      date: ''
+      name: ''
     },
     // An error will be thrown if these fields aren't entered properly
     validate: {
@@ -64,21 +55,32 @@ export default function CommentPage() {
     }
   });
 
-  // Currently we can only update draft artifact resources.
-  const resourceUpdate = trpc.draft.updateDraft.useMutation({
-    onSuccess: () => {
+  const resourceReview = trpc.draft.reviewDraft.useMutation({
+    onSuccess: data => {
       notifications.show({
-        title: 'Comment Successfully added!',
-        message: `Comment Successfully added to ${resourceType}/${resourceID}`,
+        title: 'Review successfully added!',
+        message: `Review successfully added to ${resourceType}/${resourceID}`,
         icon: <CircleCheck />,
         color: 'green'
       });
-      ctx.draft.getDraftById.invalidate();
+      data.children.forEach(c => {
+        notifications.show({
+          title: 'Review successfully added!',
+          message: `Draft of child ${resourceType} artifact of url ${c.url} successfully reviewed`,
+          icon: <CircleCheck />,
+          color: 'green'
+        });
+      });
+      if (authoring) {
+        ctx.draft.getDraftById.invalidate();
+      } else {
+        ctx.service.getArtifactById.invalidate();
+      }
     },
     onError: e => {
       notifications.show({
-        title: 'Update Failed!',
-        message: `Attempt to update ${resourceType} failed with message: ${e.message}`,
+        title: 'Review Failed!',
+        message: `Attempt to review ${resourceType} failed with message: ${e.message}`,
         icon: <AlertCircle />,
         color: 'red'
       });
@@ -97,47 +99,6 @@ export default function CommentPage() {
         resourceType: resourceType as ArtifactResourceType
       });
     }
-  }
-
-  function parseUpdate(comment: string, type: string, userName: string, dateSelected: boolean) {
-    const additions: DraftArtifactUpdates = {};
-    const deletions: DraftArtifactUpdates = {};
-    const currentDate = new Date().toISOString();
-
-    const newExtension: fhir4.Extension[] = [];
-    newExtension.push({ url: 'type', valueCode: type }, { url: 'text', valueMarkdown: comment });
-
-    if (userName !== '') {
-      newExtension.push({ url: 'user', valueString: userName });
-    }
-    if (dateSelected === true) {
-      newExtension.push({ url: 'authoredOn', valueDateTime: currentDate });
-    }
-
-    if (resource) {
-      if (resource.extension) {
-        resource.extension.push({
-          extension: newExtension,
-          url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-        });
-        additions.extension = resource.extension;
-      } else {
-        resource.extension = [
-          {
-            extension: newExtension,
-            url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-artifactComment'
-          }
-        ];
-        additions.extension = resource.extension;
-      }
-
-      // update resource dates
-      resource.date = currentDate;
-      additions.date = resource.date;
-      resource.lastReviewDate = currentDate;
-      additions.lastReviewDate = resource.lastReviewDate;
-    }
-    return [additions, deletions];
   }
 
   return (
@@ -249,18 +210,7 @@ export default function CommentPage() {
                 />
                 <Space h="md" />
                 <Group grow>
-                  <TextInput radius="lg" label="Endorser Name" placeholder="Name" {...form.getInputProps('name')} />
-                  <Checkbox
-                    ref={ref}
-                    id="checkbox"
-                    color="white"
-                    mt="md"
-                    label="Include Date in Comment"
-                    {...form.getInputProps('date')}
-                    onChange={() => {
-                      setDateSelected(!dateSelected);
-                    }}
-                  />
+                  <TextInput radius="lg" label="Endorser URI" placeholder="URI" {...form.getInputProps('name')} />
                   <Space h="md" />
                 </Group>
                 <Space h="md" />
@@ -272,27 +222,19 @@ export default function CommentPage() {
                       if (form.isValid()) {
                         setIsLoading(true);
                         setTimeout(() => {
-                          setDateSelected(false);
                           form.reset();
                           if (ref?.current?.checked) {
                             ref.current.checked = false;
                           }
                           setIsLoading(false);
                         }, 1000);
-                        if (authoring === 'true') {
-                          const [additions, deletions] = parseUpdate(
-                            form.values.comment,
-                            form.values.type,
-                            form.values.name,
-                            dateSelected
-                          );
-                          resourceUpdate.mutate({
-                            resourceType: resourceType as ArtifactResourceType,
-                            id: resourceID as string,
-                            additions: additions,
-                            deletions: deletions
-                          });
-                        }
+                        resourceReview.mutate({
+                          resourceType: resourceType as ArtifactResourceType,
+                          id: resourceID as string,
+                          type: form.values.type,
+                          summary: form.values.comment,
+                          author: form.values.name
+                        });
                       }
                     }}
                   >

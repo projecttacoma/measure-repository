@@ -10,7 +10,6 @@ import {
   createStyles,
   Loader
 } from '@mantine/core';
-import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { trpc } from '../../util/trpc';
 import { MeasureSkeleton, LibrarySkeleton } from '@/util/authoringFixtures';
@@ -109,8 +108,8 @@ export default function AuthoringPage() {
   });
 
   const createResource = () => {
+    // TODO: randomize skeleton url or increment draft version so a user can make a number of skeleton drafts without having a url/version conflict
     const newResource = resourceType === 'Measure' ? { ...MeasureSkeleton } : { ...LibrarySkeleton };
-    newResource.id = uuidv4();
     draftMutation.mutate({ resourceType, draft: newResource });
   };
 

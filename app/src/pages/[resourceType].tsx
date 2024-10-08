@@ -53,7 +53,9 @@ export const getServerSideProps: GetServerSideProps<{
   const checkedResourceType = resourceType as ArtifactResourceType;
 
   // Fetch resource data with the _elements parameter so we only get the elements that we need
-  const res = await fetch(`${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,identifier,name,url,version`);
+  const res = await fetch(
+    `${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,identifier,name,url,version&status=active`
+  );
   const bundle = (await res.json()) as fhir4.Bundle<FhirArtifact>;
   if (!bundle.entry) {
     // Measure Repository should not provide a bundle without an entry

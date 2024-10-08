@@ -205,7 +205,9 @@ export const ApproveArgs = z
     artifactAssessmentSummary: z.string().optional(),
     artifactAssessmentTarget: checkUri.optional(),
     artifactAssessmentRelatedArtifact: checkUri.optional(),
-    artifactAssessmentAuthor: z.object({ reference: z.string() }).optional()
+    artifactAssessmentAuthor: z
+      .union([z.object({ reference: z.string() }).transform(val => val.reference), z.string()])
+      .optional() //object from POST or string from GET (this may be overly permissive of string in POST parameters)
   })
   .strict()
   .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));
@@ -220,7 +222,9 @@ export const ReviewArgs = z
     artifactAssessmentSummary: z.string().optional(),
     artifactAssessmentTarget: checkUri.optional(),
     artifactAssessmentRelatedArtifact: checkUri.optional(),
-    artifactAssessmentAuthor: z.object({ reference: z.string() }).optional()
+    artifactAssessmentAuthor: z
+      .union([z.object({ reference: z.string() }).transform(val => val.reference), z.string()])
+      .optional() //object from POST or string from GET (this may be overly permissive of string in POST parameters)
   })
   .strict()
   .superRefine(catchInvalidParams([catchMissingId, catchMissingTypeAndSummary]));

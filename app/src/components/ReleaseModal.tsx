@@ -21,15 +21,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
   });
   const ctx = trpc.useContext();
 
-  const deleteMutation = trpc.draft.deleteDraft.useMutation({
-    onSuccess: data => {
-      console.log(`Successfully delete ${data.resourceType}/${data.draftId} from the database.`);
-    },
-    onError: e => {
-      console.error(e);
-    }
-  });
-
   const releaseMutation = trpc.service.releaseParent.useMutation({
     onSuccess: data => {
       if (data.status !== 200) {
@@ -49,10 +40,10 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           color: 'red'
         });
       } else {
-        data.deletable?.forEach(d => {
+        data.released?.forEach(r => {
           notifications.show({
-            title: `Draft ${d.resourceType} released!`,
-            message: `Draft ${d.resourceType}/${d.id} successfully released to the Publishable Measure Repository!`,
+            title: `Draft ${r.resourceType} released!`,
+            message: `Draft ${r.resourceType}/${r.id} successfully released!`,
             icon: <CircleCheck />,
             color: 'green'
           });
@@ -60,13 +51,6 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         ctx.draft.getDraftCounts.invalidate();
         ctx.draft.getDrafts.invalidate();
         router.push(data.location);
-
-        data.deletable?.forEach(d => {
-          deleteMutation.mutate({
-            resourceType: d.resourceType,
-            id: d.id
-          });
-        });
       }
       onClose();
     }
