@@ -514,7 +514,8 @@ describe('MeasureService', () => {
           title: 'updated',
           url: 'http://example.com/exampleId',
           version: '1',
-          description: 'Sample description'
+          description: 'Sample description',
+          date: '2025-01-01T00:00:00.000Z'
         })
         .set('content-type', 'application/json+fhir')
         .expect(200)
