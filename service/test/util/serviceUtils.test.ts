@@ -1,4 +1,4 @@
-import { CRMIShareableLibrary } from '../../src/types/service-types';
+import { CRMIRepositoryLibrary } from '../../src/types/service-types';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
 import { getChildren, modifyResourcesForDraft } from '../../src/util/serviceUtils';
 
@@ -15,7 +15,7 @@ const PARENT_RELATED_ARTIFACTS: fhir4.RelatedArtifact[] = [
   }
 ];
 
-const CHILD_LIBRARY_1: CRMIShareableLibrary = {
+const CHILD_LIBRARY_1: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   status: 'active',
   type: { coding: [{ code: 'logic-library' }] },
@@ -30,6 +30,7 @@ const CHILD_LIBRARY_1: CRMIShareableLibrary = {
   version: '1',
   title: 'Child Library 1',
   description: 'Child Library 1 description',
+  date: '2025-01-01T00:00:00.000Z',
   relatedArtifact: [
     {
       type: 'composed-of',
@@ -44,7 +45,7 @@ const CHILD_LIBRARY_1: CRMIShareableLibrary = {
   ]
 };
 
-const CHILD_LIBRARY_2: CRMIShareableLibrary = {
+const CHILD_LIBRARY_2: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   status: 'active',
   type: { coding: [{ code: 'logic-library' }] },
@@ -58,7 +59,8 @@ const CHILD_LIBRARY_2: CRMIShareableLibrary = {
   url: 'http://child-library-2.com',
   version: '1',
   title: 'Child Library 2',
-  description: 'Child Library 2 description'
+  description: 'Child Library 2 description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 describe('serviceUtils', () => {

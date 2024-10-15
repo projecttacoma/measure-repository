@@ -8,19 +8,21 @@ import {
   getQueryFromReference
 } from '../../src/util/bundleUtils';
 import { cleanUpTestDatabase, setupTestDatabase } from '../utils';
-import { CRMIShareableLibrary, CRMIShareableMeasure } from '../../src/types/service-types';
+import { CRMIRepositoryLibrary, CRMIRepositoryMeasure } from '../../src/types/service-types';
 
 const LIBRARY_BASE = {
   type: { coding: [{ code: 'logic-library' }] },
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 const MEASURE_BASE = {
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 const MOCK_VS_1: fhir4.ValueSet = {
@@ -41,7 +43,7 @@ const MOCK_VS_3: fhir4.ValueSet = {
   url: 'http://example.com/ValueSet/4'
 };
 
-const LIB_WITH_NO_DEPS: CRMIShareableLibrary = {
+const LIB_WITH_NO_DEPS: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'LibWithNoDeps',
   url: 'http://example.com/LibraryWithNoDeps',
@@ -49,7 +51,7 @@ const LIB_WITH_NO_DEPS: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIB_WITH_DEPS: CRMIShareableLibrary = {
+const LIB_WITH_DEPS: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'LibraryWithDeps',
   url: 'http://example.com/LibraryWithDeps',
@@ -71,10 +73,11 @@ const LIB_WITH_DEPS: CRMIShareableLibrary = {
     }
   ],
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
-const LIB_WITH_VALUESET: CRMIShareableLibrary = {
+const LIB_WITH_VALUESET: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'LibraryWithValueSet',
   url: 'http://example.com/LibraryWithVS',
@@ -96,7 +99,7 @@ const LIB_WITH_VALUESET: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIB_WITH_EXTRA_VALUESET: CRMIShareableLibrary = {
+const LIB_WITH_EXTRA_VALUESET: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'LibraryWithExtraValueSet',
   url: 'http://example.com/LibraryWithExtraVS',
@@ -110,7 +113,7 @@ const LIB_WITH_EXTRA_VALUESET: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIB_WITH_MISSING_DEPS: CRMIShareableLibrary = {
+const LIB_WITH_MISSING_DEPS: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'LibraryWithMissingDeps',
   url: 'http://example.com/LibraryWithMissingDeps',
@@ -124,7 +127,7 @@ const LIB_WITH_MISSING_DEPS: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const MEASURE_WITH_MISSING_LIBRARY: CRMIShareableMeasure = {
+const MEASURE_WITH_MISSING_LIBRARY: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'MeasureMissingLib',
   url: 'http://example.com/MeasureMissingLib',
@@ -133,7 +136,7 @@ const MEASURE_WITH_MISSING_LIBRARY: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_NO_LIBRARY: CRMIShareableMeasure = {
+const MEASURE_WITH_NO_LIBRARY: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'MeasureNoLib',
   url: 'http://example.com/MeasureNoLib',
@@ -142,7 +145,7 @@ const MEASURE_WITH_NO_LIBRARY: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_LIBRARY: CRMIShareableMeasure = {
+const MEASURE_WITH_LIBRARY: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'MeasureWithLib',
   url: 'http://example.com/MeasureWithLib',

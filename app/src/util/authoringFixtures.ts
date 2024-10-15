@@ -1,16 +1,17 @@
-import { CRMIShareableLibrary, CRMIShareableMeasure } from './types/fhir';
+import { CRMIRepositoryLibrary, CRMIRepositoryMeasure } from './types/fhir';
 
-export const MeasureSkeleton: CRMIShareableMeasure = {
+export const MeasureSkeleton: CRMIRepositoryMeasure = {
   id: 'tempMeasureId',
   resourceType: 'Measure',
   status: 'draft',
   version: '0.0.1',
   url: 'http://example.com',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
-export const LibrarySkeleton: CRMIShareableLibrary = {
+export const LibrarySkeleton: CRMIRepositoryLibrary = {
   id: 'tempLibraryId',
   resourceType: 'Library',
   status: 'draft',
@@ -24,5 +25,6 @@ export const LibrarySkeleton: CRMIShareableLibrary = {
   },
   url: 'http://example.com',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };

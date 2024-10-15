@@ -17,7 +17,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { CRMIShareableLibrary, FhirArtifact } from '@/util/types/fhir';
+import { CRMIRepositoryLibrary, FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
@@ -299,7 +299,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
  */
 function decode(link: string, jsonData: FhirArtifact) {
   if (jsonData.resourceType === 'Measure') return null;
-  const encodedLanguage = (jsonData as CRMIShareableLibrary).content?.find(e => e.contentType === link)?.data;
+  const encodedLanguage = (jsonData as CRMIRepositoryLibrary).content?.find(e => e.contentType === link)?.data;
   return encodedLanguage ? Buffer.from(encodedLanguage, 'base64').toString() : null;
 }
 

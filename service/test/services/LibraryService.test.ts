@@ -3,7 +3,7 @@ import { serverConfig } from '../../src/config/serverConfig';
 import { cleanUpTestDatabase, setupTestDatabase, createTestResource, removeTestResource } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
-import { CRMIShareableLibrary } from '../../src/types/service-types';
+import { CRMIRepositoryLibrary } from '../../src/types/service-types';
 
 let server: Server;
 
@@ -11,10 +11,11 @@ const LIBRARY_BASE = {
   type: { coding: [{ code: 'logic-library' }] },
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
-const ACTIVE_LIBRARY: CRMIShareableLibrary = {
+const ACTIVE_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibrary',
   url: 'http://example.com/testActiveLibrary',
@@ -23,7 +24,7 @@ const ACTIVE_LIBRARY: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const ACTIVE_LIBRARY_2: CRMIShareableLibrary = {
+const ACTIVE_LIBRARY_2: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibrary2',
   url: 'http://example.com/testActiveLibrary2',
@@ -32,7 +33,7 @@ const ACTIVE_LIBRARY_2: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const ACTIVE_LIBRARY_NO_NAME: CRMIShareableLibrary = {
+const ACTIVE_LIBRARY_NO_NAME: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibrary',
   url: 'http://example.com/testActiveLibrary',
@@ -48,7 +49,7 @@ const ACTIVE_LIBRARY_NO_NAME: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const NEW_ACTIVE_LIBRARY: CRMIShareableLibrary = {
+const NEW_ACTIVE_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'newTestActiveLibrary',
   url: 'http://example.com/newTestActiveLibrary',
@@ -56,7 +57,7 @@ const NEW_ACTIVE_LIBRARY: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const DRAFT_LIBRARY: CRMIShareableLibrary = {
+const DRAFT_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testDraftLibrary',
   url: 'http://example.com/testDraftLibrary',
@@ -64,7 +65,7 @@ const DRAFT_LIBRARY: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const DRAFT_LIBRARY_2: CRMIShareableLibrary = {
+const DRAFT_LIBRARY_2: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testDraftLibrary2',
   url: 'http://example.com/testDraftLibrary2',
@@ -72,7 +73,7 @@ const DRAFT_LIBRARY_2: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_IDENTIFIER_VALUE: CRMIShareableLibrary = {
+const LIBRARY_WITH_IDENTIFIER_VALUE: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'libraryWithIdentifierValue',
   url: 'http://example.com/libraryWithIdentifierValue',
@@ -81,7 +82,7 @@ const LIBRARY_WITH_IDENTIFIER_VALUE: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_IDENTIFIER_SYSTEM: CRMIShareableLibrary = {
+const LIBRARY_WITH_IDENTIFIER_SYSTEM: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'libraryWithIdentifierSystem',
   url: 'http://example.com/libraryWithIdentifierSystem',
@@ -90,7 +91,7 @@ const LIBRARY_WITH_IDENTIFIER_SYSTEM: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE: CRMIShareableLibrary = {
+const LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'libraryWithIdentifierSystemAndValue',
   url: 'http://example.com/libraryWithIdentifierSystemAndValue',
@@ -101,7 +102,7 @@ const LIBRARY_WITH_IDENTIFIER_SYSTEM_AND_VALUE: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_DEPS: CRMIShareableLibrary = {
+const LIBRARY_WITH_DEPS: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibraryWithDeps',
   url: 'http://example.com/testActiveLibraryWithDeps',
@@ -115,7 +116,7 @@ const LIBRARY_WITH_DEPS: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_NESTED_DEPS: CRMIShareableLibrary = {
+const LIBRARY_WITH_NESTED_DEPS: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibraryWithDeps2',
   url: 'http://example.com/testActiveLibraryWithDeps2',
@@ -124,6 +125,7 @@ const LIBRARY_WITH_NESTED_DEPS: CRMIShareableLibrary = {
   type: { coding: [{ code: 'logic-library' }] },
   title: 'Sample title',
   description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z',
   relatedArtifact: [
     {
       type: 'depends-on',
@@ -132,7 +134,7 @@ const LIBRARY_WITH_NESTED_DEPS: CRMIShareableLibrary = {
   ]
 };
 
-const LIBRARY_WITH_SAME_SYSTEM: CRMIShareableLibrary = {
+const LIBRARY_WITH_SAME_SYSTEM: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'libraryWithSameSystem',
   url: 'http://example.com/libraryWithSameSystem',
@@ -141,7 +143,7 @@ const LIBRARY_WITH_SAME_SYSTEM: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const LIBRARY_WITH_SAME_SYSTEM2: CRMIShareableLibrary = {
+const LIBRARY_WITH_SAME_SYSTEM2: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'libraryWithSameSystem2',
   url: 'http://example.com/libraryWithSameSystem2',
@@ -150,7 +152,7 @@ const LIBRARY_WITH_SAME_SYSTEM2: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const PARENT_ACTIVE_LIBRARY: CRMIShareableLibrary = {
+const PARENT_ACTIVE_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'parentLibrary',
   url: 'http://parent-library.com',
@@ -170,7 +172,7 @@ const PARENT_ACTIVE_LIBRARY: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
+const CHILD_ACTIVE_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'childLibrary',
   url: 'http://child-library.com',
@@ -1610,7 +1612,8 @@ describe('LibraryService', () => {
           type: { coding: [{ code: 'logic-library' }] },
           version: 'collision', //collision version
           title: 'Sample title',
-          description: 'Sample description'
+          description: 'Sample description',
+          date: '2025-01-01T00:00:00.000Z'
         },
         'Library'
       );

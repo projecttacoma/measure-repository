@@ -8,7 +8,7 @@ import { PackageArgs } from '../requestSchemas';
 import fs from 'fs';
 import { getMongoQueryFromRequest } from './queryUtils';
 import { z } from 'zod';
-import { CRMIShareableLibrary, CRMIShareableMeasure, FhirArtifact } from '../types/service-types';
+import { CRMIRepositoryLibrary, CRMIRepositoryMeasure, FhirArtifact } from '../types/service-types';
 
 const logger = loggers.get('default');
 
@@ -134,7 +134,7 @@ export async function createMeasurePackageBundle(
   params: z.infer<typeof PackageArgs>
 ): Promise<fhir4.Bundle<FhirArtifact>> {
   const mongoQuery = getMongoQueryFromRequest(query);
-  const measure = (await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure')).data;
+  const measure = (await findResourcesWithQuery<CRMIRepositoryMeasure>(mongoQuery, 'Measure')).data;
   if (!measure || !(measure.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Measure, with ${Object.keys(query)
@@ -156,7 +156,7 @@ export async function createMeasurePackageBundle(
   if (measureForPackaging.library && measureForPackaging.library.length > 0) {
     const [mainLibraryRef] = measureForPackaging.library;
     const mainLibQuery = getQueryFromReference(mainLibraryRef);
-    const libs = (await findResourcesWithQuery<CRMIShareableLibrary>(mainLibQuery, 'Library')).data;
+    const libs = (await findResourcesWithQuery<CRMIRepositoryLibrary>(mainLibQuery, 'Library')).data;
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(
         `Could not find Library ${mainLibraryRef} referenced by Measure ${measureForPackaging.id}`
@@ -182,7 +182,7 @@ export async function createLibraryPackageBundle(
   params: z.infer<typeof PackageArgs>
 ): Promise<{ libraryBundle: fhir4.Bundle<FhirArtifact>; rootLibRef?: string }> {
   const mongoQuery = getMongoQueryFromRequest(query);
-  const library = (await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library')).data;
+  const library = (await findResourcesWithQuery<CRMIRepositoryLibrary>(mongoQuery, 'Library')).data;
   if (!library || !(library.length > 0)) {
     throw new ResourceNotFoundError(
       `No resource found in collection: Library, with ${Object.keys(query)
@@ -217,7 +217,7 @@ export async function createLibraryPackageBundle(
  * and returns a bundle of all the dependent libraries
  */
 export async function createDepLibraryBundle(
-  mainLib: CRMIShareableLibrary,
+  mainLib: CRMIRepositoryLibrary,
   includeTerminology?: boolean
 ): Promise<fhir4.Bundle<FhirArtifact>> {
   const allLibsDups = await getAllDependentLibraries(mainLib);
@@ -252,7 +252,7 @@ export function getQueryFromReference(reference: string): Filter<any> {
   }
 }
 
-function hasNoDependencies(lib: CRMIShareableLibrary) {
+function hasNoDependencies(lib: CRMIRepositoryLibrary) {
   return !lib.relatedArtifact || (Array.isArray(lib.relatedArtifact) && lib.relatedArtifact.length === 0);
 }
 
@@ -260,7 +260,7 @@ function hasNoDependencies(lib: CRMIShareableLibrary) {
  * Resolves ValueSets listed in the relatedArtifact property of a library
  * Optionally uses a file-system cache to grab ValueSets that have been resolved previously
  */
-export async function getDependentValueSets(lib: CRMIShareableLibrary, useFileCache = true) {
+export async function getDependentValueSets(lib: CRMIRepositoryLibrary, useFileCache = true) {
   if (hasNoDependencies(lib)) {
     return [];
   }
@@ -337,7 +337,7 @@ export async function getDependentValueSets(lib: CRMIShareableLibrary, useFileCa
 /*
  * Updates the bundle entry array in-place to include any resolved ValueSets
  */
-async function addValueSetsToBundle(rootLibrary: CRMIShareableLibrary, currentBundle: fhir4.Bundle) {
+async function addValueSetsToBundle(rootLibrary: CRMIRepositoryLibrary, currentBundle: fhir4.Bundle) {
   const valueSets = await getDependentValueSets(rootLibrary);
 
   currentBundle.entry?.push(
@@ -350,7 +350,7 @@ async function addValueSetsToBundle(rootLibrary: CRMIShareableLibrary, currentBu
 /**
  * Iterate through relatedArtifact of library and return list of all dependent libraries used
  */
-export async function getAllDependentLibraries(lib: CRMIShareableLibrary): Promise<CRMIShareableLibrary[]> {
+export async function getAllDependentLibraries(lib: CRMIRepositoryLibrary): Promise<CRMIRepositoryLibrary[]> {
   logger.debug(`Retrieving all dependent libraries for library: ${lib.id}`);
   const results = [lib];
 
@@ -366,7 +366,7 @@ export async function getAllDependentLibraries(lib: CRMIShareableLibrary): Promi
   // Obtain all libraries referenced in the related artifact, and recurse on their dependencies
   const libraryGets = depLibUrls.map(async url => {
     const libQuery = getQueryFromReference(url);
-    const libs = (await findResourcesWithQuery<CRMIShareableLibrary>(libQuery, 'Library')).data;
+    const libs = (await findResourcesWithQuery<CRMIRepositoryLibrary>(libQuery, 'Library')).data;
     if (!libs || libs.length < 1) {
       throw new ResourceNotFoundError(
         `Failed to find dependent library with ${
@@ -374,7 +374,7 @@ export async function getAllDependentLibraries(lib: CRMIShareableLibrary): Promi
         }${libQuery.version ? ` and version: ${libQuery.version}` : ''}`
       );
     }
-    return getAllDependentLibraries(libs[0] as CRMIShareableLibrary);
+    return getAllDependentLibraries(libs[0] as CRMIRepositoryLibrary);
   });
 
   const allDeps = await Promise.all(libraryGets);

@@ -3,7 +3,7 @@ import { serverConfig } from '../../src/config/serverConfig';
 import { cleanUpTestDatabase, createTestResource, removeTestResource, setupTestDatabase } from '../utils';
 import supertest from 'supertest';
 import { Calculator } from 'fqm-execution';
-import { CRMIShareableLibrary, CRMIShareableMeasure } from '../../src/types/service-types';
+import { CRMIRepositoryLibrary, CRMIRepositoryMeasure } from '../../src/types/service-types';
 
 let server: Server;
 // boiler plate required fields
@@ -11,16 +11,18 @@ const LIBRARY_BASE = {
   type: { coding: [{ code: 'logic-library' }] },
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 const MEASURE_BASE = {
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
-const ACTIVE_MEASURE: CRMIShareableMeasure = {
+const ACTIVE_MEASURE: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testActiveMeasure',
   url: 'http://example.com/testActiveMeasure',
@@ -28,7 +30,7 @@ const ACTIVE_MEASURE: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const EXTRA_ACTIVE_MEASURE: CRMIShareableMeasure = {
+const EXTRA_ACTIVE_MEASURE: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testExtraActiveMeasure',
   url: 'http://example.com/testExtraActiveMeasure',
@@ -36,7 +38,7 @@ const EXTRA_ACTIVE_MEASURE: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const ACTIVE_MEASURE_2: CRMIShareableMeasure = {
+const ACTIVE_MEASURE_2: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testActiveMeasure2',
   url: 'http://example.com/testActiveMeasure2',
@@ -44,7 +46,7 @@ const ACTIVE_MEASURE_2: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const ACTIVE_MEASURE_NO_NAME: CRMIShareableMeasure = {
+const ACTIVE_MEASURE_NO_NAME: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testActiveMeasure',
   url: 'http://example.com/testActiveMeasure',
@@ -60,7 +62,7 @@ const ACTIVE_MEASURE_NO_NAME: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const NEW_ACTIVE_MEASURE: CRMIShareableMeasure = {
+const NEW_ACTIVE_MEASURE: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'newTestActiveMeasure',
   url: 'http://example.com/newTestActiveMeasure',
@@ -68,7 +70,7 @@ const NEW_ACTIVE_MEASURE: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const DRAFT_MEASURE: CRMIShareableMeasure = {
+const DRAFT_MEASURE: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testDraftMeasure',
   url: 'http://example.com/testDraftMeasure',
@@ -76,7 +78,7 @@ const DRAFT_MEASURE: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: CRMIShareableMeasure = {
+const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'measureWithIdentifierValueRootLib',
   url: 'http://example.com/measureWithIdentifierValueRootLib',
@@ -86,7 +88,7 @@ const MEASURE_WITH_IDENTIFIER_VALUE_ROOT_LIB: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: CRMIShareableMeasure = {
+const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'measureWithIdentifierSystemRootLib',
   url: 'http://example.com/measureWithIdentifierSystemRootLib',
@@ -96,7 +98,7 @@ const MEASURE_WITH_IDENTIFIER_SYSTEM_ROOT_LIB: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: CRMIShareableMeasure = {
+const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'measureWithIdentifierSystemAndValueRootLib',
   url: 'http://example.com/measureWithIdentifierSystemAndValueRootLib',
@@ -111,7 +113,7 @@ const MEASURE_WITH_IDENTIFIER_SYSTEM_AND_VALUE_ROOT_LIB: CRMIShareableMeasure = 
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_ROOT_LIB: CRMIShareableMeasure = {
+const MEASURE_WITH_ROOT_LIB: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testMeasureWithRootLib',
   url: 'http://example.com/testMeasureWithRootLib',
@@ -120,7 +122,7 @@ const MEASURE_WITH_ROOT_LIB: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const MEASURE_WITH_ROOT_LIB_AND_DEPS: CRMIShareableMeasure = {
+const MEASURE_WITH_ROOT_LIB_AND_DEPS: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   id: 'testMeasureWithRootLibAndDeps',
   url: 'http://example.com/testMeasureWithRootLibAndDeps',
@@ -129,7 +131,7 @@ const MEASURE_WITH_ROOT_LIB_AND_DEPS: CRMIShareableMeasure = {
   ...MEASURE_BASE
 };
 
-const ACTIVE_LIBRARY: CRMIShareableLibrary = {
+const ACTIVE_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibraryWithNoDeps',
   url: 'http://example.com/testActiveLibraryWithNoDeps',
@@ -137,7 +139,7 @@ const ACTIVE_LIBRARY: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const ACTIVE_LIBRARY_WITH_DEPS: CRMIShareableLibrary = {
+const ACTIVE_LIBRARY_WITH_DEPS: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'testActiveLibraryWithDeps',
   url: 'http://example.com/testActiveLibraryWithDeps',
@@ -151,7 +153,7 @@ const ACTIVE_LIBRARY_WITH_DEPS: CRMIShareableLibrary = {
   ...LIBRARY_BASE
 };
 
-const PARENT_ACTIVE_MEASURE: CRMIShareableMeasure = {
+const PARENT_ACTIVE_MEASURE: CRMIRepositoryMeasure = {
   resourceType: 'Measure',
   status: 'active',
   id: 'parentMeasure',
@@ -170,10 +172,11 @@ const PARENT_ACTIVE_MEASURE: CRMIShareableMeasure = {
   url: 'http://parent-measure.com',
   version: '1',
   description: 'Example description',
-  title: 'Parent Active Measure'
+  title: 'Parent Active Measure',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
-const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
+const CHILD_ACTIVE_LIBRARY: CRMIRepositoryLibrary = {
   resourceType: 'Library',
   id: 'childLibrary',
   type: { coding: [{ code: 'logic-library' }] },
@@ -187,7 +190,8 @@ const CHILD_ACTIVE_LIBRARY: CRMIShareableLibrary = {
   version: '1',
   url: 'http://child-library.com',
   description: 'Example description',
-  title: 'Child Active Library'
+  title: 'Child Active Library',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 describe('MeasureService', () => {
@@ -284,7 +288,7 @@ describe('MeasureService', () => {
         .then(response => {
           expect(response.body.resourceType).toEqual('Bundle');
           expect(response.body.total).toEqual(1);
-          expect(response.body.entry[0].resource).toEqual(ACTIVE_MEASURE_NO_NAME);
+          expect(response.body.entry[0].resource).toEqual(ACTIVE_MEASURE_NO_NAME);//
         });
     });
 
@@ -1158,7 +1162,8 @@ describe('MeasureService', () => {
           ],
           version: '1',
           description: 'Example description',
-          title: 'Parent Active Measure'
+          title: 'Parent Active Measure',
+          date: '2025-01-01T00:00:00.000Z'
         },
         'Measure'
       );
@@ -1355,7 +1360,8 @@ describe('MeasureService', () => {
           ],
           version: '1',
           description: 'Example description',
-          title: 'Parent Active Measure'
+          title: 'Parent Active Measure',
+          date: '2025-01-01T00:00:00.000Z'
         },
         'Measure'
       );
@@ -1716,7 +1722,8 @@ describe('MeasureService', () => {
           status: 'draft',
           version: 'collision', //collision version
           title: 'Sample title',
-          description: 'Sample description'
+          description: 'Sample description',
+          date: '2025-01-01T00:00:00.000Z'
         },
         'Measure'
       );

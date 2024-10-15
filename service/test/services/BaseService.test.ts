@@ -137,7 +137,8 @@ const LIBRARY_BASE = {
   type: { coding: [{ code: 'logic-library' }] },
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 describe('BaseService', () => {
