@@ -39,6 +39,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   const utils = trpc.useUtils();
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
   const [isCloneConfirmationModalOpen, setIsCloneConfirmationModalOpen] = useState(false);
+  const authoringEnvironment = trpc.service.getAuthoring.useQuery();
 
   const successNotification = (resourceType: string, childArtifact: boolean, action: string, idOrUrl?: string) => {
     let message;
@@ -180,19 +181,24 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 </ActionIcon>
               </Tooltip>
             </Link>
-            <Link
-              href={{
-                pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
-                query: { authoring: `${authoring}` }
-              }}
-            >
-              <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
-                <ActionIcon radius="md" size="md" variant="subtle" color="blue">
-                  <Report size="24" />
-                </ActionIcon>
-              </Tooltip>
-            </Link>
+            {authoringEnvironment.data ? (
+              <Link
+                href={{
+                  pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
+                  query: { authoring: `${authoring}` }
+                }}
+              >
+                <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
+                  <ActionIcon radius="md" size="md" variant="subtle" color="blue">
+                    <Report size="24" />
+                  </ActionIcon>
+                </Tooltip>
+              </Link>
+            ) : (
+              <></>
+            )}
             {authoring &&
+              authoringEnvironment &&
               (resourceInfo.isChild ? (
                 <Group>
                   <Tooltip label={'Child artifacts cannot be directly cloned'}>

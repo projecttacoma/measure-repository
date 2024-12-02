@@ -50,6 +50,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
 
   const ctx = trpc.useContext();
   const router = useRouter();
+  const authoring = trpc.service.getAuthoring.useQuery();
 
   // Overwrite Prism with our custom Prism that includes CQL as a language
   useEffect(() => {
@@ -150,31 +151,36 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     <div>
       <Stack spacing="xs">
         <div>
-          <Group position="apart">
-            <Text size="xl" color="gray">
-              {jsonData.resourceType}/{jsonData.id}
-            </Text>
-            {!!jsonData?.extension?.find(
-              ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
-            ) ? (
-              <Tooltip label="Child artifacts cannot be directly drafted">
-                <span>
-                  <Button w={240} loading={draftFromArtifactMutation.isLoading} disabled={true}>
-                    Create Draft of {jsonData.resourceType}
-                  </Button>
-                </span>
-              </Tooltip>
-            ) : (
-              <Button
-                w={240}
-                loading={draftFromArtifactMutation.isLoading}
-                onClick={createDraftOfArtifact}
-                disabled={false}
-              >
-                Create Draft of {jsonData.resourceType}
-              </Button>
-            )}
-          </Group>
+          {authoring.data ? (
+            <Group position="apart">
+              <Text size="xl" color="gray">
+                {jsonData.resourceType}/{jsonData.id}
+              </Text>
+              {!!jsonData?.extension?.find(
+                ext =>
+                  ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
+              ) ? (
+                <Tooltip label="Child artifacts cannot be directly drafted">
+                  <span>
+                    <Button w={240} loading={draftFromArtifactMutation.isLoading} disabled={true}>
+                      Create Draft of {jsonData.resourceType}
+                    </Button>
+                  </span>
+                </Tooltip>
+              ) : (
+                <Button
+                  w={240}
+                  loading={draftFromArtifactMutation.isLoading}
+                  onClick={createDraftOfArtifact}
+                  disabled={false}
+                >
+                  Create Draft of {jsonData.resourceType}
+                </Button>
+              )}
+            </Group>
+          ) : (
+            <></>
+          )}
         </div>
         <Divider my="sm" pb={6} />
         <Tabs variant="outline" defaultValue="json" value={activeTab} onTabChange={setActiveTab}>

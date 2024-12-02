@@ -1,5 +1,5 @@
 import { trpc } from '@/util/trpc';
-import { Button, Center, Divider, Grid, Group, Paper, Select, Stack, Text, Tooltip } from '@mantine/core';
+import { Button, Center, Divider, Grid, Group, Paper, Select, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
@@ -99,6 +99,15 @@ export default function ResourceAuthoringPage() {
       setLibrary(resource.library[0]);
     }
   }, [resource]);
+
+  const authoring = trpc.service.getAuthoring.useQuery();
+  if (!authoring.data) {
+    return (
+      <Center>
+        <Title> Authoring Unavailable </Title>
+      </Center>
+    );
+  }
 
   const resourceUpdate = trpc.draft.updateDraft.useMutation({
     onSuccess: () => {

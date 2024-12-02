@@ -13,6 +13,16 @@ export const serviceRouter = router({
     return process.env.PUBLIC_MRS_SERVER;
   }),
 
+  getAuthoring: publicProcedure.query(async () => {
+    // get authoring environment based on capability statement
+    const res = await fetch(`${process.env.MRS_SERVER}/metadata`);
+    const capabilityStatement = res.status === 200 ? ((await res.json()) as fhir4.CapabilityStatement) : null;
+    //defaults to publishable if capability statement cannot be resolved
+    return !!capabilityStatement?.instantiates?.includes(
+      'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/authoring-measure-repository'
+    );
+  }),
+
   getArtifactCounts: publicProcedure.query(async () => {
     const [measureBundle, libraryBundle] = await Promise.all([
       fetch(`${process.env.MRS_SERVER}/Measure?_summary=count&status=active`),
