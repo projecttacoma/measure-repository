@@ -38,6 +38,15 @@ export default function AuthoringPage() {
   const { classes } = useStyles();
   const router = useRouter();
 
+  const authoring = trpc.service.getAuthoring.useQuery();
+  if (!authoring.data) {
+    return (
+      <Center>
+        <Title> Authoring Unavailable </Title>
+      </Center>
+    );
+  }
+
   const successNotification = (
     resourceType: string,
     createdFromArtifact: boolean,

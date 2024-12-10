@@ -41,6 +41,7 @@ const useStyles = createStyles(theme => ({
 function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const { classes } = useStyles();
+  const authoring = trpc.service.getAuthoring.useQuery();
 
   return (
     <>
@@ -139,17 +140,21 @@ function App({ Component, pageProps }: AppProps) {
                     Repository
                   </Text>
                 </Link>
-                <Link href="/authoring">
-                  <Text
-                    c={
-                      router.asPath.endsWith(`authoring=true`) || router.pathname.startsWith('/authoring')
-                        ? 'orange.3'
-                        : 'gray.4'
-                    }
-                  >
-                    Authoring
-                  </Text>
-                </Link>
+                {authoring.data ? (
+                  <Link href="/authoring">
+                    <Text
+                      c={
+                        router.asPath.endsWith(`authoring=true`) || router.pathname.startsWith('/authoring')
+                          ? 'orange.3'
+                          : 'gray.4'
+                      }
+                    >
+                      Authoring
+                    </Text>
+                  </Link>
+                ) : (
+                  <> </>
+                )}
               </Group>
             </Header>
           }

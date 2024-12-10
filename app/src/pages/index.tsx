@@ -58,7 +58,7 @@ export default function Home({
         <Anchor href="http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html">
           FHIR Measure Repository Service
         </Anchor>{' '}
-        with Measure and Library authoring capabilities. See the{' '}
+        with Measure and Library management capabilities. See the{' '}
         <Anchor href="https://github.com/projecttacoma/measure-repository/blob/main/README.md">
           Measure Repository README
         </Anchor>{' '}
@@ -70,7 +70,16 @@ export default function Home({
         <Anchor href={`${serviceUri}/metadata`}>{`${serviceUri}/metadata`}</Anchor>
       </div>
       <Divider my="sm" variant="dotted" />
-      <Title order={2}>Service Capabilities:</Title>
+      <Title order={2}>
+        {!capabilityStatement
+          ? ''
+          : capabilityStatement.instantiates?.includes(
+              'http://hl7.org/fhir/us/cqfmeasures/CapabilityStatement/authoring-measure-repository'
+            )
+          ? 'Authoring '
+          : 'Publishable '}
+        Service Capabilities:
+      </Title>
       <div style={{ marginTop: '18px', marginBottom: '18px' }}>{renderCapabilityTable()}</div>
       <Center>
         <Group>

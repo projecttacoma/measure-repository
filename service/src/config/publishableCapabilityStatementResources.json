@@ -1,0 +1,327 @@
+{
+  "mode": "server",
+  "resource": [
+    {
+      "type": "Library",
+      "profile": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablelibrary",
+      "supportedProfile": [
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablelibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablelibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-executablelibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-moduledefinitionlibrary",
+        "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-manifestlibrary"
+      ],
+      "interaction": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "read",
+          "documentation": "Read allows clients to get the definitions and details of repository libraries"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "search-type",
+          "documentation": "Search allows clients to search for repository libraries"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "create",
+          "documentation": "Create allows authoring workflows to post new libraries in _draft_ (**submit**) or _active_ (**publish**) status."
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "update",
+          "documentation": "Update allows authoring workflows to update existing libraries in _draft_ (**revise**) status, add comments to existing libraries (**review** and **approve**), and **release** or **retire** a library."
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "delete",
+          "documentation": "Delete allows authoring workflows to **withdraw** _draft_ libraries or **archive** _retired_ libraries."
+        }
+      ],
+      "searchParam": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "url",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-url",
+          "type": "uri"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "version",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-version",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "identifier",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-identifier",
+          "type": "token"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "name",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-name",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "title",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-title",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "description",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-description",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "status",
+          "definition": "http://hl7.org/fhir/SearchParameter/Library-status",
+          "type": "token"
+        }
+      ],
+      "operation": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "cqfm-package",
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "data-requirements",
+          "definition": "https://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Library-data-requirements"
+        }
+      ]
+    }, 
+    {
+      "type": "Measure",
+      "profile": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablemeasure",
+      "supportedProfile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablemeasure"],
+      "interaction": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "read",
+          "documentation": "Read allows clients to get the definitions and details of repository measures"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "search-type",
+          "documentation": "Search allows clients to search for repository measures"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "create",
+          "documentation": "Create allows authoring workflows to post new measures in _draft_ (**submit**) or _active_ (**publish**) status."
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "update",
+          "documentation": "Update allows authoring workflows to update existing measures in _draft_ (**revise**) status, add comments to existing measures (**review** and **approve**), and **release** or **retire** a measure."
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "code": "delete",
+          "documentation": "Delete allows authoring workflows to **withdraw** _draft_ measures or **archive** _retired_ measures."
+        }
+      ],
+      "searchParam": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "url",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-url",
+          "type": "uri"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "version",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-version",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "identifier",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-identifier",
+          "type": "token"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "name",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-name",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "title",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-title",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "description",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-description",
+          "type": "string"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "status",
+          "definition": "http://hl7.org/fhir/SearchParameter/Measure-status",
+          "type": "token"
+        }
+      ],
+      "operation": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "cqfm-package",
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/cqfm-package"
+        },
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+              "valueCode": "SHALL"
+            }
+          ],
+          "name": "data-requirements",
+          "definition": "http://hl7.org/fhir/us/cqfmeasures/OperationDefinition/Measure-data-requirements"
+        }
+      ]
+    }
+  ]
+}

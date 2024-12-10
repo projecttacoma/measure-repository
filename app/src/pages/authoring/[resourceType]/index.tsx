@@ -1,5 +1,5 @@
 import { trpc } from '@/util/trpc';
-import { Center, Text, Divider } from '@mantine/core';
+import { Center, Text, Divider, Title } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { ArtifactResourceType, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
@@ -15,6 +15,15 @@ export default function ResourceAuthoringPage() {
   const resourceCardContent: ResourceInfo[] = useMemo(() => {
     return (artifacts ?? []).map(a => extractResourceInfo(a));
   }, [artifacts]);
+
+  const authoring = trpc.service.getAuthoring.useQuery();
+  if (!authoring.data) {
+    return (
+      <Center>
+        <Title> Authoring Unavailable </Title>
+      </Center>
+    );
+  }
 
   return (
     <div>

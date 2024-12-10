@@ -115,7 +115,7 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
       requestParams.push({ name: 'version', value: version });
     }
     const query = requestParams.filter(si => si.value !== '').map(si => si.name + '=' + si.value);
-    return query.length !== 0 ? `?${query.join('&')}` : '';
+    return query.length !== 0 ? `?status=active&${query.join('&')}` : '?status=active';
   };
 
   return (
