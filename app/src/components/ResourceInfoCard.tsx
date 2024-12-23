@@ -13,7 +13,7 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { IconEdit, IconSquareArrowRight, IconTrash, IconAlertCircle, IconCircleCheck, IconMessage, IconCopy, IconMessageCheck } from '@tabler/icons-react';
+import { IconEdit, IconSquareArrowRight, IconTrash, IconAlertCircle, IconCircleCheck, IconMessage, IconCopy } from '@tabler/icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
 import ConfirmationModal from './ConfirmationModal';
@@ -182,32 +182,18 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               </Tooltip>
             </Link>
             {authoringEnvironment.data ? (
-              <Group>
               <Link
-                href={{
-                  pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
-                  query: { authoring: `${authoring}` }
-                }}
-              >
-                <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
-                  <ActionIcon radius="md" size="md" variant="subtle" color="blue">
-                    <IconMessage size="24" />
-                  </ActionIcon>
-                </Tooltip>
-              </Link>
-              <Link
-                href={{
-                  pathname: `/approve/${resourceInfo.resourceType}/${resourceInfo.id}`,
-                  query: { authoring: `${authoring}` }
-                }}
-              >
-                <Tooltip label={authoring ? 'Approve Draft Resource' : 'Approve Resource'} openDelay={1000}>
-                  <ActionIcon radius="md" size="md" variant="subtle" color="green">
-                    <IconMessageCheck size="24" />
-                  </ActionIcon>
-                </Tooltip>
-              </Link>
-              </Group>
+              href={{
+                pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
+                query: { authoring: `${authoring}` }
+              }}
+            >
+              <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
+                <ActionIcon radius="md" size="md" variant="subtle" color="blue">
+                  <IconMessage size="24" />
+                </ActionIcon>
+              </Tooltip>
+            </Link>
               
             ) : (
               <></>

@@ -205,5 +205,57 @@ export const draftRouter = router({
         }
       });
       return resData;
+    }),
+
+  // passes in type, summary, and author from user (set date and target automatically)
+  approveDraft: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        resourceType: z.enum(['Measure', 'Library']),
+        type: z.string(),
+        summary: z.string(),
+        author: z.string()
+      })
+    )
+    .mutation(async ({ input }) => {
+      const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const resource = (await raw.json()) as FhirArtifact;
+      const date = new Date().toISOString();
+      const canonical = `${resource.url}|${resource.version}`;
+
+      const params = new URLSearchParams({
+        approvalDate: date,
+        artifactAssessmentType: input.type,
+        artifactAssessmentSummary: input.summary,
+        artifactAssessmentTarget: canonical,
+        artifactAssessmentAuthor: input.author
+      });
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$approve?${params}`);
+
+      if (res.status !== 200) {
+        const outcome: OperationOutcome = await res.json();
+        throw new Error(`Received ${res.status} error on $approve:  ${outcome.issue[0].details?.text}`);
+      }
+
+      const resBundle: Bundle<FhirArtifact> = await res.json();
+
+      if (!resBundle.entry || resBundle.entry.length === 0) {
+        throw new Error(`No updated resources found from approving ${input.resourceType}, id ${input.id}`);
+      }
+
+      const resData = { approveId: undefined as string | undefined, children: [] as FhirArtifact[] };
+      resBundle.entry.forEach(e => {
+        if (
+          e.resource?.extension?.find(
+            ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean
+          )
+        ) {
+          resData.children.push(e.resource);
+        } else {
+          resData.approveId = e.resource?.id;
+        }
+      });
+      return resData;
     })
 });

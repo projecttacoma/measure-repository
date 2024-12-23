@@ -87,6 +87,38 @@ export default function CommentPage() {
     }
   });
 
+  const resourceApprove = trpc.draft.approveDraft.useMutation({
+    onSuccess: data => {
+      notifications.show({
+        title: 'Approval successfully added!',
+        message: `Approval successfully added to ${resourceType}/${resourceID}`,
+        icon: <IconCircleCheck />,
+        color: 'green'
+      });
+      data.children.forEach(c => {
+        notifications.show({
+          title: 'Approval successfully added!',
+          message: `Draft of child ${resourceType} artifact of url ${c.url} successfully approved`,
+          icon: <IconCircleCheck />,
+          color: 'green'
+        });
+      });
+      if (authoring) {
+        ctx.draft.getDraftById.invalidate();
+      } else {
+        ctx.service.getArtifactById.invalidate();
+      }
+    },
+    onError: e => {
+      notifications.show({
+        title: 'Approval Failed!',
+        message: `Attempt to approve ${resourceType} failed with message: ${e.message}`,
+        icon: <IconAlertCircle />,
+        color: 'red'
+      });
+    }
+  });
+
   function getResource() {
     if (authoring === 'true') {
       return trpc.draft.getDraftById.useQuery({
@@ -238,7 +270,33 @@ export default function CommentPage() {
                       }
                     }}
                   >
-                    Submit
+                    Review
+                  </Button>
+                  <Button
+                    loading={isLoading}
+                    type="submit"
+                    color='green'
+                    onClick={() => {
+                      if (form.isValid()) {
+                        setIsLoading(true);
+                        setTimeout(() => {
+                          form.reset();
+                          if (ref?.current?.checked) {
+                            ref.current.checked = false;
+                          }
+                          setIsLoading(false);
+                        }, 1000);
+                        resourceApprove.mutate({
+                          resourceType: resourceType as ArtifactResourceType,
+                          id: resourceID as string,
+                          type: form.values.type,
+                          summary: form.values.comment,
+                          author: form.values.name
+                        });
+                      }
+                    }}
+                  >
+                    Approve
                   </Button>
                 </Group>
               </Box>
