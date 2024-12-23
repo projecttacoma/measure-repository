@@ -172,13 +172,20 @@ export const draftRouter = router({
       const date = new Date().toISOString();
       const canonical = `${resource.url}|${resource.version}`;
 
-      const params = new URLSearchParams({
-        reviewDate: date,
-        artifactAssessmentType: input.type,
-        artifactAssessmentSummary: input.summary,
-        artifactAssessmentTarget: canonical,
-        artifactAssessmentAuthor: input.author
-      });
+      let params;
+      if (input.type && input.summary) {
+        params = new URLSearchParams({
+          reviewDate: date,
+          artifactAssessmentType: input.type,
+          artifactAssessmentSummary: input.summary,
+          artifactAssessmentTarget: canonical,
+          artifactAssessmentAuthor: input.author
+        });
+      } else {
+        params = new URLSearchParams({
+          reviewDate: date
+        });
+      }
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$review?${params}`);
 
       if (res.status !== 200) {
@@ -224,13 +231,20 @@ export const draftRouter = router({
       const date = new Date().toISOString();
       const canonical = `${resource.url}|${resource.version}`;
 
-      const params = new URLSearchParams({
-        approvalDate: date,
-        artifactAssessmentType: input.type,
-        artifactAssessmentSummary: input.summary,
-        artifactAssessmentTarget: canonical,
-        artifactAssessmentAuthor: input.author
-      });
+      let params;
+      if (input.type && input.summary) {
+        params = new URLSearchParams({
+          approvalDate: date,
+          artifactAssessmentType: input.type,
+          artifactAssessmentSummary: input.summary,
+          artifactAssessmentTarget: canonical,
+          artifactAssessmentAuthor: input.author
+        });
+      } else {
+        params = new URLSearchParams({
+          approvalDate: date
+        });
+      }
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$approve?${params}`);
 
       if (res.status !== 200) {

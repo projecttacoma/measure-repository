@@ -27,6 +27,7 @@ import { IconAlertCircle, IconCircleCheck, IconInfoCircle, IconStar } from '@tab
 import { isNotEmpty, useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import ArtifactTimeline from '@/components/ArtifactTimeline';
+import { isEmpty, trim } from 'lodash';
 
 /**
  * Component which renders a page that displays the JSON data of a resource. Also will eventually
@@ -49,9 +50,16 @@ export default function CommentPage() {
       name: ''
     },
     // An error will be thrown if these fields aren't entered properly
+    // Type and comment are required unless all are empty
     validate: {
-      type: isNotEmpty('Select the type of comment'),
-      comment: isNotEmpty('Enter artifact comment')
+      type: (value, values) =>
+        (isEmpty(trim(value)) && isEmpty(trim(values.comment)) && isEmpty(trim(values.name))) || !isEmpty(trim(value))
+          ? null
+          : 'Type is required for any comment input.',
+      comment: (value, values) =>
+        (isEmpty(trim(value)) && isEmpty(trim(values.type)) && isEmpty(trim(values.name))) || !isEmpty(trim(value))
+          ? null
+          : 'Artifact comment text is required for any comment input.'
     }
   });
 
@@ -173,9 +181,7 @@ export default function CommentPage() {
                     radius="lg"
                     label={
                       <Group spacing="lg">
-                        <Text>
-                          Comment Type <span style={{ color: 'red' }}>*</span>
-                        </Text>
+                        <Text>Comment Type</Text>
                         <HoverCard width={420} shadow="md" withArrow openDelay={200} closeDelay={200}>
                           <HoverCard.Target>
                             <div>
@@ -237,7 +243,6 @@ export default function CommentPage() {
                   placeholder="Your Artifact comment"
                   label="Artifact Comment"
                   description="Add a comment to the artifact"
-                  withAsterisk
                   {...form.getInputProps('comment')}
                 />
                 <Space h="md" />
@@ -275,7 +280,7 @@ export default function CommentPage() {
                   <Button
                     loading={isLoading}
                     type="submit"
-                    color='green'
+                    color="green"
                     onClick={() => {
                       if (form.isValid()) {
                         setIsLoading(true);
