@@ -15,7 +15,7 @@ import { trpc } from '../../util/trpc';
 import { MeasureSkeleton, LibrarySkeleton } from '@/util/authoringFixtures';
 import { useRouter } from 'next/router';
 import { notifications } from '@mantine/notifications';
-import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 
 const useStyles = createStyles(() => ({
@@ -64,7 +64,7 @@ export default function AuthoringPage() {
     notifications.show({
       title: `${resourceType} Created!`,
       message: message,
-      icon: <CircleCheck />,
+      icon: <IconCircleCheck />,
       color: 'green'
     });
     utils.draft.getDraftCounts.invalidate();
@@ -88,7 +88,7 @@ export default function AuthoringPage() {
     notifications.show({
       title: `${resourceType} Creation Failed!`,
       message: message,
-      icon: <AlertCircle />,
+      icon: <IconAlertCircle />,
       color: 'red'
     });
   };

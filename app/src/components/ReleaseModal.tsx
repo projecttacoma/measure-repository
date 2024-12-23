@@ -2,7 +2,7 @@ import { trpc } from '@/util/trpc';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import { Button, Center, Group, Modal, Stack, Text, Tooltip } from '@mantine/core';
 import { useRouter } from 'next/router';
-import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
+import { IconAlertCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 
 export interface ReleaseModalProps {
@@ -28,7 +28,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         notifications.show({
           title: `Release Failed!`,
           message: `Server unable to process request. ${data.error ?? ''}`,
-          icon: <AlertCircle />,
+          icon: <IconAlertCircle />,
           color: 'red'
         });
       } else if (!data.location) {
@@ -36,7 +36,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
         notifications.show({
           title: `Release Failed!`,
           message: `No resource location exists for draft artifact`,
-          icon: <AlertCircle />,
+          icon: <IconAlertCircle />,
           color: 'red'
         });
       } else {
@@ -44,7 +44,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
           notifications.show({
             title: `Draft ${r.resourceType} released!`,
             message: `Draft ${r.resourceType}/${r.id} successfully released!`,
-            icon: <CircleCheck />,
+            icon: <IconCircleCheck />,
             color: 'green'
           });
         });
@@ -79,7 +79,7 @@ export default function ReleaseModal({ open = true, onClose, id, resourceType }:
               label="Releasing a draft artifact changes the artifact's status from 'draft' to 'active' and sends the artifact to the Publishable Measure Repository. This action also deletes this draft artifact from the Authoring Measure Repository."
             >
               <div>
-                <InfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
+                <IconInfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
               </div>
             </Tooltip>
           </Group>

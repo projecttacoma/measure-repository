@@ -13,7 +13,7 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { ResourceInfo } from '@/util/types/fhir';
-import { Edit, SquareArrowRight, Trash, AlertCircle, CircleCheck, Report, Copy } from 'tabler-icons-react';
+import { IconEdit, IconSquareArrowRight, IconTrash, IconAlertCircle, IconCircleCheck, IconMessage, IconCopy, IconMessageCheck } from '@tabler/icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
 import ConfirmationModal from './ConfirmationModal';
@@ -53,7 +53,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
     notifications.show({
       title: `${resourceType} ${action === 'delete' ? 'Deleted' : 'Cloned'}!`,
       message: message,
-      icon: <CircleCheck />,
+      icon: <IconCircleCheck />,
       color: 'green'
     });
     utils.draft.getDraftCounts.invalidate();
@@ -75,7 +75,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
     notifications.show({
       title: `${resourceType} ${action === 'delete' ? 'Deletion' : 'Clone'} Failed!`,
       message: message,
-      icon: <AlertCircle />,
+      icon: <IconAlertCircle />,
       color: 'red'
     });
   };
@@ -177,11 +177,12 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
             >
               <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
                 <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-                  {authoring ? <Edit size="24" /> : <SquareArrowRight size="24" />}
+                  {authoring ? <IconEdit size="24" /> : <IconSquareArrowRight size="24" />}
                 </ActionIcon>
               </Tooltip>
             </Link>
             {authoringEnvironment.data ? (
+              <Group>
               <Link
                 href={{
                   pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
@@ -190,10 +191,24 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               >
                 <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
                   <ActionIcon radius="md" size="md" variant="subtle" color="blue">
-                    <Report size="24" />
+                    <IconMessage size="24" />
                   </ActionIcon>
                 </Tooltip>
               </Link>
+              <Link
+                href={{
+                  pathname: `/approve/${resourceInfo.resourceType}/${resourceInfo.id}`,
+                  query: { authoring: `${authoring}` }
+                }}
+              >
+                <Tooltip label={authoring ? 'Approve Draft Resource' : 'Approve Resource'} openDelay={1000}>
+                  <ActionIcon radius="md" size="md" variant="subtle" color="green">
+                    <IconMessageCheck size="24" />
+                  </ActionIcon>
+                </Tooltip>
+              </Link>
+              </Group>
+              
             ) : (
               <></>
             )}
@@ -204,14 +219,14 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                   <Tooltip label={'Child artifacts cannot be directly cloned'}>
                     <span>
                       <ActionIcon radius="md" size="md" disabled={true}>
-                        <Copy size="24" />
+                        <IconCopy size="24" />
                       </ActionIcon>
                     </span>
                   </Tooltip>
                   <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
                     <span>
                       <ActionIcon radius="md" size="md" disabled={true}>
-                        <Trash size="24" />
+                        <IconTrash size="24" />
                       </ActionIcon>
                     </span>
                   </Tooltip>
@@ -223,10 +238,10 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                       radius="md"
                       size="md"
                       variant="subtle"
-                      color="green"
+                      color="yellow"
                       onClick={() => setIsCloneConfirmationModalOpen(true)}
                     >
-                      <Copy size="24" />
+                      <IconCopy size="24" />
                     </ActionIcon>
                   </Tooltip>
                   <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
@@ -237,7 +252,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                       color="red"
                       onClick={() => setIsDeleteConfirmationModalOpen(true)}
                     >
-                      <Trash size="24" />
+                      <IconTrash size="24" />
                     </ActionIcon>
                   </Tooltip>
                 </Group>

@@ -12,7 +12,7 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import React from 'react';
-import { SquareArrowRight } from 'tabler-icons-react';
+import { IconSquareArrowRight } from '@tabler/icons-react';
 
 interface DependencyInformation {
   type?: string;
@@ -82,7 +82,7 @@ function Dependencies(props: myComponentProps) {
               <Link href={`/${dependencyInfo.link}`}>
                 <Tooltip label={'Open Dependency Resource'} openDelay={1000}>
                   <ActionIcon radius="md" size="md" variant="subtle" color="gray">
-                    {<SquareArrowRight size="24" />}
+                    {<IconSquareArrowRight size="24" />}
                   </ActionIcon>
                 </Tooltip>
               </Link>

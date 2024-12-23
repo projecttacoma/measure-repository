@@ -23,7 +23,7 @@ import { ArtifactResourceType } from '@/util/types/fhir';
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
-import { AlertCircle, CircleCheck, InfoCircle, Star } from 'tabler-icons-react';
+import { IconAlertCircle, IconCircleCheck, IconInfoCircle, IconStar } from '@tabler/icons-react';
 import { isNotEmpty, useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import ArtifactTimeline from '@/components/ArtifactTimeline';
@@ -60,14 +60,14 @@ export default function CommentPage() {
       notifications.show({
         title: 'Review successfully added!',
         message: `Review successfully added to ${resourceType}/${resourceID}`,
-        icon: <CircleCheck />,
+        icon: <IconCircleCheck />,
         color: 'green'
       });
       data.children.forEach(c => {
         notifications.show({
           title: 'Review successfully added!',
           message: `Draft of child ${resourceType} artifact of url ${c.url} successfully reviewed`,
-          icon: <CircleCheck />,
+          icon: <IconCircleCheck />,
           color: 'green'
         });
       });
@@ -81,7 +81,7 @@ export default function CommentPage() {
       notifications.show({
         title: 'Review Failed!',
         message: `Attempt to review ${resourceType} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
+        icon: <IconAlertCircle />,
         color: 'red'
       });
     }
@@ -147,13 +147,13 @@ export default function CommentPage() {
                         <HoverCard width={420} shadow="md" withArrow openDelay={200} closeDelay={200}>
                           <HoverCard.Target>
                             <div>
-                              <InfoCircle size="1rem" style={{ opacity: 0.5 }} />
+                              <IconInfoCircle size="1rem" style={{ opacity: 0.5 }} />
                             </div>
                           </HoverCard.Target>
                           <HoverCard.Dropdown>
                             <Group>
                               <Avatar color="blue" radius="xl">
-                                <InfoCircle size="1.5rem" />
+                                <IconInfoCircle size="1.5rem" />
                               </Avatar>
                               <Stack spacing={5}>
                                 <Text size="sm" weight={700} sx={{ lineHeight: 1 }}>
@@ -187,7 +187,7 @@ export default function CommentPage() {
                         </HoverCard>
                       </Group>
                     }
-                    icon={<Star opacity={0.5} />}
+                    icon={<IconStar opacity={0.5} />}
                     placeholder="Type"
                     data={[
                       { value: 'documentation', label: 'documentation' },

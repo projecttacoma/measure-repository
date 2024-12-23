@@ -19,7 +19,7 @@ import ServiceResourceButtons from '../components/ServiceResourceButtons';
 import { trpc } from '@/util/trpc';
 import { Open_Sans } from 'next/font/google';
 import { useRouter } from 'next/dist/client/router';
-import { Database } from 'tabler-icons-react';
+import { IconDatabase } from '@tabler/icons-react';
 import DraftResourceButtons from '@/components/DraftResourceButtons';
 
 const openSans = Open_Sans({
@@ -119,7 +119,7 @@ function App({ Component, pageProps }: AppProps) {
                 <Link href="/">
                   <Group align="center" spacing="xs">
                     <Center>
-                      <Database className={classes.dbIcon} />
+                      <IconDatabase className={classes.dbIcon} />
                     </Center>
                     <Text c="white" weight="bold">
                       Measure Repository

@@ -1,5 +1,5 @@
 import { ActionIcon, TextInput } from '@mantine/core';
-import { X } from 'tabler-icons-react';
+import { IconX } from '@tabler/icons-react';
 
 export interface ArtifactFieldInputProps {
   label: string;
@@ -22,7 +22,7 @@ export default function ArtifactFieldInput({ label, value, disabled, setField }:
               setField('');
             }}
           >
-            <X size={16} />
+            <IconX size={16} />
           </ActionIcon>
         }
       />
