@@ -23,7 +23,7 @@ export default function ResourceList({
         </Center>
         <Divider my="md" />
         <Stack align="center">
-          <Link href={`/search?resourceType=${resourceType}`}>
+          <Link href={`/search?resourceType=${resourceType}&authoring=false`}>
             <Button>Search</Button>
           </Link>
           <div style={{ paddingTop: '18px' }}>
@@ -54,7 +54,7 @@ export const getServerSideProps: GetServerSideProps<{
 
   // Fetch resource data with the _elements parameter so we only get the elements that we need
   const res = await fetch(
-    `${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,identifier,name,url,version&status=active`
+    `${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,extension,identifier,name,url,version&status=active`
   );
   const bundle = (await res.json()) as fhir4.Bundle<FhirArtifact>;
   if (!bundle.entry) {

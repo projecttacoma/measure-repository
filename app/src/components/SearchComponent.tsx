@@ -8,6 +8,7 @@ import { trpc } from '@/util/trpc';
 
 interface SearchComponentProps {
   resourceType: ArtifactResourceType;
+  authoring: boolean;
 }
 
 interface Parameter {
@@ -20,7 +21,7 @@ interface Parameter {
 /**
  * SearchComponent is a component for displaying search inputs for a resource
  */
-export default function SearchComponent({ resourceType }: SearchComponentProps) {
+export default function SearchComponent({ resourceType, authoring }: SearchComponentProps) {
   const publicUrl = trpc.service.getPublicUrl.useQuery();
 
   const emptyInputs = ArtifactSearchParams[resourceType].map(p => ({
@@ -115,7 +116,9 @@ export default function SearchComponent({ resourceType }: SearchComponentProps) 
       requestParams.push({ name: 'version', value: version });
     }
     const query = requestParams.filter(si => si.value !== '').map(si => si.name + '=' + si.value);
-    return query.length !== 0 ? `?status=active&${query.join('&')}` : '?status=active';
+    return query.length !== 0
+      ? `?status=${authoring ? 'draft' : 'active'}&${query.join('&')}`
+      : `?status=${authoring ? 'draft' : 'active'}`;
   };
 
   return (

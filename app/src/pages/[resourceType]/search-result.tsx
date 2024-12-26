@@ -3,12 +3,14 @@ import { Center, Divider, Paper, Text, Stack } from '@mantine/core';
 import { ArtifactResourceType, FhirArtifact, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
 import { extractResourceInfo } from '@/util/resourceCardUtils';
+import { useRouter } from 'next/router';
 
 export default function ResourceSearchResultsPage({
   resourceInfo,
   resourceType,
   error
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const router = useRouter();
   return (
     <div
       style={{
@@ -26,7 +28,11 @@ export default function ResourceSearchResultsPage({
       <Divider my="md" />
       {resourceInfo ? (
         <Stack align="center" pt={18}>
-          <ResourceCards resourceInfo={resourceInfo} resourceType={resourceType} authoring={false} />
+          <ResourceCards
+            resourceInfo={resourceInfo}
+            resourceType={resourceType}
+            authoring={(router.query.status as string) === 'draft'}
+          />
         </Stack>
       ) : (
         <div

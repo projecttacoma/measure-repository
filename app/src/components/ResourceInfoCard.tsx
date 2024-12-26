@@ -128,7 +128,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
           });
         }}
         action="clone"
-        modalText={`This will clone draft ${resourceInfo.resourceType} "${
+        modalText={`This will clone ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
         }" and any child artifacts.`}
       />
@@ -189,26 +189,21 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 </ActionIcon>
               </Tooltip>
             </Link>
-            {authoringEnvironment.data ? (
-              <Link
-                href={{
-                  pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
-                  query: { authoring: `${authoring}` }
-                }}
-              >
-                <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
-                  <ActionIcon radius="md" size="md" variant="subtle" color="blue">
-                    <IconMessage size="24" />
-                  </ActionIcon>
-                </Tooltip>
-              </Link>
-            ) : (
-              <></>
-            )}
-            {authoring &&
-              authoringEnvironment &&
-              (resourceInfo.isChild ? (
-                <Group>
+            {authoringEnvironment.data && (
+              <Group>
+                <Link
+                  href={{
+                    pathname: `/review/${resourceInfo.resourceType}/${resourceInfo.id}`,
+                    query: { authoring: `${authoring}` }
+                  }}
+                >
+                  <Tooltip label={authoring ? 'Review Draft Resource' : 'Review Resource'} openDelay={1000}>
+                    <ActionIcon radius="md" size="md" variant="subtle" color="blue">
+                      <IconMessage size="24" />
+                    </ActionIcon>
+                  </Tooltip>
+                </Link>
+                {resourceInfo.isChild ? (
                   <Tooltip label={'Child artifacts cannot be directly cloned'}>
                     <span>
                       <ActionIcon radius="md" size="md" disabled={true}>
@@ -216,16 +211,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                       </ActionIcon>
                     </span>
                   </Tooltip>
-                  <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
-                    <span>
-                      <ActionIcon radius="md" size="md" disabled={true}>
-                        <IconTrash size="24" />
-                      </ActionIcon>
-                    </span>
-                  </Tooltip>
-                </Group>
-              ) : (
-                <Group>
+                ) : (
                   <Tooltip label={'Clone Draft Resource'} openDelay={1000}>
                     <ActionIcon
                       radius="md"
@@ -237,6 +223,21 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                       <IconCopy size="24" />
                     </ActionIcon>
                   </Tooltip>
+                )}
+              </Group>
+            )}
+            {authoring &&
+              authoringEnvironment.data &&
+              (resourceInfo.isChild ? (
+                <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
+                  <span>
+                    <ActionIcon radius="md" size="md" disabled={true}>
+                      <IconTrash size="24" />
+                    </ActionIcon>
+                  </span>
+                </Tooltip>
+              ) : (
+                <Group>
                   <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
                     <ActionIcon
                       radius="md"

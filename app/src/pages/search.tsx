@@ -34,7 +34,7 @@ export default function SearchPage() {
     const resourcePanels = (Object.keys(ArtifactSearchParams) as ArtifactResourceType[]).map(resource => (
       <Tabs.Panel value={resource} key={resource}>
         <Stack style={{ paddingTop: '20px' }}>
-          <SearchComponent resourceType={resource} />
+          <SearchComponent resourceType={resource} authoring={(router.query.authoring as string) === 'true'} />
         </Stack>
       </Tabs.Panel>
     ));
@@ -42,7 +42,7 @@ export default function SearchPage() {
       <Tabs
         variant="outline"
         value={router.query.resourceType as string}
-        onTabChange={value => router.push(`search?resourceType=${value}`)}
+        onTabChange={value => router.push(`search?resourceType=${value}&authoring=${router.query.authoring as string}`)}
       >
         <ResourceTabGroup />
         {resourcePanels}
