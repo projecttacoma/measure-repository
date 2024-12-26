@@ -24,7 +24,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
 import { IconAlertCircle, IconCircleCheck, IconInfoCircle, IconStar } from '@tabler/icons-react';
-import { isNotEmpty, useForm } from '@mantine/form';
+import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import ArtifactTimeline from '@/components/ArtifactTimeline';
 import { isEmpty, trim } from 'lodash';

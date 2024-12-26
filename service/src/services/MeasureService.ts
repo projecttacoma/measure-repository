@@ -267,6 +267,9 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     if (!activeMeasure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
+    if (activeMeasure.status !== 'active') {
+      throw new BadRequestError('Authoring repository service drafting may only be made to active status resources.');
+    }
     checkIsOwned(activeMeasure, 'Child artifacts cannot be directly drafted.');
 
     // recursively get any child artifacts from the artifact if they exist
