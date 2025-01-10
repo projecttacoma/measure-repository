@@ -19,7 +19,7 @@ export default function ConfirmationModal({
   return (
     <Modal opened={open} onClose={onClose} withCloseButton={false} size="lg">
       <Center>
-        <IconAlertTriangle color={action === 'delete' ? 'red' : 'green'} size={40} />
+        <IconAlertTriangle color={action === 'clone' ? 'green' : 'red'} size={40} />
       </Center>
       <Center>
         <Text weight={700} align="center" lineClamp={2} p={'sm'}>
@@ -32,7 +32,7 @@ export default function ConfirmationModal({
             Cancel
           </Button>
           <Button onClick={onConfirm} color={action === 'clone' ? 'green' : 'red'}>
-            {action === 'clone' ? 'Clone' : 'Delete'}
+            {String(action).charAt(0).toUpperCase() + String(action).slice(1)}
           </Button>
         </Group>
       </Center>

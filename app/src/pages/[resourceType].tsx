@@ -53,15 +53,25 @@ export const getServerSideProps: GetServerSideProps<{
   const checkedResourceType = resourceType as ArtifactResourceType;
 
   // Fetch resource data with the _elements parameter so we only get the elements that we need
-  const res = await fetch(
-    `${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,extension,identifier,name,url,version&status=active`
+  const [artifactBundleActive, artifactBundleRetired] = await Promise.all([
+    fetch(
+      `${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,extension,identifier,name,url,version&status=active`
+    ),
+    fetch(
+      `${process.env.MRS_SERVER}/${checkedResourceType}?_elements=id,extension,identifier,name,url,version&status=retired`
+    )
+  ]).then(([resArtifactsActive, resArtifactsRetired]) =>
+    Promise.all([
+      resArtifactsActive.json() as Promise<fhir4.Bundle<FhirArtifact>>,
+      resArtifactsRetired.json() as Promise<fhir4.Bundle<FhirArtifact>>
+    ])
   );
-  const bundle = (await res.json()) as fhir4.Bundle<FhirArtifact>;
-  if (!bundle.entry) {
+
+  if (!artifactBundleActive.entry || !artifactBundleRetired.entry) {
     // Measure Repository should not provide a bundle without an entry
     throw new Error('Measure Repository bundle has no entry.');
   }
-  const resources = bundle.entry;
+  const resources = artifactBundleActive.entry.concat(artifactBundleRetired.entry);
   const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
     if (entry.resource && entry.resource.id) {
       const resourceInfo = extractResourceInfo(entry.resource);

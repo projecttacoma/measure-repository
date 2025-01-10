@@ -20,7 +20,9 @@ import {
   IconAlertCircle,
   IconCircleCheck,
   IconMessage,
-  IconCopy
+  IconCopy,
+  IconFolder,
+  IconArchive
 } from '@tabler/icons-react';
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
@@ -46,6 +48,8 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   const { classes } = useStyles();
   const utils = trpc.useUtils();
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
+  const [isRetireConfirmationModalOpen, setIsRetireConfirmationModalOpen] = useState(false);
+  const [isArchiveConfirmationModalOpen, setIsArchiveConfirmationModalOpen] = useState(false);
   const [isCloneConfirmationModalOpen, setIsCloneConfirmationModalOpen] = useState(false);
   const authoringEnvironment = trpc.service.getAuthoring.useQuery();
 
@@ -109,10 +113,46 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         successNotification(c.resourceType, true, 'delete', c.url);
       });
       utils.draft.getDrafts.invalidate();
-      setIsCloneConfirmationModalOpen(false);
+      setIsDeleteConfirmationModalOpen(false);
     },
     onError: (e, variables) => {
       errorNotification(variables.resourceType, e.message, false, 'delete', variables.id);
+    }
+  });
+
+  const retireMutation = trpc.service.retireParent.useMutation({
+    onSuccess: data => {
+      data.retired?.forEach(r => {
+        notifications.show({
+          title: `${r.resourceType} retired!`,
+          message: `${r.resourceType}/${r.id} successfully retired!`,
+          icon: <IconCircleCheck />,
+          color: 'green'
+        });
+      });
+      utils.service.getArtifactsByType.invalidate();
+      setIsRetireConfirmationModalOpen(false);
+    },
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, false, 'retire', variables.id);
+    }
+  });
+
+  const archiveMutation = trpc.service.archiveParent.useMutation({
+    onSuccess: data => {
+      data.archived?.forEach(r => {
+        notifications.show({
+          title: `${r.resourceType} archived!`,
+          message: `${r.resourceType}/${r.id} successfully archived!`,
+          icon: <IconCircleCheck />,
+          color: 'green'
+        });
+      });
+      utils.service.getArtifactsByType.invalidate();
+      setIsArchiveConfirmationModalOpen(false);
+    },
+    onError: (e, variables) => {
+      errorNotification(variables.resourceType, e.message, false, 'archive', variables.id);
     }
   });
 
@@ -143,6 +183,34 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         }}
         action="delete"
         modalText={`This will delete draft ${resourceInfo.resourceType} "${
+          resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
+        }" and any child artifacts permanently.`}
+      />
+      <ConfirmationModal
+        open={isRetireConfirmationModalOpen}
+        onClose={() => setIsRetireConfirmationModalOpen(false)}
+        onConfirm={() => {
+          retireMutation.mutate({
+            resourceType: resourceInfo.resourceType,
+            id: resourceInfo.id
+          });
+        }}
+        action="retire"
+        modalText={`This will retire ${resourceInfo.resourceType} "${
+          resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
+        }" and any child artifacts permanently.`}
+      />
+      <ConfirmationModal
+        open={isArchiveConfirmationModalOpen}
+        onClose={() => setIsArchiveConfirmationModalOpen(false)}
+        onConfirm={() => {
+          archiveMutation.mutate({
+            resourceType: resourceInfo.resourceType,
+            id: resourceInfo.id
+          });
+        }}
+        action="archive"
+        modalText={`This will archive draft ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
         }" and any child artifacts permanently.`}
       />
@@ -212,7 +280,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                     </span>
                   </Tooltip>
                 ) : (
-                  <Tooltip label={'Clone Draft Resource'} openDelay={1000}>
+                  <Tooltip label={'Clone Resource'} openDelay={1000}>
                     <ActionIcon
                       radius="md"
                       size="md"
@@ -226,7 +294,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 )}
               </Group>
             )}
-            {authoring &&
+            {authoring ? (
               authoringEnvironment.data &&
               (resourceInfo.isChild ? (
                 <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
@@ -250,7 +318,50 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                     </ActionIcon>
                   </Tooltip>
                 </Group>
-              ))}
+              ))
+            ) : resourceInfo.status === 'active' ? (
+              resourceInfo.isChild ? (
+                <Tooltip label={'Child artifacts cannot be directly retired'}>
+                  <span>
+                    <ActionIcon radius="md" size="md" disabled={true}>
+                      <IconFolder size="24" />
+                    </ActionIcon>
+                  </span>
+                </Tooltip>
+              ) : (
+                <Tooltip label={'Retire Resource'} openDelay={1000}>
+                  <ActionIcon
+                    radius="md"
+                    size="md"
+                    variant="subtle"
+                    color="red"
+                    onClick={() => setIsRetireConfirmationModalOpen(true)}
+                  >
+                    <IconFolder size="24" />
+                  </ActionIcon>
+                </Tooltip>
+              )
+            ) : resourceInfo.isChild ? (
+              <Tooltip label={'Child artifacts cannot be directly archived'}>
+                <span>
+                  <ActionIcon radius="md" size="md" disabled={true}>
+                    <IconArchive size="24" />
+                  </ActionIcon>
+                </span>
+              </Tooltip>
+            ) : (
+              <Tooltip label={'Archive Resource'} openDelay={1000}>
+                <ActionIcon
+                  radius="md"
+                  size="md"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => setIsArchiveConfirmationModalOpen(true)}
+                >
+                  <IconArchive size="24" />
+                </ActionIcon>
+              </Tooltip>
+            )}
           </Group>
         </Grid>
       </Paper>
