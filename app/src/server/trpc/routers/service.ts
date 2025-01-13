@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Bundle, OperationOutcome } from 'fhir/r4';
 import { calculateVersion } from '@/util/versionUtils';
+import { JsonInput } from '@mantine/core';
 
 /**
  * Endpoints dealing with outgoing calls to the central measure repository service to handle active (or retired) artifacts
@@ -161,6 +162,37 @@ export const serviceRouter = router({
       });
 
       return { location: `/${input.resourceType}/${input.id}`, released: released, status: res.status, error: null };
+    }),
+
+  publish: publicProcedure
+    .input(z.object({ resourceType: z.enum(['Measure', 'Library']), jsonInput: z.string() }))
+    .mutation(async ({ input }) => {
+      let artifact: FhirArtifact;
+      try {
+        artifact = JSON.parse(input.jsonInput);
+      } catch (error) {
+        throw new Error('Unable to parse json input.');
+      }
+      if (artifact.status !== 'active') {
+        throw new Error('Input artifact must be in active status.');
+      }
+
+      const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json+fhir',
+          'Content-Type': 'application/json+fhir'
+        },
+        body: input.jsonInput
+      });
+
+      if (raw.status !== 201) {
+        const outcome: OperationOutcome = await raw.json();
+        throw new Error(`Received ${raw.status} error on publish: ${outcome.issue[0].details?.text}`);
+      }
+      const id = raw.headers.get('Location')?.split('/')[2] as string;
+
+      return { location: `/${input.resourceType}/${id}`, status: raw.status, error: null };
     }),
 
   retireParent: publicProcedure

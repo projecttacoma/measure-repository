@@ -1,11 +1,57 @@
-import { Anchor, Button, Center, Divider, Group, Table, Text, Title } from '@mantine/core';
+import { trpc } from '@/util/trpc';
+import { ArtifactResourceType } from '@/util/types/fhir';
+import {
+  Anchor,
+  Button,
+  Center,
+  Divider,
+  Group,
+  Modal,
+  Paper,
+  SegmentedControl,
+  Stack,
+  Table,
+  Text,
+  Textarea,
+  Title
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 
 export default function Home({
   capabilityStatement,
   serviceUri
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [resourceType, setResourceType] = useState<ArtifactResourceType>('Measure');
+  const [opened, { open, close }] = useDisclosure(false);
+  const [jsonInput, setJsonInput] = useState('');
+  const router = useRouter();
+
+  const publishMutation = trpc.service.publish.useMutation({
+    onSuccess: (data, variables) => {
+      notifications.show({
+        title: `${variables.resourceType} published!`,
+        message: `${data.location} successfully published!`,
+        icon: <IconCircleCheck />,
+        color: 'green'
+      });
+      router.push(data.location);
+      close();
+    },
+    onError: (e, variables) => {
+      notifications.show({
+        title: `${resourceType} Publish Failed!`,
+        message: `Attempt to publish ${variables.resourceType} failed with message: ${e.message}`,
+        icon: <IconAlertCircle />,
+        color: 'red'
+      });
+    }
+  });
+
   const renderCapabilityTable = () => {
     return capabilityStatement ? (
       <Table>
@@ -53,6 +99,38 @@ export default function Home({
 
   return (
     <div>
+      <Modal opened={opened} onClose={close} withCloseButton={false} size="lg">
+        <Center>
+          <Text weight={700} align="center" lineClamp={2} p={'sm'}>
+            {`Add ${resourceType} JSON`}
+            <Textarea
+              value={jsonInput}
+              onChange={event => setJsonInput(event.currentTarget.value)}
+              autosize
+              minRows={6}
+              maxRows={24}
+            />
+          </Text>
+        </Center>
+        <Center>
+          <Group pt={8}>
+            <Button variant="default" onClick={close}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                publishMutation.mutate({
+                  resourceType: resourceType,
+                  jsonInput: jsonInput
+                });
+              }}
+              color={'green'}
+            >
+              Publish
+            </Button>
+          </Group>
+        </Center>
+      </Modal>
       <Text>
         This application is an interface for a prototype implementation of a{' '}
         <Anchor href="http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html">
@@ -82,11 +160,26 @@ export default function Home({
       </Title>
       <div style={{ marginTop: '18px', marginBottom: '18px' }}>{renderCapabilityTable()}</div>
       <Center>
-        <Group>
-          <Link href={'/search?resourceType=Measure'}>
-            <Button>Search Measure Repository</Button>
-          </Link>
-        </Group>
+        <Paper h={250} w={500} p={48} withBorder shadow="lg">
+          <Stack>
+            <SegmentedControl
+              value={resourceType}
+              onChange={val => {
+                setResourceType(val as ArtifactResourceType);
+              }}
+              data={[
+                { label: 'Measure', value: 'Measure' },
+                { label: 'Library', value: 'Library' }
+              ]}
+            />
+            <Title order={3}>Start From Scratch:</Title>
+            <Center>
+              <Button w={240} onClick={open}>
+                {`Create New Active ${resourceType}`}
+              </Button>
+            </Center>
+          </Stack>
+        </Paper>
       </Center>
     </div>
   );
