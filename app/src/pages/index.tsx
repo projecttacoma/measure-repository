@@ -1,20 +1,7 @@
+import CodeEditorModal from '@/components/CodeEditorModal';
 import { trpc } from '@/util/trpc';
 import { ArtifactResourceType } from '@/util/types/fhir';
-import {
-  Anchor,
-  Button,
-  Center,
-  Divider,
-  Group,
-  Modal,
-  Paper,
-  SegmentedControl,
-  Stack,
-  Table,
-  Text,
-  Textarea,
-  Title
-} from '@mantine/core';
+import { Anchor, Button, Center, Divider, Paper, SegmentedControl, Stack, Table, Text, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react';
@@ -28,7 +15,6 @@ export default function Home({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [resourceType, setResourceType] = useState<ArtifactResourceType>('Measure');
   const [opened, { open, close }] = useDisclosure(false);
-  const [jsonInput, setJsonInput] = useState('');
   const router = useRouter();
 
   const publishMutation = trpc.service.publish.useMutation({
@@ -99,38 +85,30 @@ export default function Home({
 
   return (
     <div>
-      <Modal opened={opened} onClose={close} withCloseButton={false} size="lg">
-        <Center>
-          <Text weight={700} align="center" lineClamp={2} p={'sm'}>
-            {`Add ${resourceType} JSON`}
-            <Textarea
-              value={jsonInput}
-              onChange={event => setJsonInput(event.currentTarget.value)}
-              autosize
-              minRows={6}
-              maxRows={24}
-            />
-          </Text>
-        </Center>
-        <Center>
-          <Group pt={8}>
-            <Button variant="default" onClick={close}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                publishMutation.mutate({
-                  resourceType: resourceType,
-                  jsonInput: jsonInput
-                });
-              }}
-              color={'green'}
-            >
-              Publish
-            </Button>
-          </Group>
-        </Center>
-      </Modal>
+      <CodeEditorModal
+        open={opened}
+        onClose={close}
+        title={`Create ${resourceType} JSON`}
+        onSave={value => {
+          publishMutation.mutate({
+            resourceType: resourceType,
+            jsonInput: value
+          });
+        }}
+        initialValue={JSON.stringify(
+          {
+            id: 'tempID',
+            resourceType: `${resourceType}`,
+            status: 'active',
+            version: '0.0.1',
+            url: 'http://example.update',
+            title: 'Sample title',
+            description: 'Sample description'
+          },
+          null,
+          2
+        )}
+      />
       <Text>
         This application is an interface for a prototype implementation of a{' '}
         <Anchor href="http://hl7.org/fhir/us/cqfmeasures/measure-repository-service.html">

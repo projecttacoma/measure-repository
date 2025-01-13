@@ -13,6 +13,8 @@
     "prettier:fix": "prettier --write \"**/*.{js,ts,jsx,tsx,css}\""
   },
   "dependencies": {
+    "@codemirror/lang-json": "0.20.0",
+    "@codemirror/lint": "0.20.3",
     "@emotion/react": "^11.10.8",
     "@emotion/server": "^11.10.0",
     "@mantine/core": "^6.0.9",
@@ -29,6 +31,7 @@
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
     "@types/fhir": "^0.0.36",
+    "@uiw/react-codemirror": "4.7.0",
     "dayjs": "^1.11.7",
     "html-react-parser": "^3.0.15",
     "luxon": "^3.3.0",
