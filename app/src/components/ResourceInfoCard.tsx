@@ -231,7 +231,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
           });
         }}
         action="archive"
-        modalText={`This will archive draft ${resourceInfo.resourceType} "${
+        modalText={`This will archive ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
         }" and any child artifacts permanently.`}
       />
@@ -301,7 +301,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                     </span>
                   </Tooltip>
                 ) : (
-                  <Tooltip label={'Clone Resource'} openDelay={1000}>
+                  <Tooltip label={authoring ? 'Clone Draft Resource' : 'Clone Resource'} openDelay={1000}>
                     <ActionIcon
                       radius="md"
                       size="md"
@@ -327,7 +327,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
                 </Tooltip>
               ) : (
                 <Group>
-                  <Tooltip label={'Delete Draft Resource'} openDelay={1000}>
+                  <Tooltip label={'Withdraw Draft Resource'} openDelay={1000}>
                     <ActionIcon
                       radius="md"
                       size="md"
