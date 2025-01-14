@@ -60,13 +60,13 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
     let message;
     if (childArtifact) {
       message = `Child ${resourceType} artifact of url ${idOrUrl} successfully ${
-        action === 'delete' ? 'deleted' : 'cloned'
+        action === 'withdraw' ? 'withdrawn' : 'cloned'
       }`;
     } else {
-      message = `${resourceType}/${idOrUrl} successfully ${action === 'delete' ? 'deleted' : 'cloned'}`;
+      message = `${resourceType}/${idOrUrl} successfully ${action === 'withdraw' ? 'withdrawn' : 'cloned'}`;
     }
     notifications.show({
-      title: `${resourceType} ${action === 'delete' ? 'Deleted' : 'Cloned'}!`,
+      title: `${resourceType} ${action === 'withdraw' ? 'Withdrawn' : 'Cloned'}!`,
       message: message,
       icon: <IconCircleCheck />,
       color: 'green'
@@ -88,7 +88,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
       message = `Attempt to ${action} ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
     }
     notifications.show({
-      title: `${resourceType} ${action === 'delete' ? 'Deletion' : 'Clone'} Failed!`,
+      title: `${resourceType} ${action === 'withdraw' ? 'Withdrawal' : 'Clone'} Failed!`,
       message: message,
       icon: <IconAlertCircle />,
       color: 'red'
@@ -111,11 +111,11 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
     }
   });
 
-  const deleteMutation = trpc.draft.deleteDraft.useMutation({
+  const withdrawMutation = trpc.draft.deleteDraft.useMutation({
     onSuccess: (data, variables) => {
-      successNotification(variables.resourceType, false, 'delete', variables.id);
+      successNotification(variables.resourceType, false, 'withdraw', variables.id);
       data.children.forEach(c => {
-        successNotification(c.resourceType, true, 'delete', c.url);
+        successNotification(c.resourceType, true, 'withdraw', c.url);
       });
       utils.draft.getDrafts.invalidate();
       router.replace(router.asPath);
@@ -123,7 +123,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
       setIsDeleteConfirmationModalOpen(false);
     },
     onError: (e, variables) => {
-      errorNotification(variables.resourceType, e.message, false, 'delete', variables.id);
+      errorNotification(variables.resourceType, e.message, false, 'withdraw', variables.id);
     }
   });
 
@@ -197,13 +197,13 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         open={isDeleteConfirmationModalOpen}
         onClose={() => setIsDeleteConfirmationModalOpen(false)}
         onConfirm={() => {
-          deleteMutation.mutate({
+          withdrawMutation.mutate({
             resourceType: resourceInfo.resourceType,
             id: resourceInfo.id
           });
         }}
-        action="delete"
-        modalText={`This will delete draft ${resourceInfo.resourceType} "${
+        action="withdraw"
+        modalText={`This will withdraw draft ${resourceInfo.resourceType} "${
           resourceInfo.name ? resourceInfo.name : `${resourceInfo.resourceType}/${resourceInfo.id}`
         }" and any child artifacts permanently.`}
       />
@@ -318,7 +318,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
             {authoring ? (
               authoringEnvironment.data &&
               (resourceInfo.isChild ? (
-                <Tooltip label={'Child artifacts cannot be directly deleted'} openDelay={1000}>
+                <Tooltip label={'Child artifacts cannot be directly withdrawn'} openDelay={1000}>
                   <span>
                     <ActionIcon radius="md" size="md" disabled={true}>
                       <IconTrash size="24" />
