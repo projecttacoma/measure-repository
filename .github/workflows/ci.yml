@@ -8,7 +8,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        mongodb-version: ["6.0"]
 
     steps:
       - uses: actions/checkout@v2
@@ -17,11 +16,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Use MongoDB
-        uses: supercharge/mongodb-github-action@1.6.0
-        with:
-          mongodb-version: ${{ matrix.mongodb-version }}
 
       - name: Setup Dependencies
         run: npm ci
