@@ -74,7 +74,7 @@ export default function CommentPage() {
       data.children.forEach(c => {
         notifications.show({
           title: 'Review successfully added!',
-          message: `Draft of child ${resourceType} artifact of url ${c.url} successfully reviewed`,
+          message: `${resourceType} artifact of url ${c.url} successfully reviewed`,
           icon: <IconCircleCheck />,
           color: 'green'
         });
@@ -106,7 +106,7 @@ export default function CommentPage() {
       data.children.forEach(c => {
         notifications.show({
           title: 'Approval successfully added!',
-          message: `Draft of child ${resourceType} artifact of url ${c.url} successfully approved`,
+          message: `${resourceType} artifact of url ${c.url} successfully approved`,
           icon: <IconCircleCheck />,
           color: 'green'
         });

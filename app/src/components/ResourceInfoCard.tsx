@@ -27,6 +27,7 @@ import {
 import { trpc } from '@/util/trpc';
 import { notifications } from '@mantine/notifications';
 import ConfirmationModal from './ConfirmationModal';
+import { useRouter } from 'next/router';
 
 export interface ResourceInfoCardProps {
   resourceInfo: ResourceInfo;
@@ -53,14 +54,16 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   const [isCloneConfirmationModalOpen, setIsCloneConfirmationModalOpen] = useState(false);
   const authoringEnvironment = trpc.service.getAuthoring.useQuery();
 
+  const router = useRouter();
+
   const successNotification = (resourceType: string, childArtifact: boolean, action: string, idOrUrl?: string) => {
     let message;
     if (childArtifact) {
-      message = `Draft of child ${resourceType} artifact of url ${idOrUrl} successfully ${
+      message = `Child ${resourceType} artifact of url ${idOrUrl} successfully ${
         action === 'delete' ? 'deleted' : 'cloned'
       }`;
     } else {
-      message = `Draft of ${resourceType}/${idOrUrl} successfully ${action === 'delete' ? 'deleted' : 'cloned'}`;
+      message = `${resourceType}/${idOrUrl} successfully ${action === 'delete' ? 'deleted' : 'cloned'}`;
     }
     notifications.show({
       title: `${resourceType} ${action === 'delete' ? 'Deleted' : 'Cloned'}!`,
@@ -99,6 +102,8 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         successNotification(c.resourceType, true, 'clone', c.url);
       });
       utils.draft.getDrafts.invalidate();
+      router.replace(router.asPath);
+      utils.service.getArtifactCounts.invalidate();
       setIsCloneConfirmationModalOpen(false);
     },
     onError: (e, variables) => {
@@ -113,6 +118,8 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
         successNotification(c.resourceType, true, 'delete', c.url);
       });
       utils.draft.getDrafts.invalidate();
+      router.replace(router.asPath);
+      utils.service.getArtifactCounts.invalidate();
       setIsDeleteConfirmationModalOpen(false);
     },
     onError: (e, variables) => {
@@ -121,7 +128,13 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   });
 
   const retireMutation = trpc.service.retireParent.useMutation({
-    onSuccess: data => {
+    onSuccess: (data, variables) => {
+      notifications.show({
+        title: `${variables.resourceType} retired!`,
+        message: `${data.location} successfully retired!`,
+        icon: <IconCircleCheck />,
+        color: 'green'
+      });
       data.retired?.forEach(r => {
         notifications.show({
           title: `${r.resourceType} retired!`,
@@ -130,7 +143,8 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
           color: 'green'
         });
       });
-      utils.service.getArtifactsByType.invalidate();
+      router.replace(router.asPath);
+      utils.service.getArtifactCounts.invalidate();
       setIsRetireConfirmationModalOpen(false);
     },
     onError: (e, variables) => {
@@ -139,7 +153,13 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   });
 
   const archiveMutation = trpc.service.archiveParent.useMutation({
-    onSuccess: data => {
+    onSuccess: (data, variables) => {
+      notifications.show({
+        title: `${variables.resourceType} archived!`,
+        message: `${data.location} successfully archived!`,
+        icon: <IconCircleCheck />,
+        color: 'green'
+      });
       data.archived?.forEach(r => {
         notifications.show({
           title: `${r.resourceType} archived!`,
@@ -148,7 +168,8 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
           color: 'green'
         });
       });
-      utils.service.getArtifactsByType.invalidate();
+      router.replace(router.asPath);
+      utils.service.getArtifactCounts.invalidate();
       setIsArchiveConfirmationModalOpen(false);
     },
     onError: (e, variables) => {

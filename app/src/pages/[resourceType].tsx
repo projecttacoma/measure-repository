@@ -71,7 +71,13 @@ export const getServerSideProps: GetServerSideProps<{
     // Measure Repository should not provide a bundle without an entry
     throw new Error('Measure Repository bundle has no entry.');
   }
+
   const resources = artifactBundleActive.entry.concat(artifactBundleRetired.entry);
+  resources.sort((a, b) => {
+    const strA = `${a.resource?.url}|${a.resource?.version}`;
+    const strB = `${b.resource?.url}|${b.resource?.version}`;
+    return strA.localeCompare(strB);
+  });
   const resourceInfoArray = resources.reduce((acc: ResourceInfo[], entry) => {
     if (entry.resource && entry.resource.id) {
       const resourceInfo = extractResourceInfo(entry.resource);

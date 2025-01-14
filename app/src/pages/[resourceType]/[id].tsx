@@ -159,8 +159,14 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {!!jsonData?.extension?.find(
                 ext =>
                   ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
-              ) ? (
-                <Tooltip label="Child artifacts cannot be directly drafted">
+              ) || jsonData.status === 'retired' ? (
+                <Tooltip
+                  label={
+                    jsonData.status === 'retired'
+                      ? 'Retired artifacts cannot be drafted'
+                      : 'Child artifacts cannot be directly drafted'
+                  }
+                >
                   <span>
                     <Button w={240} loading={draftFromArtifactMutation.isLoading} disabled={true}>
                       Create Draft of {jsonData.resourceType}

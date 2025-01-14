@@ -30,6 +30,11 @@ export const draftRouter = router({
     const artifactList = artifactBundle.entry
       ?.filter(entry => entry.resource)
       .map(entry => entry.resource as FhirArtifact);
+    artifactList?.sort((a, b) => {
+      const strA = `${a.url}|${a.version}`;
+      const strB = `${b.url}|${b.version}`;
+      return strA.localeCompare(strB);
+    });
     return artifactList;
   }),
 
