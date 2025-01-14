@@ -159,7 +159,7 @@ export default function ResourceAuthoringPage() {
     <div>
       <Center>
         <Text c="gray" fz="xl">
-          {`Editing ${resourceType}/${id}`}
+          {`Revising ${resourceType}/${id}`}
         </Text>
       </Center>
       <Divider my="md" style={{ marginTop: '14px' }} />
