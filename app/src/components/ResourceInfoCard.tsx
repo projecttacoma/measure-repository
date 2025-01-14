@@ -83,9 +83,9 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
   ) => {
     let message;
     if (childArtifact) {
-      message = `Attempt to ${action} draft of child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
+      message = `Attempt to ${action} child ${resourceType} artifact of url ${idOrUrl} failed with message: ${errorMessage}`;
     } else {
-      message = `Attempt to ${action} draft of ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
+      message = `Attempt to ${action} ${resourceType}/${idOrUrl} failed with message: ${errorMessage}`;
     }
     notifications.show({
       title: `${resourceType} ${action === 'delete' ? 'Deletion' : 'Clone'} Failed!`,
