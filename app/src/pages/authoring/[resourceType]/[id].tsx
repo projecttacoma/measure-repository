@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Prism } from '@mantine/prism';
 import { notifications } from '@mantine/notifications';
-import { AlertCircle, CircleCheck, InfoCircle } from 'tabler-icons-react';
+import { IconAlertCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
 import { ArtifactResourceType } from '@/util/types/fhir';
 import ArtifactFieldInput from '@/components/ArtifactFieldInput';
 import ReleaseModal from '@/components/ReleaseModal';
@@ -114,7 +114,7 @@ export default function ResourceAuthoringPage() {
       notifications.show({
         title: 'Update Successful!',
         message: `${resourceType} Successfully Updated`,
-        icon: <CircleCheck />,
+        icon: <IconCircleCheck />,
         color: 'green'
       });
       ctx.draft.getDraftById.invalidate();
@@ -123,7 +123,7 @@ export default function ResourceAuthoringPage() {
       notifications.show({
         title: 'Update Failed!',
         message: `Attempt to update ${resourceType} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
+        icon: <IconAlertCircle />,
         color: 'red'
       });
     }
@@ -184,7 +184,7 @@ export default function ResourceAuthoringPage() {
                     library
                     <Tooltip label="Only draft libraries with a valid url may be selected.">
                       <div>
-                        <InfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
+                        <IconInfoCircle size="1rem" style={{ display: 'block', opacity: 0.5 }} />
                       </div>
                     </Tooltip>
                   </Group>

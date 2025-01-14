@@ -1,5 +1,5 @@
 import { Center, ScrollArea, Space, Text, Timeline } from '@mantine/core';
-import { Message } from 'tabler-icons-react';
+import { IconMessage } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import ArtifactComments, { ArtifactCommentProps } from './ArtifactComments';
 
@@ -77,7 +77,7 @@ export default function ArtifactTimeline({ extensions }: ArtifactTimelineProps) 
             <ScrollArea.Autosize mah={height * 0.8} type="scroll">
               <Timeline active={0} bulletSize={35} lineWidth={6}>
                 {commentArray?.reverse().map((e, index) => (
-                  <Timeline.Item lineVariant="dotted" bullet={<Message size={25} />} title={e.type} key={index}>
+                  <Timeline.Item lineVariant="dotted" bullet={<IconMessage size={25} />} title={e.type} key={index}>
                     {addArtifactComment({
                       date: e?.date,
                       body: e?.body,

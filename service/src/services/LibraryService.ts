@@ -263,6 +263,9 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     if (!activeLibrary) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
+    if (activeLibrary.status !== 'active') {
+      throw new BadRequestError('Authoring repository service drafting may only be made to active status resources.');
+    }
     checkIsOwned(activeLibrary, 'Child artifacts cannot be directly drafted');
 
     // recursively get any child artifacts from the artifact if they exist

@@ -21,7 +21,7 @@ import { CRMIShareableLibrary, FhirArtifact } from '@/util/types/fhir';
 import CQLRegex from '../../util/prismCQL';
 import { Prism as PrismRenderer } from 'prism-react-renderer';
 import parse from 'html-react-parser';
-import { AlertCircle, CircleCheck } from 'tabler-icons-react';
+import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
 import DataReqs from '@/components/DataRequirements';
@@ -95,7 +95,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     notifications.show({
       title: `${resourceType} Created!`,
       message: message,
-      icon: <CircleCheck />,
+      icon: <IconCircleCheck />,
       color: 'green'
     });
     ctx.draft.getDraftCounts.invalidate();
@@ -111,7 +111,7 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
     notifications.show({
       title: `${resourceType} Creation Failed!`,
       message: message,
-      icon: <AlertCircle />,
+      icon: <IconAlertCircle />,
       color: 'red'
     });
   };
@@ -159,8 +159,14 @@ export default function ResourceIDPage({ jsonData }: InferGetServerSidePropsType
               {!!jsonData?.extension?.find(
                 ext =>
                   ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean === true
-              ) ? (
-                <Tooltip label="Child artifacts cannot be directly drafted">
+              ) || jsonData.status === 'retired' ? (
+                <Tooltip
+                  label={
+                    jsonData.status === 'retired'
+                      ? 'Retired artifacts cannot be drafted'
+                      : 'Child artifacts cannot be directly drafted'
+                  }
+                >
                   <span>
                     <Button w={240} loading={draftFromArtifactMutation.isLoading} disabled={true}>
                       Create Draft of {jsonData.resourceType}

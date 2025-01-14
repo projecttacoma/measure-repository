@@ -30,6 +30,11 @@ export const draftRouter = router({
     const artifactList = artifactBundle.entry
       ?.filter(entry => entry.resource)
       .map(entry => entry.resource as FhirArtifact);
+    artifactList?.sort((a, b) => {
+      const strA = `${a.url}|${a.version}`;
+      const strB = `${b.url}|${b.version}`;
+      return strA.localeCompare(strB);
+    });
     return artifactList;
   }),
 
@@ -172,13 +177,20 @@ export const draftRouter = router({
       const date = new Date().toISOString();
       const canonical = `${resource.url}|${resource.version}`;
 
-      const params = new URLSearchParams({
-        reviewDate: date,
-        artifactAssessmentType: input.type,
-        artifactAssessmentSummary: input.summary,
-        artifactAssessmentTarget: canonical,
-        artifactAssessmentAuthor: input.author
-      });
+      let params;
+      if (input.type && input.summary) {
+        params = new URLSearchParams({
+          reviewDate: date,
+          artifactAssessmentType: input.type,
+          artifactAssessmentSummary: input.summary,
+          artifactAssessmentTarget: canonical,
+          artifactAssessmentAuthor: input.author
+        });
+      } else {
+        params = new URLSearchParams({
+          reviewDate: date
+        });
+      }
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$review?${params}`);
 
       if (res.status !== 200) {
@@ -202,6 +214,65 @@ export const draftRouter = router({
           resData.children.push(e.resource);
         } else {
           resData.reviewId = e.resource?.id;
+        }
+      });
+      return resData;
+    }),
+
+  // passes in type, summary, and author from user (set date and target automatically)
+  approveDraft: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        resourceType: z.enum(['Measure', 'Library']),
+        type: z.string(),
+        summary: z.string(),
+        author: z.string()
+      })
+    )
+    .mutation(async ({ input }) => {
+      const raw = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`);
+      const resource = (await raw.json()) as FhirArtifact;
+      const date = new Date().toISOString();
+      const canonical = `${resource.url}|${resource.version}`;
+
+      let params;
+      if (input.type && input.summary) {
+        params = new URLSearchParams({
+          approvalDate: date,
+          artifactAssessmentType: input.type,
+          artifactAssessmentSummary: input.summary,
+          artifactAssessmentTarget: canonical,
+          artifactAssessmentAuthor: input.author
+        });
+      } else {
+        params = new URLSearchParams({
+          approvalDate: date
+        });
+      }
+      const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}/$approve?${params}`);
+
+      if (res.status !== 200) {
+        const outcome: OperationOutcome = await res.json();
+        throw new Error(`Received ${res.status} error on $approve:  ${outcome.issue[0].details?.text}`);
+      }
+
+      const resBundle: Bundle<FhirArtifact> = await res.json();
+
+      if (!resBundle.entry || resBundle.entry.length === 0) {
+        throw new Error(`No updated resources found from approving ${input.resourceType}, id ${input.id}`);
+      }
+
+      const resData = { approveId: undefined as string | undefined, children: [] as FhirArtifact[] };
+      resBundle.entry.forEach(e => {
+        if (
+          e.resource?.extension?.find(
+            ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned' && ext.valueBoolean
+          )
+        ) {
+          resData.children.push(e.resource);
+        } else {
+          resData.approveId = e.resource?.id;
         }
       });
       return resData;

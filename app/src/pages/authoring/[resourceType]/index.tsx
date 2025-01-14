@@ -1,10 +1,11 @@
 import { trpc } from '@/util/trpc';
-import { Center, Text, Divider, Title } from '@mantine/core';
+import { Center, Text, Divider, Title, Stack, Button } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { ArtifactResourceType, ResourceInfo } from '@/util/types/fhir';
 import ResourceCards from '@/components/ResourceCards';
 import { extractResourceInfo } from '@/util/resourceCardUtils';
 import { useMemo } from 'react';
+import Link from 'next/link';
 
 export default function ResourceAuthoringPage() {
   const router = useRouter();
@@ -33,13 +34,18 @@ export default function ResourceAuthoringPage() {
         </Text>
       </Center>
       <Divider my="md" />
-      <div style={{ paddingTop: '18px' }}>
-        <ResourceCards
-          resourceInfo={resourceCardContent}
-          resourceType={resourceType as ArtifactResourceType}
-          authoring={true}
-        />
-      </div>
+      <Stack align="center">
+        <Link href={`/search?resourceType=${resourceType}&authoring=true`}>
+          <Button>Search</Button>
+        </Link>
+        <div style={{ paddingTop: '18px' }}>
+          <ResourceCards
+            resourceInfo={resourceCardContent}
+            resourceType={resourceType as ArtifactResourceType}
+            authoring={true}
+          />
+        </div>
+      </Stack>
     </div>
   );
 }

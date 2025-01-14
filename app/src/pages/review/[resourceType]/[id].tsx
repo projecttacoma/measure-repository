@@ -23,10 +23,11 @@ import { ArtifactResourceType } from '@/util/types/fhir';
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { trpc } from '@/util/trpc';
-import { AlertCircle, CircleCheck, InfoCircle, Star } from 'tabler-icons-react';
-import { isNotEmpty, useForm } from '@mantine/form';
+import { IconAlertCircle, IconCircleCheck, IconInfoCircle, IconStar } from '@tabler/icons-react';
+import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import ArtifactTimeline from '@/components/ArtifactTimeline';
+import { isEmpty, trim } from 'lodash';
 
 /**
  * Component which renders a page that displays the JSON data of a resource. Also will eventually
@@ -49,9 +50,16 @@ export default function CommentPage() {
       name: ''
     },
     // An error will be thrown if these fields aren't entered properly
+    // Type and comment are required unless all are empty
     validate: {
-      type: isNotEmpty('Select the type of comment'),
-      comment: isNotEmpty('Enter artifact comment')
+      type: (value, values) =>
+        (isEmpty(trim(value)) && isEmpty(trim(values.comment)) && isEmpty(trim(values.name))) || !isEmpty(trim(value))
+          ? null
+          : 'Type is required for any comment input.',
+      comment: (value, values) =>
+        (isEmpty(trim(value)) && isEmpty(trim(values.type)) && isEmpty(trim(values.name))) || !isEmpty(trim(value))
+          ? null
+          : 'Artifact comment text is required for any comment input.'
     }
   });
 
@@ -60,14 +68,14 @@ export default function CommentPage() {
       notifications.show({
         title: 'Review successfully added!',
         message: `Review successfully added to ${resourceType}/${resourceID}`,
-        icon: <CircleCheck />,
+        icon: <IconCircleCheck />,
         color: 'green'
       });
       data.children.forEach(c => {
         notifications.show({
           title: 'Review successfully added!',
-          message: `Draft of child ${resourceType} artifact of url ${c.url} successfully reviewed`,
-          icon: <CircleCheck />,
+          message: `${resourceType} artifact of url ${c.url} successfully reviewed`,
+          icon: <IconCircleCheck />,
           color: 'green'
         });
       });
@@ -81,7 +89,39 @@ export default function CommentPage() {
       notifications.show({
         title: 'Review Failed!',
         message: `Attempt to review ${resourceType} failed with message: ${e.message}`,
-        icon: <AlertCircle />,
+        icon: <IconAlertCircle />,
+        color: 'red'
+      });
+    }
+  });
+
+  const resourceApprove = trpc.draft.approveDraft.useMutation({
+    onSuccess: data => {
+      notifications.show({
+        title: 'Approval successfully added!',
+        message: `Approval successfully added to ${resourceType}/${resourceID}`,
+        icon: <IconCircleCheck />,
+        color: 'green'
+      });
+      data.children.forEach(c => {
+        notifications.show({
+          title: 'Approval successfully added!',
+          message: `${resourceType} artifact of url ${c.url} successfully approved`,
+          icon: <IconCircleCheck />,
+          color: 'green'
+        });
+      });
+      if (authoring) {
+        ctx.draft.getDraftById.invalidate();
+      } else {
+        ctx.service.getArtifactById.invalidate();
+      }
+    },
+    onError: e => {
+      notifications.show({
+        title: 'Approval Failed!',
+        message: `Attempt to approve ${resourceType} failed with message: ${e.message}`,
+        icon: <IconAlertCircle />,
         color: 'red'
       });
     }
@@ -141,19 +181,17 @@ export default function CommentPage() {
                     radius="lg"
                     label={
                       <Group spacing="lg">
-                        <Text>
-                          Comment Type <span style={{ color: 'red' }}>*</span>
-                        </Text>
+                        <Text>Comment Type</Text>
                         <HoverCard width={420} shadow="md" withArrow openDelay={200} closeDelay={200}>
                           <HoverCard.Target>
                             <div>
-                              <InfoCircle size="1rem" style={{ opacity: 0.5 }} />
+                              <IconInfoCircle size="1rem" style={{ opacity: 0.5 }} />
                             </div>
                           </HoverCard.Target>
                           <HoverCard.Dropdown>
                             <Group>
                               <Avatar color="blue" radius="xl">
-                                <InfoCircle size="1.5rem" />
+                                <IconInfoCircle size="1.5rem" />
                               </Avatar>
                               <Stack spacing={5}>
                                 <Text size="sm" weight={700} sx={{ lineHeight: 1 }}>
@@ -187,7 +225,7 @@ export default function CommentPage() {
                         </HoverCard>
                       </Group>
                     }
-                    icon={<Star opacity={0.5} />}
+                    icon={<IconStar opacity={0.5} />}
                     placeholder="Type"
                     data={[
                       { value: 'documentation', label: 'documentation' },
@@ -205,7 +243,6 @@ export default function CommentPage() {
                   placeholder="Your Artifact comment"
                   label="Artifact Comment"
                   description="Add a comment to the artifact"
-                  withAsterisk
                   {...form.getInputProps('comment')}
                 />
                 <Space h="md" />
@@ -238,7 +275,33 @@ export default function CommentPage() {
                       }
                     }}
                   >
-                    Submit
+                    Review
+                  </Button>
+                  <Button
+                    loading={isLoading}
+                    type="submit"
+                    color="green"
+                    onClick={() => {
+                      if (form.isValid()) {
+                        setIsLoading(true);
+                        setTimeout(() => {
+                          form.reset();
+                          if (ref?.current?.checked) {
+                            ref.current.checked = false;
+                          }
+                          setIsLoading(false);
+                        }, 1000);
+                        resourceApprove.mutate({
+                          resourceType: resourceType as ArtifactResourceType,
+                          id: resourceID as string,
+                          type: form.values.type,
+                          summary: form.values.comment,
+                          author: form.values.name
+                        });
+                      }
+                    }}
+                  >
+                    Approve
                   </Button>
                 </Group>
               </Box>
