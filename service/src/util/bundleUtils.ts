@@ -45,6 +45,17 @@ export function createBatchResponseBundle<T extends FhirArtifact>(entries: T[]):
   };
 }
 
+export function createTransactionResponseBundle<T extends FhirArtifact>(entries: T[]): fhir4.Bundle<T> {
+  return {
+    resourceType: 'Bundle',
+    meta: { lastUpdated: new Date().toISOString() },
+    id: v4(),
+    type: 'transaction-response',
+    total: entries.length,
+    entry: entries.map(e => ({ resource: e }))
+  };
+}
+
 /**
  *
  * Takes in a number of FHIR resources and creates a FHIR searchset Bundle without entries
