@@ -272,7 +272,7 @@ export default function ResourceInfoCard({ resourceInfo, authoring }: ResourceIn
               }
               key={resourceInfo.id}
             >
-              <Tooltip label={authoring ? 'Edit Draft Resource' : 'View Resource Contents'} openDelay={1000}>
+              <Tooltip label={authoring ? 'Revise Draft Resource' : 'View Resource Contents'} openDelay={1000}>
                 <ActionIcon radius="md" size="md" variant="subtle" color="gray">
                   {authoring ? <IconEdit size="24" /> : <IconSquareArrowRight size="24" />}
                 </ActionIcon>
