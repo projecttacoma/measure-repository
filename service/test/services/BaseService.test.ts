@@ -101,7 +101,8 @@ const VALID_PUT_REQ = {
         url: 'http://example.com',
         version: '1',
         title: 'Sample title',
-        description: 'Sample description'
+        description: 'Sample description',
+        date: '2025-01-01T00:00:00.000Z'
       },
       request: {
         method: 'PUT',
@@ -123,7 +124,9 @@ const VALID_POST_REQ = {
         url: 'http://example.com',
         version: '1',
         title: 'Sample title',
-        description: 'Sample description'
+        description: 'Sample description',
+        date: '2025-01-01T00:00:00.000Z',
+        type: { coding: [{ code: 'logic-library' }] }
       },
       request: {
         method: 'POST',
@@ -137,7 +140,8 @@ const LIBRARY_BASE = {
   type: { coding: [{ code: 'logic-library' }] },
   version: '1',
   title: 'Sample title',
-  description: 'Sample description'
+  description: 'Sample description',
+  date: '2025-01-01T00:00:00.000Z'
 };
 
 describe('BaseService', () => {

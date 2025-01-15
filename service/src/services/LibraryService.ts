@@ -48,7 +48,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Calculator } from 'fqm-execution';
 const logger = loggers.get('default');
 import { Filter } from 'mongodb';
-import { CRMIShareableLibrary, FhirLibraryWithDR } from '../types/service-types';
+import { CRMIRepositoryLibrary, FhirLibraryWithDR } from '../types/service-types';
 import {
   createArtifactComment,
   getChildren,
@@ -60,7 +60,7 @@ import {
  * Implementation of a service for the `Library` resource
  * The Service interface contains all possible functions
  */
-export class LibraryService implements Service<CRMIShareableLibrary> {
+export class LibraryService implements Service<CRMIRepositoryLibrary> {
   /**
    * result of sending a GET request to {BASE_URL}/4_0_1/Library?{QUERY}
    * searches for all libraries that match the included query and returns a FHIR searchset Bundle
@@ -80,13 +80,13 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
       (parsedQuery._count && parsedQuery._count === '0')
     ) {
       const count = await findResourceCountWithQuery(mongoQuery, 'Library');
-      return createSummarySearchsetBundle<CRMIShareableLibrary>(count);
+      return createSummarySearchsetBundle<CRMIRepositoryLibrary>(count);
     }
     // if the _elements parameter with a comma-separated string is included
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const result = await findResourceElementsWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
+      const result = await findResourceElementsWithQuery<CRMIRepositoryLibrary>(mongoQuery, 'Library');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
       result.data.map(e => {
         if (e.meta) {
@@ -115,7 +115,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
       }
       return bundle;
     } else {
-      const result = await findResourcesWithQuery<CRMIShareableLibrary>(mongoQuery, 'Library');
+      const result = await findResourcesWithQuery<CRMIRepositoryLibrary>(mongoQuery, 'Library');
       const bundle = createSearchsetBundle(result.data);
       if (parsedQuery._count) {
         bundle.link = createPaginationLinks(
@@ -138,7 +138,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
    */
   async searchById(args: RequestArgs) {
     logger.info(`GET /Library/${args.id}`);
-    const result = await findResourceById<CRMIShareableLibrary>(args.id, 'Library');
+    const result = await findResourceById<CRMIRepositoryLibrary>(args.id, 'Library');
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
@@ -178,7 +178,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableLibrary | null;
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIRepositoryLibrary | null;
     // note: the distance between this database call and the update resource call, could cause a race condition
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
@@ -213,7 +213,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
    * requires id parameter
    */
   async remove(args: RequestArgs) {
-    const library = await findResourceById<CRMIShareableLibrary>(args.id, 'Library');
+    const library = await findResourceById<CRMIRepositoryLibrary>(args.id, 'Library');
     if (!library) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
@@ -259,7 +259,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, DraftArgs);
 
-    const activeLibrary = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    const activeLibrary = await findResourceById<CRMIRepositoryLibrary>(parsedParams.id, 'Library');
     if (!activeLibrary) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${args.id}`);
     }
@@ -308,7 +308,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
 
-    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    const library = await findResourceById<CRMIRepositoryLibrary>(parsedParams.id, 'Library');
     if (!library) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
     }
@@ -356,7 +356,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, ApproveArgs);
 
-    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    const library = await findResourceById<CRMIRepositoryLibrary>(parsedParams.id, 'Library');
     if (!library) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
     }
@@ -432,7 +432,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, ReviewArgs);
 
-    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    const library = await findResourceById<CRMIRepositoryLibrary>(parsedParams.id, 'Library');
     if (!library) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
     }
@@ -505,7 +505,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     const query = extractIdentificationForQuery(args, params);
     const parsedParams = parseRequestSchema({ ...params, ...query }, ReleaseArgs);
 
-    const library = await findResourceById<CRMIShareableLibrary>(parsedParams.id, 'Library');
+    const library = await findResourceById<CRMIRepositoryLibrary>(parsedParams.id, 'Library');
     if (!library) {
       throw new ResourceNotFoundError(`No resource found in collection: Library, with id: ${parsedParams.id}`);
     }

@@ -47,7 +47,7 @@ import {
 } from '../requestSchemas';
 import { v4 as uuidv4 } from 'uuid';
 import { Filter } from 'mongodb';
-import { CRMIShareableMeasure, FhirLibraryWithDR } from '../types/service-types';
+import { CRMIRepositoryMeasure, FhirLibraryWithDR } from '../types/service-types';
 import {
   createArtifactComment,
   getChildren,
@@ -61,7 +61,7 @@ const logger = loggers.get('default');
  * Implementation of a service for the `Measure` resource
  * The Service interface contains all possible functions
  */
-export class MeasureService implements Service<CRMIShareableMeasure> {
+export class MeasureService implements Service<CRMIRepositoryMeasure> {
   /**
    * result of sending a GET request to {BASE_URL}/4_0_1/Measure?{QUERY}
    * searches for all measures that match the included query and returns a FHIR searchset Bundle
@@ -81,13 +81,13 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
       (parsedQuery._count && parsedQuery._count === '0')
     ) {
       const count = await findResourceCountWithQuery(mongoQuery, 'Measure');
-      return createSummarySearchsetBundle<CRMIShareableMeasure>(count);
+      return createSummarySearchsetBundle<CRMIRepositoryMeasure>(count);
     }
     // if the _elements parameter with a comma-separated string is included
     // then return a searchset bundle that includes only those elements
     // on those resource entries
     else if (parsedQuery._elements) {
-      const result = await findResourceElementsWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
+      const result = await findResourceElementsWithQuery<CRMIRepositoryMeasure>(mongoQuery, 'Measure');
       // add the SUBSETTED tag to the resources returned by the _elements parameter
       result.data.map(e => {
         if (e.meta) {
@@ -118,7 +118,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
       }
       return bundle;
     } else {
-      const result = await findResourcesWithQuery<CRMIShareableMeasure>(mongoQuery, 'Measure');
+      const result = await findResourcesWithQuery<CRMIRepositoryMeasure>(mongoQuery, 'Measure');
       const bundle = createSearchsetBundle(result.data);
       if (parsedQuery._count) {
         if (parsedQuery._count) {
@@ -143,7 +143,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
    */
   async searchById(args: RequestArgs) {
     logger.info(`GET /Measure/${args.id}`);
-    const result = await findResourceById<CRMIShareableMeasure>(args.id, 'Measure');
+    const result = await findResourceById<CRMIRepositoryMeasure>(args.id, 'Measure');
     if (!result) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
@@ -182,7 +182,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     if (resource.id !== args.id) {
       throw new BadRequestError('Argument id must match request body id for PUT request');
     }
-    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIShareableMeasure | null;
+    const oldResource = (await findResourceById(resource.id, resource.resourceType)) as CRMIRepositoryMeasure | null;
     // note: the distance between this database call and the update resource call, could cause a race condition
     if (oldResource) {
       checkFieldsForUpdate(resource, oldResource);
@@ -217,7 +217,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
    * requires id parameter
    */
   async remove(args: RequestArgs) {
-    const measure = await findResourceById<CRMIShareableMeasure>(args.id, 'Measure');
+    const measure = await findResourceById<CRMIRepositoryMeasure>(args.id, 'Measure');
     if (!measure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
@@ -263,7 +263,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, DraftArgs);
 
-    const activeMeasure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    const activeMeasure = await findResourceById<CRMIRepositoryMeasure>(parsedParams.id, 'Measure');
     if (!activeMeasure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
@@ -312,7 +312,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, CloneArgs);
 
-    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    const measure = await findResourceById<CRMIRepositoryMeasure>(parsedParams.id, 'Measure');
     if (!measure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${args.id}`);
     }
@@ -360,7 +360,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, ApproveArgs);
 
-    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    const measure = await findResourceById<CRMIRepositoryMeasure>(parsedParams.id, 'Measure');
     if (!measure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${parsedParams.id}`);
     }
@@ -436,7 +436,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
 
     const parsedParams = parseRequestSchema({ ...params, ...query }, ReviewArgs);
 
-    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    const measure = await findResourceById<CRMIRepositoryMeasure>(parsedParams.id, 'Measure');
     if (!measure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${parsedParams.id}`);
     }
@@ -509,7 +509,7 @@ export class MeasureService implements Service<CRMIShareableMeasure> {
     const query = extractIdentificationForQuery(args, params);
     const parsedParams = parseRequestSchema({ ...params, ...query }, ReleaseArgs);
 
-    const measure = await findResourceById<CRMIShareableMeasure>(parsedParams.id, 'Measure');
+    const measure = await findResourceById<CRMIRepositoryMeasure>(parsedParams.id, 'Measure');
     if (!measure) {
       throw new ResourceNotFoundError(`No resource found in collection: Measure, with id: ${parsedParams.id}`);
     }
