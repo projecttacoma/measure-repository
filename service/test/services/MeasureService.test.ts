@@ -645,20 +645,26 @@ describe('MeasureService', () => {
       );
     });
 
-    it('withdraw: returns 204 status when deleting a draft artifact', async () => {
+    it('withdraw: returns 200 status when deleting a draft artifact', async () => {
       await supertest(server.app)
         .delete('/4_0_1/Measure/delete-draft')
         .send()
         .set('content-type', 'application/json+fhir')
-        .expect(204);
+        .expect(200)
+        .then(response => {
+          expect(response.body.entry[0].resource.id).toEqual('delete-draft');
+        });
     });
 
-    it('archive: returns 204 status when deleting a retired artifact', async () => {
+    it('archive: returns 200 status when deleting a retired artifact', async () => {
       await supertest(server.app)
         .delete('/4_0_1/Measure/delete-retired')
         .send()
         .set('content-type', 'application/json+fhir')
-        .expect(204);
+        .expect(200)
+        .then(response => {
+          expect(response.body.entry[0].resource.id).toEqual('delete-retired');
+        });
     });
 
     it('archive: returns 400 status when deleting an active artifact', async () => {
