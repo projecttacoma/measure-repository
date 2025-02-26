@@ -28,7 +28,8 @@ import {
   createLibraryPackageBundle,
   createPaginationLinks,
   createSearchsetBundle,
-  createSummarySearchsetBundle
+  createSummarySearchsetBundle,
+  createTransactionResponseBundle
 } from '../util/bundleUtils';
 import { BadRequestError, ResourceNotFoundError } from '../util/errorUtils';
 import { getMongoQueryFromRequest } from '../util/queryUtils';
@@ -231,7 +232,7 @@ export class LibraryService implements Service<CRMIShareableLibrary> {
     const newDeletes = await batchDelete([library, ...children], archiveOrWithdraw);
 
     // we want to return a Bundle containing the deleted artifacts
-    return createBatchResponseBundle(newDeletes);
+    return createTransactionResponseBundle(newDeletes);
   }
 
   /**
