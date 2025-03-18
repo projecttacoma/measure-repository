@@ -1,6 +1,6 @@
-FROM node:18 as base
+FROM node:18 AS base
 
-FROM base as deps
+FROM base AS deps
 
 # Run a custom ssl_setup script if available
 COPY ./docker_ssl_setup.sh* ./
@@ -22,14 +22,14 @@ COPY --chown=node:node service/package.json ./service/
 RUN npm install
 
 
-FROM deps as build
+FROM deps AS build
 
 # copy over all source and build just app
 COPY --chown=node:node app app
 COPY --chown=node:node tsconfig-base.json .
 RUN npm run build --workspace=app
 
-FROM node:18-slim as runner
+FROM node:18-slim AS runner
 
 USER node
 WORKDIR /home/node/app
@@ -43,6 +43,6 @@ COPY --from=build --chown=node:node /home/node/app/app/.next/static ./app/.next/
 
 # Start app
 EXPOSE 3001
-ENV PORT 3001
-ENV HOST "0.0.0.0"
+ENV PORT=3001
+ENV HOST="0.0.0.0"
 CMD [ "node", "app/server.js"]

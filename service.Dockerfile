@@ -1,6 +1,6 @@
-FROM node:18 as base
+FROM node:18 AS base
 
-FROM base as deps
+FROM base AS deps
 
 # Run a custom ssl_setup script if available
 COPY ./docker_ssl_setup.sh* ./
@@ -22,7 +22,7 @@ COPY --chown=node:node service/package.json ./service/
 RUN npm install
 
 
-FROM deps as build
+FROM deps AS build
 
 # copy over all source and build just app
 COPY --chown=node:node service service
@@ -33,7 +33,7 @@ RUN rm -rf node_modules
 
 RUN npm prune --omit=dev
 
-FROM node:18-slim as runner
+FROM node:18-slim AS runner
 
 USER node
 WORKDIR /home/node/app
@@ -46,6 +46,6 @@ COPY --from=build --chown=node:node /home/node/app/node_modules ./node_modules
 
 # Start app
 EXPOSE 3000
-ENV PORT 3000
-ENV HOST "0.0.0.0"
+ENV PORT=3000
+ENV HOST="0.0.0.0"
 CMD [ "node", "dist/index.js"]
