@@ -10,7 +10,6 @@ services:
       platforms:
         - "linux/amd64"
         - "linux/arm64"
-    image: tacoma/measure-repository-service
     environment:
       DATABASE_URL: 'mongodb://mongo:27017/measure-repository?replicaSet=rs0'
     ports:
@@ -28,7 +27,6 @@ services:
       platforms:
         - "linux/amd64"
         - "linux/arm64"
-    image: tacoma/measure-repository-app
     environment:
       PUBLIC_MRS_SERVER: http://localhost:3000/4_0_1
       MRS_SERVER: http://measure-service:3000/4_0_1
@@ -42,16 +40,14 @@ services:
     image: mongo:7.0
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     expose:
-      - "27017:27017"
-    ports:
-      - 27017:27017
+      - "27017"
     # uncomment the following to have access to the containerized mongo at 27018
-    # ports:
-    #   - "27018:27017"
+    ports:
+      - "27018:27017"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }" | mongosh --port 27017 --quiet
       interval: 5s
       timeout: 30s
       start_period: 0s
