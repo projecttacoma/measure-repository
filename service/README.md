@@ -64,6 +64,18 @@ To load [ecqm-content-qicore-2024](https://github.com/cqframework/ecqm-content-q
 npm run db:loadEcqmContent <optional service url, default: http://localhost:3000/4_0_1>
 ```
 
+To load a measure bundle and related library artifacts, and coerce all of their statuses to `active`, run:
+
+```
+npm run db:loadPublishableContent <path to measure bundle>
+```
+
+To load multiple bundles from a directory, and coerce all of their statuses to `active`, run:
+
+```
+npm run db:loadPublishableContent <path to directory>
+```
+
 ### Bundle Upload Details
 
 Upon uploading a Measure resource, the Measure's main library is added to the `relatedArtifact` array with an [isOwned extension](https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-artifact-isOwned.html).
