@@ -5,7 +5,7 @@ import { MongoError } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { addIsOwnedExtension, addLibraryIsOwned } from '../src/util/baseUtils';
-import { CRMIShareableLibrary, FhirArtifact } from '../src/types/service-types';
+import { CRMIRepositoryLibrary, FhirArtifact } from '../src/types/service-types';
 dotenv.config();
 
 const DB_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/measure-repository';
@@ -351,10 +351,10 @@ export function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirReso
  */
 async function insertFHIRModelInfoLibrary() {
   const fhirModelInfo = fs.readFileSync('scripts/fixtures/Library-FHIR-ModelInfo.json', 'utf8');
-  const fhirModelInfoLibrary: CRMIShareableLibrary = JSON.parse(fhirModelInfo);
+  const fhirModelInfoLibrary: CRMIRepositoryLibrary = JSON.parse(fhirModelInfo);
 
   const qicoreModelInfo = fs.readFileSync('scripts/fixtures/Library-QICore-ModelInfo.json', 'utf8');
-  const qicoreModelInfoLibrary: CRMIShareableLibrary = JSON.parse(qicoreModelInfo);
+  const qicoreModelInfoLibrary: CRMIRepositoryLibrary = JSON.parse(qicoreModelInfo);
 
   const collection = Connection.db.collection<FhirArtifact>('Library');
   console.log(`Inserting Library/${fhirModelInfoLibrary.id} into database`);

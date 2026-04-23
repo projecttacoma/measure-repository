@@ -1,5 +1,5 @@
 import { publicProcedure, router } from '../trpc';
-import { CRMIShareableLibrary, FhirArtifact } from '@/util/types/fhir';
+import { CRMIRepositoryLibrary, FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Bundle, OperationOutcome } from 'fhir/r4';
@@ -82,7 +82,7 @@ export const serviceRouter = router({
           message: resource?.issue[0]?.details?.text
         });
       }
-      return resource as CRMIShareableLibrary;
+      return resource as CRMIRepositoryLibrary;
     }),
 
   getArtifactById: publicProcedure
