@@ -23,6 +23,9 @@ RUN npm install --prefer-online=true
 
 FROM deps AS build
 
+USER node
+WORKDIR /home/node/app
+
 # copy over all source and build just app
 COPY --chown=node:node service service
 COPY --chown=node:node tsconfig-base.json .
