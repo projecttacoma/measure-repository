@@ -4,7 +4,7 @@ services:
   measure-service:
     depends_on:
       - mongo
-    image: tacoma/measure-repository-service
+    image: mitrehealthdocker/measure-repository-service
     environment:
       DATABASE_URL: "mongodb://mongo:27017/measure-repository?replicaSet=rs0"
     ports:
@@ -16,7 +16,7 @@ services:
     depends_on:
       - mongo
       - measure-service
-    image: tacoma/measure-repository-app
+    image: mitrehealthdocker/measure-repository-app
     environment:
       # Change this for public location of measure-service this should be the FQDN and location of where the
       # measure-service container is made public to users with `4_0_1` appended. ex. https://abacus.example.com/mrs/4_0_1
