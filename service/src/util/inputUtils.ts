@@ -74,8 +74,12 @@ export function checkExpectedResourceType(resourceType: string, expectedResource
 
 export function checkFieldsForCreate(resource: fhir4.Measure | fhir4.Library) {
   // base shareable artifact requires url, version, title, status (required by base FHIR), description
-  if (!resource.url || !resource.version || !resource.title || !resource.description) {
-    throw new BadRequestError('Created artifacts must have url, version, title, status, and description');
+  // base publishable artifact requires date and type (for Library)
+  if (!resource.url || !resource.version || !resource.title || !resource.description || !resource.date) {
+    throw new BadRequestError('Created artifacts must have url, version, title, status, description, and date');
+  }
+  if (resource.resourceType === 'Library' && !resource.type) {
+    throw new BadRequestError('Created library artifacts must have a type');
   }
 
   if (process.env.AUTHORING === 'true') {
@@ -135,8 +139,12 @@ export function checkFieldsForUpdate(resource: fhir4.Measure | fhir4.Library, ol
       throw new BadRequestError('Existing draft resources must stay in draft while revising.');
     }
     // base shareable artifact requires url, version, title, status (required by base FHIR), description
-    if (!resource.url || !resource.version || !resource.title || !resource.description) {
-      throw new BadRequestError('Artifacts must have url, version, title, status, and description');
+    // base publishable artifact requires date and type (for Library)
+    if (!resource.url || !resource.version || !resource.title || !resource.description || !resource.date) {
+      throw new BadRequestError('Artifacts must have url, version, title, status, description, and date');
+    }
+    if (resource.resourceType === 'Library' && !resource.type) {
+      throw new BadRequestError('Created library artifacts must have a type');
     }
   } else {
     throw new BadRequestError(`Cannot update existing resource with status ${oldResource.status}`);

@@ -1,4 +1,4 @@
-import { CRMIShareableMeasure, FhirArtifact } from '@/util/types/fhir';
+import { CRMIRepositoryMeasure, FhirArtifact } from '@/util/types/fhir';
 import { z } from 'zod';
 import { publicProcedure, router } from '../trpc';
 import { Bundle, OperationOutcome } from 'fhir/r4';
@@ -76,7 +76,7 @@ export const draftRouter = router({
       resource.title = input.values.title;
       resource.description = input.values.description;
       if (input.resourceType === 'Measure') {
-        (resource as CRMIShareableMeasure).library = input.values.library;
+        (resource as CRMIRepositoryMeasure).library = input.values.library;
       }
       const res = await fetch(`${process.env.MRS_SERVER}/${input.resourceType}/${input.id}`, {
         method: 'PUT',

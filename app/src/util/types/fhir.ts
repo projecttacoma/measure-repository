@@ -1,21 +1,25 @@
-export interface CRMIShareableMeasure extends fhir4.Measure {
+// CRMIRepository* types implement both CRMIShareable and CRMIPublishable required fields
+export interface CRMIRepositoryMeasure extends fhir4.Measure {
   id: string;
   url: string;
   version: string;
   title: string;
   description: string;
+  date: string;
 }
 
-export interface CRMIShareableLibrary extends fhir4.Library {
+export interface CRMIRepositoryLibrary extends fhir4.Library {
   id: string;
   url: string;
   version: string;
   title: string;
   description: string;
+  date: string;
+  type: fhir4.CodeableConcept;
 }
 
 // type representing the resource types that are relevant to the Measure Repository Service
-export type FhirArtifact = CRMIShareableMeasure | CRMIShareableLibrary;
+export type FhirArtifact = CRMIRepositoryMeasure | CRMIRepositoryLibrary;
 export type ArtifactResourceType = FhirArtifact['resourceType'];
 
 /**

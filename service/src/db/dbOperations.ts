@@ -1,7 +1,7 @@
 import { loggers } from '@projecttacoma/node-fhir-server-core';
 import { Filter, MongoServerError } from 'mongodb';
 import { Connection } from './Connection';
-import { ArtifactResourceType, CRMIShareableLibrary, FhirArtifact } from '../types/service-types';
+import { ArtifactResourceType, CRMIRepositoryLibrary, FhirArtifact } from '../types/service-types';
 import { BadRequestError } from '../util/errorUtils';
 
 const logger = loggers.get('default');
@@ -78,8 +78,8 @@ export async function findResourceElementsWithQuery<T extends FhirArtifact>(
   // if the resourceType is Library, then we want to include type in the projection
   const projection: any =
     resourceType === 'Library'
-      ? { id: 1, status: 1, resourceType: 1, type: 1, url: 1, title: 1, description: 1, version: 1 }
-      : { id: 1, status: 1, resourceType: 1, url: 1, title: 1, description: 1, version: 1 };
+      ? { id: 1, status: 1, resourceType: 1, type: 1, url: 1, title: 1, description: 1, version: 1, date: 1 }
+      : { id: 1, status: 1, resourceType: 1, url: 1, title: 1, description: 1, version: 1, date: 1 };
 
   (query._elements as string[]).forEach(elem => {
     projection[elem] = 1;
@@ -132,7 +132,7 @@ export async function findResourceCountWithQuery(query: Filter<any>, resourceTyp
 /**
  * searches the database for the data requirements Library resource of the desired artifact and parameters
  */
-export async function findDataRequirementsWithQuery<T extends CRMIShareableLibrary>(query: Filter<any>) {
+export async function findDataRequirementsWithQuery<T extends CRMIRepositoryLibrary>(query: Filter<any>) {
   const collection = Connection.db.collection('Library');
   return collection.findOne<T>({ _dataRequirements: query }, { projection: { _id: 0, _dataRequirements: 0, url: 0 } });
 }
