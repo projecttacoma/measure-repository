@@ -123,7 +123,7 @@ export default function Home({
       <Divider my="sm" variant="dotted" />
       <Title order={2}>Service Location:</Title>
       <div style={{ marginTop: '18px', marginBottom: '18px' }}>
-        <Anchor href={`${serviceUri}/metadata`}>{`${serviceUri}/metadata`}</Anchor>
+        <Anchor href={`${serviceUri}`}>{`${serviceUri}`}</Anchor>
       </div>
       <Divider my="sm" variant="dotted" />
       <Title order={2}>

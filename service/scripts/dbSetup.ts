@@ -160,7 +160,7 @@ async function deleteCollections() {
  * If a connectionURL is provided, then posts the resources to the server at the
  * connectionURL (as a transaction bundle), otherwise, loads the resources directly to the database
  */
-async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string) {
+async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string, publishable?: boolean) {
   const status = fs.statSync(fileOrDirectoryPath);
   if (status.isDirectory()) {
     const filePaths: string[] = [];
@@ -178,12 +178,14 @@ async function loadBundle(fileOrDirectoryPath: string, connectionURL?: string) {
     });
 
     for (const filePath of filePaths) {
-      await (connectionURL ? postBundleResources(filePath, connectionURL) : uploadBundleResources(filePath));
+      await (connectionURL
+        ? postBundleResources(filePath, connectionURL, publishable)
+        : uploadBundleResources(filePath, publishable));
     }
   } else {
     await (connectionURL
-      ? postBundleResources(fileOrDirectoryPath, connectionURL)
-      : uploadBundleResources(fileOrDirectoryPath));
+      ? postBundleResources(fileOrDirectoryPath, connectionURL, publishable)
+      : uploadBundleResources(fileOrDirectoryPath, publishable));
   }
 }
 
@@ -225,7 +227,7 @@ async function transactBundle(bundle: fhir4.Bundle, url: string) {
 /*
  * Loads all resources found in the bundle at filePath, by POSTing them to the provided url
  */
-async function postBundleResources(filePath: string, url: string) {
+async function postBundleResources(filePath: string, url: string, publishable?: boolean) {
   console.log(`Loading bundle from path ${filePath}`);
 
   const data = fs.readFileSync(filePath, 'utf8');
@@ -235,7 +237,7 @@ async function postBundleResources(filePath: string, url: string) {
     const entries = bundle.entry as fhir4.BundleEntry<FhirArtifact>[];
     // modify bundles before posting
     if (entries) {
-      const modifiedEntries = modifyEntriesForUpload(entries);
+      const modifiedEntries = modifyEntriesForUpload(entries, publishable);
       bundle.entry = modifiedEntries;
     }
     await transactBundle(bundle, url);
@@ -245,7 +247,7 @@ async function postBundleResources(filePath: string, url: string) {
 /*
  * Loads all resources found in the bundle at filePath, directly to the database
  */
-async function uploadBundleResources(filePath: string) {
+async function uploadBundleResources(filePath: string, publishable?: boolean) {
   console.log(`Loading bundle from path ${filePath}`);
 
   const data = fs.readFileSync(filePath, 'utf8');
@@ -259,7 +261,7 @@ async function uploadBundleResources(filePath: string) {
       console.log(`Connected to ${DB_URL}`);
       let resourcesUploaded = 0;
       let notUploaded = 0;
-      const modifiedEntries = modifyEntriesForUpload(entries);
+      const modifiedEntries = modifyEntriesForUpload(entries, publishable);
       const uploads = modifiedEntries.map(async entry => {
         // add Library owned extension
         if (entry.resource?.resourceType === 'Library' || entry.resource?.resourceType === 'Measure') {
@@ -300,7 +302,7 @@ async function uploadBundleResources(filePath: string) {
  * Convenience modification of an array of entries to create isOwned relationships and coerce to status active.
  * This lets us massage existing data that may not have the appropriate properties needed for a Publishable Measure Repository
  */
-export function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[]) {
+export function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirResource>[], publishable?: boolean) {
   // pre-process to find owned relationships
   const ownedUrls: string[] = [];
   const modifiedEntries = entries.map(ent => {
@@ -335,6 +337,11 @@ export function modifyEntriesForUpload(entries: fhir4.BundleEntry<fhir4.FhirReso
         updatedEntry.resource.id = uuidv4();
       }
       if (updatedEntry.resource.status != 'active' && process.env.AUTHORING === 'false') {
+        updatedEntry.resource.status = 'active';
+        console.warn(
+          `Resource ${updatedEntry.resource.resourceType}/${updatedEntry.resource.id} status has been coerced to 'active' for Publishable environment.`
+        );
+      } else if (publishable) {
         updatedEntry.resource.status = 'active';
         console.warn(
           `Resource ${updatedEntry.resource.resourceType}/${updatedEntry.resource.id} status has been coerced to 'active' for Publishable environment.`
@@ -437,6 +444,18 @@ if (process.argv[2] === 'delete') {
 
   const bundlePaths = getBundlePaths();
   loadEcqmContent(bundlePaths, url);
+} else if (process.argv[2] === 'loadPublishableContent') {
+  if (process.argv.length < 4) {
+    throw new Error('Filename argument required.');
+  }
+  loadBundle(process.argv[3], undefined, true)
+    .then(() => {
+      console.log('Done');
+    })
+    .catch(console.error)
+    .finally(() => {
+      Connection.connection?.close();
+    });
 } else {
   console.log('Usage: ts-node src/scripts/dbSetup.ts <create|delete|reset>');
 }
